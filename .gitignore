@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+conda-meta/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime cache and temporary files
+.cache/
+.cache*/
+logs/
+tmp/
+temp/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Raw data: keep extracted pkl features, ignore original labels/media/raw folders
+data/**
+!data/
+!data/**/*.pkl
+!data/README.md
+!data/.gitkeep
+
+# Large raw media anywhere
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.flac
+*.m4a
+
+# Runtime memories: keep folder shape only
+memories/**
+!memories/
+!memories/diaries/
+!memories/diaries/.gitkeep
+!memories/chroma/
+!memories/chroma/.gitkeep
+
+# Models are intentionally kept for private two-device sync.
+models/**/.cache/
+models/**/runs/
+models/**/*.tmp
+models/**/checkpoint-*/
+models/_*.pth
+
+# Reports
+reports/*.tmp
