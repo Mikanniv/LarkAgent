@@ -10,9 +10,6 @@ class FineGrainedEmotion:
     label: str
     valence: float
     arousal: float
-    dominance: float
-    stress: float
-    positivity: float
     confidence: float
 
 
@@ -50,9 +47,9 @@ def derive_architecture_emotion(
         1.0,
     )
     arousal = clamp(
-        0.45 * sigmoid(abs(audio_raw))
-        + 0.20 * sigmoid(abs(video_raw))
-        + 0.10 * sigmoid(abs(fusion_raw))
+        0.45 * sigmoid(abs(text_raw))
+        + 0.20 * sigmoid(abs(audio_raw))
+        + 0.10 * sigmoid(abs(video_raw))
         + 0.25 * expression_arousal,
         0.0,
         1.0,
@@ -74,10 +71,6 @@ def derive_architecture_emotion(
     )
     strength = clamp(0.55 * abs(valence) + 0.45 * arousal, 0.0, 1.0)
     confidence = clamp(0.4 * availability + 0.3 * agreement + 0.3 * strength, 0.0, 1.0)
-    dominance = clamp(0.5 + 0.35 * valence + 0.15 * confidence - 0.10 * arousal, 0.0, 1.0)
-    stress = clamp((1 - (valence + 1) / 2) * 0.5 + arousal * 0.28, 0.0, 1.0)
-    positivity = clamp((valence + 1) / 2, 0.0, 1.0)
-
     if valence >= 0.75 and arousal >= 0.50:
         label = "兴奋"
     elif valence >= 0.50:
@@ -97,19 +90,13 @@ def derive_architecture_emotion(
         label=label,
         valence=round(valence, 4),
         arousal=round(arousal, 4),
-        dominance=round(dominance, 4),
-        stress=round(stress, 4),
-        positivity=round(positivity, 4),
         confidence=round(confidence, 4),
     )
 
 
 def make_emotion_bars(emotion: FineGrainedEmotion) -> List[Dict[str, float]]:
     return [
-        {"name": "愉悦度", "value": emotion.positivity},
+        {"name": "Valence", "value": emotion.valence},
         {"name": "唤醒度", "value": emotion.arousal},
-        {"name": "掌控感", "value": emotion.dominance},
-        {"name": "压力值", "value": emotion.stress},
         {"name": "置信度", "value": emotion.confidence},
     ]
-

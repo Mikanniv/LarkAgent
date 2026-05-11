@@ -7,7 +7,15 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from core.config import ALLOWED_ORIGINS, FACE_TASK_PATH, STATIC_DIR
 from diary.store import get_diary_index_payload
-from server.service import analyze_and_reply, handle_diary_refresh, handle_diary_user
+from server.service import (
+    analyze_and_reply,
+    handle_diary_refresh,
+    handle_diary_user,
+    handle_memory_clear,
+    handle_memory_decay,
+    handle_memory_delete,
+    handle_memory_query,
+)
 
 
 class AppHandler(BaseHTTPRequestHandler):
@@ -22,13 +30,19 @@ class AppHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         route = unquote(parsed.path)
-        if route == "/":
+        if route in {"/", "/index.html"}:
             self.serve_file(STATIC_DIR / "index.html")
+            return
+        if route in {"/memory", "/memory.html"}:
+            self.serve_file(STATIC_DIR / "memory.html")
             return
         if route == "/api/diary":
             query = parse_qs(parsed.query)
             requested_date = (query.get("date") or [""])[0]
             self.send_json(get_diary_index_payload(requested_date))
+            return
+        if route == "/api/memory":
+            self.send_json(handle_memory_query(parse_qs(parsed.query)))
             return
         if route == "/face_landmarker.task":
             self.serve_file(FACE_TASK_PATH)
@@ -37,11 +51,23 @@ class AppHandler(BaseHTTPRequestHandler):
             relative = route.replace("/static/", "", 1)
             self.serve_file(STATIC_DIR / relative)
             return
+        static_asset = STATIC_DIR / route.lstrip("/")
+        if static_asset.exists() and static_asset.is_file():
+            self.serve_file(static_asset)
+            return
         self.send_error(HTTPStatus.NOT_FOUND, "Not found")
 
     def do_POST(self):
         route = unquote(urlparse(self.path).path)
-        if route not in {"/api/analyze", "/api/chat", "/api/diary/user", "/api/diary/refresh"}:
+        if route not in {
+            "/api/analyze",
+            "/api/chat",
+            "/api/diary/user",
+            "/api/diary/refresh",
+            "/api/memory/clear",
+            "/api/memory/delete",
+            "/api/memory/decay",
+        }:
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
             return
 
@@ -60,8 +86,14 @@ class AppHandler(BaseHTTPRequestHandler):
                 response = analyze_and_reply(payload, should_reply=True)
             elif route == "/api/diary/user":
                 response = handle_diary_user(payload)
-            else:
+            elif route == "/api/diary/refresh":
                 response = handle_diary_refresh(payload)
+            elif route == "/api/memory/clear":
+                response = handle_memory_clear(payload)
+            elif route == "/api/memory/delete":
+                response = handle_memory_delete(payload)
+            else:
+                response = handle_memory_decay(payload)
         except Exception as exc:
             self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return

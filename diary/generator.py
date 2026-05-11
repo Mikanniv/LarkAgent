@@ -1,12 +1,14 @@
 from typing import Dict, List
 
-from agent.ollama import call_ollama_chat
+from agent.kimi import call_kimi_chat
 from diary.store import diary_paths, get_diary_payload, write_markdown
 
 
 def build_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str) -> str:
     emotion = snapshot["emotion"]
     scores = snapshot["scores"]
+    valence = float(emotion.get("valence", 0.0))
+    arousal = float(emotion.get("arousal", 0.0))
     recent_history = snapshot.get("history", [])[-8:]
     user_focus = []
     agent_support = []
@@ -25,13 +27,11 @@ def build_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str) -
             f"# AI记 {date_key}",
             "",
             "## 今日概览",
-            f"今天整体更接近“{emotion['label']}”的状态，愉悦度 {emotion['positivity']:.2f}，"
-            f"唤醒度 {emotion['arousal']:.2f}，压力值 {emotion['stress']:.2f}。",
+            f"今天整体更接近“{emotion['label']}”的状态，valence {valence:.2f}，arousal {arousal:.2f}。",
             "",
             "## 用户状态",
             f"- 当前主基调：{emotion['label']}",
             f"- 自我感受线索：{user_focus_text}",
-            f"- 掌控感：{emotion['dominance']:.2f}",
             f"- 融合分数：{scores['fusion']:.2f}",
             "",
             "## 日记线索",
@@ -63,8 +63,8 @@ def build_ai_diary_prompt(date_key: str, snapshot: Dict, user_markdown: str) -> 
     )
     user = (
         f"日期：{date_key}\n"
-        f"主状态：{emotion['label']}，愉悦度={emotion['positivity']:.2f}，唤醒度={emotion['arousal']:.2f}，"
-        f"掌控感={emotion['dominance']:.2f}，压力值={emotion['stress']:.2f}，融合分数={scores['fusion']:.2f}\n\n"
+        f"主状态：{emotion['label']}，valence={float(emotion.get('valence', 0.0)):.2f}，"
+        f"arousal={float(emotion.get('arousal', 0.0)):.2f}，融合分数={scores['fusion']:.2f}\n\n"
         f"用户日记：\n{diary_text}\n\n"
         f"最近对话：\n{history_text}"
     )
@@ -82,7 +82,7 @@ def diary_looks_bad(text: str) -> bool:
 
 
 def generate_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str) -> str:
-    content, _ = call_ollama_chat(
+    content, _ = call_kimi_chat(
         build_ai_diary_prompt(date_key, snapshot, user_markdown),
         max_tokens=500,
         temperature=0.5,

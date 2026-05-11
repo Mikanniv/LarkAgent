@@ -107,7 +107,11 @@ class SelfMMRunner:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = SELFMM().to(self.device)
         self.tokenizer = BertTokenizerFast.from_pretrained(str(BERT_MODEL_PATH), local_files_only=True)
-        self.bert_model = BertModel.from_pretrained(str(BERT_MODEL_PATH), local_files_only=True).to(self.device)
+        self.bert_model = BertModel.from_pretrained(
+            str(BERT_MODEL_PATH),
+            local_files_only=True,
+            use_safetensors=False,
+        ).to(self.device)
         checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         state_dict = checkpoint["model"] if isinstance(checkpoint, dict) and "model" in checkpoint else checkpoint
         cleaned = {key.replace("Model.", "", 1): value for key, value in state_dict.items()}

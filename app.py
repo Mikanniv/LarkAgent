@@ -20,7 +20,8 @@ def main():
     worker = threading.Thread(target=ai_diary_worker, daemon=True)
     worker.start()
     server = ThreadingHTTPServer((HOST, PORT), AppHandler)
-    print(f"Server running at http://{HOST}:{PORT}")
+    display_host = "127.0.0.1" if HOST in {"0.0.0.0", "::"} else HOST
+    print(f"Server running at http://{display_host}:{PORT}")
     server.serve_forever()
 
 

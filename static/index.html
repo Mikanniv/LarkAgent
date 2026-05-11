@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="app-api-base" content="https://api.irises.me" />
     <title>云雀</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="noise noise-left"></div>
@@ -22,7 +22,7 @@
 
           <div class="intro-pill-row">
             <span class="status-pill">情绪模型：MulT</span>
-            <span class="status-pill">对话模型：Qwen</span>
+            <span class="status-pill">对话模型：Kimi K2.5</span>
             <span class="status-pill">实时音视频采集</span>
           </div>
         </div>
@@ -48,6 +48,7 @@
 
         <div class="intro-actions">
           <button class="intro-button" id="enterAppButton" type="button">开始与云雀聊天</button>
+          <a class="secondary-button" href="./memory.html">查看长期记忆库</a>
           <p class="intro-note">进入后你可以开启摄像头和麦克风，也可以只通过文字与云雀交流。</p>
         </div>
       </div>
@@ -96,11 +97,11 @@
 
             <div class="radar-like">
               <div class="metric-card">
-                <span>愉悦度</span>
-                <strong id="positivityValue">0.00</strong>
+                <span>Valence</span>
+                <strong id="valenceValue">0.00</strong>
               </div>
               <div class="metric-card">
-                <span>唤醒度</span>
+                <span>唤醒度 Arousal</span>
                 <strong id="arousalValue">0.00</strong>
               </div>
             </div>
@@ -121,7 +122,7 @@
             <div class="feature-panel">
               <div class="feature-head">
                 <h3>音频特征</h3>
-                <span class="mini-tag">来自浏览器音频分析</span>
+                <span class="mini-tag">模型输入的 33 维 LibROSA 特征</span>
               </div>
               <div class="feature-list" id="audioFeatureList"></div>
             </div>
@@ -129,7 +130,7 @@
             <div class="feature-panel">
               <div class="feature-head">
                 <h3>视频特征</h3>
-                <span class="mini-tag">来自 MediaPipe 表情识别</span>
+                <span class="mini-tag">当前采集的 9 维视频与表情特征</span>
               </div>
               <div class="feature-list" id="videoFeatureList"></div>
             </div>
@@ -207,6 +208,7 @@
             <div class="status-pill" id="backendStatus">模型加载中</div>
             <div class="status-pill" id="captureStatus">未开启音视频权限</div>
             <div class="status-pill" id="agentStatus">Agent 待命</div>
+            <a class="status-pill status-link" href="./memory.html">长期记忆库</a>
           </div>
         </section>
 
@@ -240,7 +242,6 @@
                 <textarea
                   id="messageInput"
                   rows="3"
-                  placeholder="输入你现在的状态，例如：我这几天感到十分焦虑，不知道该做什么。"
                 ></textarea>
                 <button class="send-button" type="submit">发送</button>
               </form>
@@ -260,12 +261,12 @@
         <div class="author-meta">
           <span class="mini-tag">作者：Irises</span>
           <span class="mini-tag">学院：计算机工程与技术学院</span>
-          <span class="mini-tag">指导老师：---</span>
+          <span class="mini-tag">指导老师：刘月华</span>
         </div>
       </div>
     </section>
 
     <canvas id="frameCanvas" width="320" height="240" hidden></canvas>
-    <script src="./app.js"></script>
+    <script src="app.js"></script>
   </body>
   </html>

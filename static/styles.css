@@ -163,7 +163,9 @@ h1 {
 }
 
 .intro-button,
+.secondary-button,
 .primary-button,
+.danger-button,
 .send-button {
   border: 0;
   cursor: pointer;
@@ -177,6 +179,19 @@ h1 {
   color: #12415f;
   font-size: 0.96rem;
   box-shadow: 0 18px 40px rgba(116, 183, 230, 0.22);
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: #184a67;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--panel-border);
 }
 
 .intro-note {
@@ -300,6 +315,11 @@ h1 {
   font-size: 0.8rem;
 }
 
+.status-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -326,6 +346,14 @@ h1 {
   border-radius: 999px;
   color: #154767;
   background: linear-gradient(135deg, #8ec8ec 0%, #b5ebe6 100%);
+}
+
+.danger-button {
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: #7b271f;
+  background: linear-gradient(135deg, #ffd3c2 0%, #ffe4dc 100%);
+  border: 1px solid rgba(190, 91, 75, 0.22);
 }
 
 .chat-panel {
@@ -457,6 +485,18 @@ textarea {
   padding: 12px 14px;
   border: 1px solid var(--panel-border);
   border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--text);
+  font: inherit;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.84);
   color: var(--text);
   font: inherit;
@@ -805,6 +845,135 @@ textarea {
   line-height: 1.6;
 }
 
+.memory-page {
+  min-height: 100vh;
+}
+
+.memory-shell {
+  width: min(1180px, calc(100% - 28px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.memory-header,
+.memory-result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.memory-debug-panel {
+  padding: 18px;
+}
+
+.memory-form {
+  display: grid;
+  gap: 14px;
+}
+
+.memory-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.memory-form textarea {
+  min-height: 96px;
+}
+
+.memory-controls {
+  display: grid;
+  grid-template-columns: 120px 1fr 180px auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.memory-result-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.memory-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.memory-card,
+.memory-empty {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 44px rgba(127, 171, 201, 0.1);
+}
+
+.memory-card {
+  display: grid;
+  gap: 12px;
+}
+
+.memory-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.memory-card-top span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(236, 248, 255, 0.86);
+  border: 1px solid rgba(126, 172, 206, 0.16);
+  color: #4e7791;
+  font-size: 0.78rem;
+}
+
+.memory-card p {
+  margin: 0;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.memory-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.memory-meta-grid span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(126, 172, 206, 0.12);
+  color: var(--muted);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.memory-meta-grid strong {
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+.memory-card footer {
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -862,8 +1031,24 @@ textarea {
   }
 
   .hero,
-  .media-chat-row {
+  .media-chat-row,
+  .memory-header,
+  .memory-result-head {
     grid-template-columns: 1fr;
+  }
+
+  .memory-header,
+  .memory-result-head {
+    display: grid;
+    align-items: start;
+  }
+
+  .memory-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .memory-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .status-stack {
@@ -895,7 +1080,9 @@ textarea {
 
   .composer,
   .radar-like,
-  .feature-item {
+  .feature-item,
+  .memory-controls,
+  .memory-meta-grid {
     grid-template-columns: 1fr;
   }
 

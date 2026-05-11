@@ -71,6 +71,6 @@ ALLOWED_ORIGINS = [
     for item in os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8001,http://localhost:8001").split(",")
     if item.strip()
 ]
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:4b")
-OLLAMA_API_BASE = os.getenv("OLLAMA_API_BASE", "http://127.0.0.1:11434")
-
+KIMI_API_KEY = os.getenv("KIMI_API") or os.getenv("KIMI_API_KEY", "")
+KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2.5")
+KIMI_API_BASE = os.getenv("KIMI_API_BASE", "https://api.moonshot.cn/v1")

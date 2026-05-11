@@ -83,7 +83,7 @@ const els = {
   audioBadge: document.getElementById("audioBadge"),
   emotionLabel: document.getElementById("emotionLabel"),
   fusionScore: document.getElementById("fusionScore"),
-  positivityValue: document.getElementById("positivityValue"),
+  valenceValue: document.getElementById("valenceValue"),
   arousalValue: document.getElementById("arousalValue"),
   emotionBars: document.getElementById("emotionBars"),
   fusionRaw: document.getElementById("fusionRaw"),
@@ -116,13 +116,29 @@ const els = {
 let previousSpectrum = [];
 let previousFrame = null;
 const API_BASE = resolveApiBase();
+const CHINA_TIME_ZONE = "Asia/Shanghai";
+const chinaDateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: CHINA_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
 const EMOTION_IDLE_DELAY_MS = 15000;
 const EMOTION_PERIODIC_INTERVAL_MS = 10000;
 const PROACTIVE_IDLE_MS = 120000;
 const PROACTIVE_COOLDOWN_MS = 120000;
 const EMOTION_MONITOR_INTERVAL_MS = 1000;
+const CHAT_HISTORY_STORAGE_KEY = "yunque.chat.history.v1";
+const MAX_STORED_CHAT_MESSAGES = 80;
 
 function resolveApiBase() {
+  if (["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(window.location.hostname)) {
+    return window.location.origin.replace(/\/$/, "");
+  }
   const metaBase = document.querySelector('meta[name="app-api-base"]')?.content?.trim() || "";
   if (metaBase) {
     return metaBase.replace(/\/$/, "");
@@ -135,6 +151,20 @@ function apiUrl(path) {
   return `${API_BASE}${normalizedPath}`;
 }
 
+function chinaDateParts(date = new Date()) {
+  return Object.fromEntries(chinaDateTimeFormatter.formatToParts(date).map((part) => [part.type, part.value]));
+}
+
+function chinaDateKey(date = new Date()) {
+  const parts = chinaDateParts(date);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function chinaTimestamp(date = new Date()) {
+  const parts = chinaDateParts(date);
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}+08:00`;
+}
+
 function enterApp() {
   if (els.introScreen) {
     els.introScreen.style.display = "none";
@@ -142,40 +172,41 @@ function enterApp() {
   if (els.appShell) {
     els.appShell.classList.remove("app-shell-hidden");
   }
+  if (!state.lastUserInteractionAt && !state.lastInteractionAt) {
+    state.lastUserInteractionAt = Date.now();
+    state.lastInteractionAt = state.lastUserInteractionAt;
+  }
+  startEmotionMonitorLoop();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function shouldOpenChatDirectly() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view") === "chat" || params.get("from") === "memory";
+}
+
 const AUDIO_FEATURE_META = [
-  ["volume", "音量", "判断说话强弱"],
-  ["peak", "峰值", "查看瞬时起伏"],
-  ["centroid", "频谱重心", "判断音色明亮"],
-  ["flux", "频谱变化", "判断变化速度"],
-  ["zcr", "过零率", "判断尖锐程度"],
-  ["rms", "能量均值", "反映整体力度"],
-  ["pitch", "音高", "感受语调高低"],
-  ["rolloff", "频谱截点", "看高频占比"],
-  ["flatness", "平坦度", "判断噪声多少"],
-  ["spread", "频谱扩散", "看声音分散"],
-  ["dynamicRange", "动态范围", "判断情绪起伏"],
+  ["logF0", "对数基频 logF0", "LibROSA yin 提取后取对数"],
+  ...Array.from({ length: 20 }, (_, index) => {
+    const number = String(index + 1).padStart(2, "0");
+    return [`mfcc_${number}`, `MFCC ${number}`, "梅尔频率倒谱系数"];
+  }),
+  ...Array.from({ length: 12 }, (_, index) => {
+    const number = String(index + 1).padStart(2, "0");
+    return [`cqt_${number}`, `CQT ${number}`, "常 Q 变换谱特征"];
+  }),
 ];
 
 const VIDEO_FEATURE_META = [
-  ["brightness", "亮度", "反映画面明暗"],
-  ["motion", "运动幅度", "看动作活跃度"],
-  ["contrast", "对比度", "看表情层次感"],
-  ["faceFocus", "人脸聚焦", "判断人脸稳定"],
-  ["smile", "笑容", "反映愉悦感"],
-  ["frown", "皱眉", "反映紧张感"],
-  ["mouthOpen", "张口", "看表达活跃度"],
-  ["browRaise", "挑眉", "反映惊讶关注"],
-  ["eyeWiden", "睁眼", "看警觉程度"],
-  ["jawOpen", "张颌", "反映情绪放大"],
-  ["cheekRaise", "脸颊抬起", "辅助判断笑意"],
-  ["squint", "眯眼", "反映压迫疲惫"],
-  ["saturation", "饱和度", "看画面色彩感"],
-  ["warmth", "暖色感", "辅助氛围判断"],
-  ["symmetry", "对称度", "看表情均衡感"],
-  ["stability", "稳定度", "判断动作平稳"],
+  ["smile", "笑容 smile", "MediaPipe 嘴角上扬"],
+  ["frown", "皱眉 frown", "眉部下压与嘴角下压"],
+  ["mouthOpen", "张口 mouthOpen", "嘴部张开程度"],
+  ["browRaise", "挑眉 browRaise", "眉毛上抬程度"],
+  ["eyeWiden", "睁眼 eyeWiden", "眼睛睁大程度"],
+  ["jawOpen", "张颌 jawOpen", "下颌张开程度"],
+  ["cheekRaise", "脸颊抬起 cheekRaise", "脸颊上提程度"],
+  ["squint", "眯眼 squint", "眼部眯起程度"],
+  ["blink", "眨眼 blink", "左右眼 blink 均值"],
 ];
 
 function average(values) {
@@ -223,11 +254,73 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function normalizeChatRole(role) {
+  return role === "assistant" || role === "agent" ? "assistant" : "user";
+}
+
+function bubbleClassForRole(role) {
+  return normalizeChatRole(role) === "assistant" ? "agent" : "user";
+}
+
+function roleLabel(role) {
+  return normalizeChatRole(role) === "assistant" ? "Agent" : "User";
+}
+
+function normalizeHistoryItem(item) {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+  const content = String(item.content || "").trim();
+  if (!content) {
+    return null;
+  }
+  return {
+    role: normalizeChatRole(item.role),
+    content,
+  };
+}
+
+function pruneChatHistory() {
+  if (state.history.length > MAX_STORED_CHAT_MESSAGES) {
+    state.history = state.history.slice(-MAX_STORED_CHAT_MESSAGES);
+  }
+}
+
+function saveChatHistory() {
+  try {
+    pruneChatHistory();
+    window.localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(state.history));
+  } catch (error) {
+    // 本地存储不可用时不影响聊天主流程。
+  }
+}
+
+function loadChatHistory() {
+  try {
+    const raw = window.localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    state.history = Array.isArray(parsed) ? parsed.map(normalizeHistoryItem).filter(Boolean) : [];
+    pruneChatHistory();
+  } catch (error) {
+    state.history = [];
+  }
+}
+
+function renderChatHistory() {
+  els.chatList.innerHTML = "";
+  if (!state.history.length) {
+    addBubble("assistant", "我已经准备好啦！你可以输入想和我说的话，我会结合多模态来回应你。");
+    return;
+  }
+  state.history.forEach((item) => addBubble(item.role, item.content));
+}
+
 function addBubble(role, content) {
+  const normalizedRole = normalizeChatRole(role);
   const wrapper = document.createElement("div");
-  wrapper.className = `bubble bubble-${role}`;
+  wrapper.className = `bubble bubble-${bubbleClassForRole(normalizedRole)}`;
   wrapper.innerHTML = `
-    <div class="bubble-role">${role === "user" ? "User" : "Agent"}</div>
+    <div class="bubble-role">${roleLabel(normalizedRole)}</div>
     <div class="bubble-body"></div>
   `;
   wrapper.querySelector(".bubble-body").textContent = content;
@@ -265,7 +358,7 @@ function formatDiaryDate(dateText) {
   if (!dateText) {
     return "今天";
   }
-  const today = new Date().toISOString().slice(0, 10);
+  const today = chinaDateKey();
   if (dateText === today) {
     return `${dateText} · 今天`;
   }
@@ -273,7 +366,7 @@ function formatDiaryDate(dateText) {
 }
 
 function monthKeyFromDate(dateText) {
-  return (dateText || new Date().toISOString().slice(0, 10)).slice(0, 7);
+  return (dateText || chinaDateKey()).slice(0, 7);
 }
 
 function moveCalendarMonth(offset) {
@@ -295,7 +388,7 @@ function renderCalendar() {
   const monthEnd = new Date(year, monthIndex + 1, 0);
   const leading = (monthStart.getDay() + 6) % 7;
   const totalCells = Math.ceil((leading + monthEnd.getDate()) / 7) * 7;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = chinaDateKey();
   const dateSet = new Set(state.diaryDates);
 
   els.calendarMonthLabel.textContent = `${year}年${monthIndex + 1}月`;
@@ -448,12 +541,38 @@ function styleFromValence(valence) {
   return "conic-gradient(from 20deg, #4cc6cf, #8fd4ff, #ffd071, #4cc6cf)";
 }
 
+function agentSourceLabel(source) {
+  if (source === "kimi") {
+    return "Kimi 已回应";
+  }
+  if (source === "scripted") {
+    return "脚本回应";
+  }
+  if (source === "fallback") {
+    return "本地兜底回应";
+  }
+  return "情绪已更新";
+}
+
+function agentSourceDetail(source) {
+  if (source === "kimi") {
+    return "Kimi";
+  }
+  if (source === "scripted") {
+    return "脚本规则";
+  }
+  if (source === "fallback") {
+    return "本地兜底";
+  }
+  return source || "none";
+}
+
 async function pingBackend() {
   try {
     const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "", audio: {}, video: {}, history: [], timestamp: new Date().toISOString() }),
+      body: JSON.stringify({ message: "", audio: {}, video: {}, history: [], timestamp: chinaTimestamp() }),
     });
     els.backendStatus.textContent = response.ok ? "后端已连接" : "后端不可用";
   } catch (error) {
@@ -511,10 +630,6 @@ function stopCapture() {
   previousFrame = null;
   state.audioStats.available = false;
   state.videoStats.available = false;
-  if (state.proactiveTimer) {
-    window.clearInterval(state.proactiveTimer);
-    state.proactiveTimer = null;
-  }
   if (state.captureLoopTimer) {
     window.clearInterval(state.captureLoopTimer);
     state.captureLoopTimer = null;
@@ -749,7 +864,6 @@ function captureAudioFeatures() {
     available: true,
   };
 
-  renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, state.audioStats);
 }
 
 function captureVideoFeatures() {
@@ -845,7 +959,6 @@ function captureVideoFeatures() {
     available: true,
   };
 
-  renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, state.videoStats);
 }
 
 function renderBars(items) {
@@ -867,16 +980,19 @@ function updateDashboard(result) {
   if (result.agent.source === "none") {
     els.agentStatus.textContent = "情绪已更新";
   }
-  els.agentStatus.textContent = result.agent.source === "ollama" ? "Agent 已回应" : "本地回应";
+  els.agentStatus.textContent = agentSourceLabel(result.agent.source);
   const emotionModelDetail = `情绪模型：${result.model.name}（${result.model.weights}）`;
   if (result.agent.source === "none") {
     els.agentStatus.textContent = "情绪已更新";
   }
   const agentDetail = result.agent.api_ready
-    ? `对话模型：${result.agent.model}；回复来源：${result.agent.source}${result.agent.error ? `；Ollama 调用失败，已自动切到本地回应（${result.agent.error}）` : ""}`
-    : "未检测到 Ollama，当前显示的是本地回应；装好并启动 Ollama 后会切到本地模型。";
+    ? `对话模型：${result.agent.model}；回复来源：${agentSourceDetail(result.agent.source)}${result.agent.error ? `；Kimi 未产出可用回复，已切到本地兜底（${result.agent.error}）` : ""}`
+    : "未检测到 Kimi API 配置，当前显示的是本地回应；请检查 .env 中的 KIMI_API 和 KIMI_MODEL。";
   const memoryDetail = result.memory?.memory_dir ? ` 记忆目录：${result.memory.memory_dir}` : "";
-  els.agentMeta.textContent = `${emotionModelDetail}；${agentDetail}${memoryDetail}`;
+  const longMemoryDetail = result.long_memory?.update?.written
+    ? `；长期记忆已更新：${result.long_memory.update.document}`
+    : `；召回长期记忆 ${result.long_memory?.recalled?.length ?? 0} 条`;
+  els.agentMeta.textContent = `${emotionModelDetail}；${agentDetail}${memoryDetail}${longMemoryDetail}`;
 
   if (result.agent.source === "none") {
     els.agentMeta.textContent = `${emotionModelDetail}；本次仅计算并保存情绪，未触发文本回复${memoryDetail}`;
@@ -884,7 +1000,7 @@ function updateDashboard(result) {
 
   els.emotionLabel.textContent = emotion.label;
   els.fusionScore.textContent = result.scores.fusion.toFixed(2);
-  els.positivityValue.textContent = emotion.positivity.toFixed(2);
+  els.valenceValue.textContent = emotion.valence.toFixed(2);
   els.arousalValue.textContent = emotion.arousal.toFixed(2);
   els.fusionRaw.textContent = result.scores.fusion.toFixed(2);
   els.textRaw.textContent = result.scores.text.toFixed(2);
@@ -895,8 +1011,8 @@ function updateDashboard(result) {
   state.lastEmotionComputedAt = Date.now();
 
   renderBars(result.emotion_bars);
-  renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, state.audioStats);
-  renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, state.videoStats);
+  renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, result.media_features?.audio || {});
+  renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, result.media_features?.video || {});
   if (result.memory) {
     if (!state.selectedDiaryDate || result.memory.date === state.selectedDiaryDate) {
       state.selectedDiaryDate = result.memory.date;
@@ -931,7 +1047,7 @@ async function sendMessage(message, options = {}) {
     audio: {},
     video: {},
     ...media,
-    timestamp: new Date().toISOString(),
+    timestamp: chinaTimestamp(),
   };
 
   els.agentStatus.textContent = "Agent 思考中";
@@ -952,6 +1068,7 @@ async function sendMessage(message, options = {}) {
   if (result.agent.reply) {
     state.history.push({ role: "assistant", content: result.agent.reply });
   }
+  saveChatHistory();
   state.lastInteractionAt = Date.now();
   if (visibleUserText) {
     state.lastUserInteractionAt = Date.now();
@@ -981,7 +1098,7 @@ async function computeEmotionOnly(reason = "periodic") {
         audio: {},
         video: {},
         ...media,
-        timestamp: new Date().toISOString(),
+        timestamp: chinaTimestamp(),
       }),
     });
     if (!response.ok) {
@@ -1025,7 +1142,7 @@ async function checkEmotionSchedule() {
 }
 
 async function checkIdleProactiveReply() {
-  if (!state.stream || state.proactivePending || els.messageInput.value.trim()) {
+  if (state.proactivePending || els.messageInput.value.trim()) {
     return;
   }
   const now = Date.now();
@@ -1036,7 +1153,7 @@ async function checkIdleProactiveReply() {
 }
 
 async function triggerProactiveReply(reason = "idle") {
-  if (!state.stream || state.proactivePending) {
+  if (state.proactivePending) {
     return;
   }
   if (els.messageInput.value.trim()) {
@@ -1050,9 +1167,11 @@ async function triggerProactiveReply(reason = "idle") {
     return;
   }
 
-  captureAudioFeatures();
-  captureVideoFeatures();
-  const media = await buildRecentMediaPayload();
+  if (state.stream) {
+    captureAudioFeatures();
+    captureVideoFeatures();
+  }
+  const media = state.stream ? await buildRecentMediaPayload() : {};
   state.proactivePending = true;
   els.agentStatus.textContent = "Agent 正在输入";
   const typingBubble = addTypingBubble();
@@ -1070,7 +1189,7 @@ async function triggerProactiveReply(reason = "idle") {
         audio: {},
         video: {},
         ...media,
-        timestamp: new Date().toISOString(),
+        timestamp: chinaTimestamp(),
       }),
     });
 
@@ -1079,7 +1198,10 @@ async function triggerProactiveReply(reason = "idle") {
     }
 
     const result = await response.json();
-    state.history.push({ role: "assistant", content: result.agent.reply });
+    if (result.agent.reply) {
+      state.history.push({ role: "assistant", content: result.agent.reply });
+      saveChatHistory();
+    }
     state.lastInteractionAt = Date.now();
     state.lastProactiveAt = Date.now();
     state.proactiveCooldownUntil = Date.now() + PROACTIVE_COOLDOWN_MS;
@@ -1161,7 +1283,12 @@ window.addEventListener("beforeunload", stopCapture);
 loadDiary();
 setJournalMode("ai");
 setSidebarView("emotion");
-renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, state.audioStats);
-renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, state.videoStats);
+loadChatHistory();
+renderChatHistory();
+renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, {});
+renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, {});
 startDiaryRefreshLoop();
 pingBackend();
+if (shouldOpenChatDirectly()) {
+  enterApp();
+}

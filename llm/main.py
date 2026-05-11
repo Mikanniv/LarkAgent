@@ -1,33 +1,18 @@
-import json
-import os
 from typing import Dict, List
-from urllib.request import Request, urlopen
+
+from agent.kimi import call_kimi_chat
 from llm.prompt import build_ai_diary_prompt, build_reply_prompt
 from memory import schema
 
 
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:4b")
-OLLAMA_API_BASE = os.getenv("OLLAMA_API_BASE", "http://127.0.0.1:11434")
+REPLY_MAX_TOKENS = 300
 
 
-def call_ollama(messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
-    endpoint = f"{OLLAMA_API_BASE.rstrip('/')}/api/chat"
-    payload = {
-        "model": OLLAMA_MODEL,
-        "messages": messages,
-        "stream": False,
-        "think": False,
-        "options": {"temperature": temperature},
-    }
-    request = Request(
-        endpoint,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urlopen(request, timeout=90) as response:
-        body = json.loads(response.read().decode("utf-8"))
-    return ((body.get("message") or {}).get("content") or "").strip()
+def call_text_model(messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = REPLY_MAX_TOKENS) -> str:
+    content, error = call_kimi_chat(messages, max_tokens=max_tokens, temperature=temperature)
+    if error:
+        raise RuntimeError(error)
+    return content
 
 
 def normalize_recall_results(results: Dict) -> List[Dict]:
@@ -70,14 +55,14 @@ def detect_emotion(user_input: str) -> Dict[str, float]:
 
 def generate_reply(user_input: str, recent_dialogue: List[Dict] | None = None) -> str:
     emotion = detect_emotion(user_input)
-    recalled = normalize_recall_results(schema.recall(user_input, k=5))
+    recalled = normalize_recall_results(schema.recall(user_input, k=3))
     messages = build_reply_prompt(user_input, recalled, emotion, recent_dialogue=recent_dialogue)
-    return call_ollama(messages, temperature=0.7)
+    return call_text_model(messages, temperature=0.7, max_tokens=REPLY_MAX_TOKENS)
 
 
 def generate_diary(conversations: List[Dict], memories: List[Dict] | None = None, emotion: Dict[str, float] | None = None) -> str:
     messages = build_ai_diary_prompt(conversations, memories=memories, emotion=emotion)
-    return call_ollama(messages, temperature=0.5)
+    return call_text_model(messages, temperature=0.5, max_tokens=260)
 
 
 def main() -> None:

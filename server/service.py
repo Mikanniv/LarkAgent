@@ -1,10 +1,12 @@
+import re
 import threading
 import time
+from difflib import SequenceMatcher
 from typing import Dict
 
-from agent.replies import agent_payload, generate_agent_reply
+from agent.replies import agent_payload, decide_memory_update, generate_agent_reply
 from core.config import AI_DIARY_UPDATE_INTERVAL, SELF_MM_MODEL_PATH
-from core.utils import memory_date_from_payload
+from core.utils import memory_date_from_payload, normalize_timestamp_to_china
 from diary.generator import refresh_ai_diary_from_snapshot
 from diary.store import get_diary_index_payload, get_diary_payload, save_user_diary
 from emotion.mapping import derive_architecture_emotion, make_emotion_bars
@@ -13,13 +15,17 @@ from emotion.media import (
     build_video_tensor_from_media,
     resolve_payload_media_path,
     resolve_text_input,
+    summarize_audio_tensor,
     summarize_video_tensor,
 )
 from emotion.models import SelfMMRunner
+from memory import schema as long_memory
 
 
 EMOTION_RUNNER = None
 MEMORY_LOCK = threading.Lock()
+LONG_MEMORY_LOCK = threading.Lock()
+DEFAULT_MEMORY_USER_ID = "local_user"
 MEMORY_STATE = {
     "dirty_dates": set(),
     "latest_by_date": {},
@@ -28,6 +34,220 @@ EMOTION_STATE = {
     "recent_va": [],
     "smoothed": None,
 }
+
+
+def normalize_memory_document(document: str) -> str:
+    text = (document or "").strip()
+    text = re.sub(r"^(用户表达了陪伴偏好|用户提到重要关系线索|用户当前重要状态或事件)[：:]\s*", "", text)
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[，。！？、；：,.!?;:\"'“”‘’（）()【】\\[\\]{}<>《》]", "", text)
+    return text.lower()
+
+
+def memory_topic_tokens(document: str) -> set[str]:
+    text = normalize_memory_document(document)
+    tokens: set[str] = set()
+    domain_terms = [
+        "保研",
+        "考研",
+        "复试",
+        "答辩",
+        "考试",
+        "项目",
+        "大创",
+        "论文",
+        "实习",
+        "工作",
+        "面试",
+        "朋友",
+        "家人",
+        "室友",
+        "对象",
+        "老师",
+        "同学",
+        "睡眠",
+        "失眠",
+    ]
+    for term in domain_terms:
+        if term in text:
+            tokens.add(term)
+    for match in re.finditer(r"[\u4e00-\u9fff]{2,6}", text):
+        word = match.group(0)
+        if word not in {"用户", "当前", "重要", "状态", "事件", "相关", "事情", "事宜", "已经", "曾经", "提及"}:
+            tokens.add(word)
+    return tokens
+
+
+def memory_specificity(document: str) -> int:
+    text = normalize_memory_document(document)
+    score = len(text)
+    for term in ("成功", "失败", "通过", "确定", "已经", "拿到", "确认", "录取", "完成"):
+        if term in text:
+            score += 20
+    for term in ("待确认", "是否", "记得", "相关事宜", "事情"):
+        if term in text:
+            score -= 12
+    return score
+
+
+def find_merge_candidate_locked(document: str, user_id: str, memory_type: str) -> Dict | None:
+    if memory_type not in {"event", "relationship", "preference", "routine"}:
+        return None
+    new_topics = memory_topic_tokens(document)
+    if not new_topics:
+        return None
+    limit = max(long_memory.collection.count(), 1)
+    existing_items = long_memory.list_memories(limit=limit, user_id=user_id or None, memory_type=memory_type or None)
+    for item in existing_items:
+        old_topics = memory_topic_tokens(item.get("document", ""))
+        if not old_topics or not (new_topics & old_topics):
+            continue
+        if memory_specificity(document) >= memory_specificity(item.get("document", "")):
+            return item
+    return None
+
+
+def find_duplicate_memory_locked(document: str, user_id: str, memory_type: str) -> Dict | None:
+    normalized = normalize_memory_document(document)
+    if not normalized:
+        return None
+    limit = max(long_memory.collection.count(), 1)
+    existing_items = long_memory.list_memories(limit=limit, user_id=user_id or None, memory_type=memory_type or None)
+    for item in existing_items:
+        existing = normalize_memory_document(item.get("document", ""))
+        if not existing:
+            continue
+        if existing == normalized or SequenceMatcher(None, existing, normalized).ratio() >= 0.94:
+            return item
+    return None
+
+
+def normalize_recall_results(results: Dict) -> list[Dict]:
+    ids = (results.get("ids") or [[]])[0]
+    documents = (results.get("documents") or [[]])[0]
+    metadatas = (results.get("metadatas") or [[]])[0]
+    distances = (results.get("distances") or [[]])[0]
+    scores = (results.get("scores") or [[]])[0]
+    semantic_similarities = (results.get("semantic_similarities") or [[]])[0]
+    recencies = (results.get("recencies") or [[]])[0]
+    items = []
+    for index, document in enumerate(documents):
+        item = {
+            "id": ids[index] if index < len(ids) else "",
+            "document": document,
+            "metadata": metadatas[index] if index < len(metadatas) else {},
+            "distance": distances[index] if index < len(distances) else None,
+            "score": scores[index] if index < len(scores) else None,
+        }
+        if index < len(semantic_similarities):
+            item["semantic_similarity"] = semantic_similarities[index]
+        if index < len(recencies):
+            item["recency"] = recencies[index]
+        items.append(item)
+    return items
+
+
+def recall_long_memories(
+    query: str,
+    k: int = 3,
+    user_id: str | None = DEFAULT_MEMORY_USER_ID,
+    memory_type: str | None = None,
+) -> list[Dict]:
+    if not query.strip():
+        return []
+    with LONG_MEMORY_LOCK:
+        results = long_memory.recall(
+            query,
+            k=k,
+            user_id=user_id or None,
+            memory_type=memory_type or None,
+        )
+    return normalize_recall_results(results)
+
+
+def list_long_memories(
+    limit: int = 50,
+    offset: int = 0,
+    user_id: str | None = DEFAULT_MEMORY_USER_ID,
+    memory_type: str | None = None,
+) -> list[Dict]:
+    with LONG_MEMORY_LOCK:
+        return long_memory.list_memories(
+            limit=limit,
+            offset=offset,
+            user_id=user_id or None,
+            memory_type=memory_type or None,
+        )
+
+
+def write_memory_from_decision(
+    decision: Dict,
+    user_id: str,
+    date_key: str,
+    timestamp: str | None,
+    emotion: Dict[str, float],
+    modalities: Dict[str, bool],
+) -> Dict:
+    if not decision.get("should_write"):
+        return {"written": False, "decision": decision}
+    document = (decision.get("document") or "").strip()
+    if not document:
+        return {"written": False, "decision": {**decision, "reason": "缺少可写入内容"}}
+
+    memory_source = decision.get("source") if decision.get("source") in {"conversation", "inference"} else "conversation"
+    memory_type = decision.get("type") if decision.get("type") in {"event", "routine", "preference", "relationship", "summary"} else "event"
+    memory_owner = "ai" if memory_source == "inference" else "user"
+    memory = long_memory.create_memory(
+        document=document,
+        date=date_key,
+        timestamp=timestamp,
+        user=memory_owner,
+        user_id=user_id,
+        type=memory_type,
+        source=memory_source,
+        has_emotion=True,
+        valence=emotion.get("valence", 0.0),
+        arousal=emotion.get("arousal", 0.0),
+        confidence=decision.get("confidence", 0.7),
+        text=modalities.get("text", False),
+        audio=modalities.get("audio", False),
+        video=modalities.get("video", False),
+    )
+    with LONG_MEMORY_LOCK:
+        duplicate = find_duplicate_memory_locked(document, user_id=user_id, memory_type=memory_type)
+        if duplicate:
+            return {
+                "written": False,
+                "duplicate": True,
+                "duplicate_id": duplicate.get("id"),
+                "document": document,
+                "decision": {**decision, "reason": "已存在相同或高度相似的长期记忆，跳过写入"},
+            }
+        merge_candidate = find_merge_candidate_locked(document, user_id=user_id, memory_type=memory_type)
+        if merge_candidate:
+            memory_id = merge_candidate["id"]
+            old_metadata = merge_candidate.get("metadata") or {}
+            old_importance = float(old_metadata.get("importance_0", old_metadata.get("importance", 0.0)))
+            memory["metadata"]["importance_0"] = max(old_importance, float(memory["metadata"].get("importance_0", 0.0)))
+            memory["metadata"]["importance"] = memory["metadata"]["importance_0"]
+            long_memory.update_memory(memory_id, document=document, metadata_updates=memory["metadata"])
+            return {
+                "written": True,
+                "merged": True,
+                "id": memory_id,
+                "old_document": merge_candidate.get("document", ""),
+                "document": document,
+                "metadata": memory["metadata"],
+                "decision": {**decision, "reason": "已合并同主题长期记忆，使用更新且更明确的状态"},
+            }
+        memory_id = long_memory.add_memory(memory)
+    return {
+        "written": True,
+        "id": memory_id,
+        "document": document,
+        "metadata": memory["metadata"],
+        "decision": decision,
+    }
 
 
 def update_emotion_state(emotion: Dict[str, float]) -> Dict[str, object]:
@@ -104,7 +324,8 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
     user_text, text_source = resolve_text_input(payload)
     history = payload.get("history", []) or []
     proactive = bool(payload.get("proactive"))
-    date_key = memory_date_from_payload(payload.get("timestamp", ""))
+    timestamp = normalize_timestamp_to_china(payload.get("timestamp", ""))
+    date_key = memory_date_from_payload(timestamp)
     temp_paths = []
     audio_path, audio_is_temp = resolve_payload_media_path(payload, "audio")
     video_path, video_is_temp = resolve_payload_media_path(payload, "video")
@@ -116,6 +337,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
     try:
         audio_tensor, audio_meta = build_audio_tensor_from_media(audio_path or video_path)
         video_tensor, video_meta = build_video_tensor_from_media(video_path)
+        audio_summary = summarize_audio_tensor(audio_tensor)
         video_summary = summarize_video_tensor(video_tensor)
         modalities = {
             "text": bool(user_text),
@@ -130,6 +352,11 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
         agent_reply = ""
         agent_source = "none"
         agent_error = ""
+        long_memory_payload = {
+            "user_id": DEFAULT_MEMORY_USER_ID,
+            "recalled": [],
+            "update": {"written": False, "decision": {"should_write": False, "reason": "未触发文本回复"}},
+        }
         if should_reply:
             if proactive:
                 raw_scores = {
@@ -143,13 +370,39 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
                     ],
                     "proactive_reason": payload.get("proactive_reason") or payload.get("proactiveReason") or "主动回应",
                 }
+            memory_query = user_text or raw_scores.get("proactive_reason") or "主动关心当前状态"
+            recalled_memories = recall_long_memories(memory_query, k=3, user_id=DEFAULT_MEMORY_USER_ID)
             agent_reply, agent_source, agent_error = generate_agent_reply(
                 user_text,
                 emotion,
                 raw_scores,
                 history,
+                memories=recalled_memories,
                 proactive=proactive,
             )
+            decision, decision_source = decide_memory_update(
+                user_text,
+                agent_reply,
+                emotion,
+                raw_scores,
+                recalled_memories,
+                history,
+                use_llm=agent_source == "kimi",
+            )
+            memory_update = write_memory_from_decision(
+                decision,
+                user_id=DEFAULT_MEMORY_USER_ID,
+                date_key=date_key,
+                timestamp=timestamp,
+                emotion=emotion.__dict__,
+                modalities=modalities,
+            )
+            memory_update["decision_source"] = decision_source
+            long_memory_payload = {
+                "user_id": DEFAULT_MEMORY_USER_ID,
+                "recalled": recalled_memories,
+                "update": memory_update,
+            }
         predicted_history = history + ([{"role": "user", "content": user_text}] if user_text else [])
         if should_reply and agent_reply:
             predicted_history.append({"role": "assistant", "content": agent_reply})
@@ -159,10 +412,10 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
                 "emotion": emotion.__dict__,
                 "scores": raw_scores,
                 "history": predicted_history,
-                "audio": audio_meta,
+                "audio": audio_summary,
                 "video": video_summary,
                 "modalities": modalities,
-                "timestamp": payload.get("timestamp"),
+                "timestamp": timestamp,
             },
         )
 
@@ -174,6 +427,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
             "emotion_bars": make_emotion_bars(emotion),
             "agent": agent_payload(agent_reply, agent_source, agent_error),
             "memory": get_diary_payload(date_key),
+            "long_memory": long_memory_payload,
             "modal_inputs": {
                 "text_available": modalities["text"],
                 "text_source": text_source,
@@ -183,9 +437,10 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
                 "video": video_meta,
             },
             "media_features": {
+                "audio": audio_summary,
                 "video": video_summary,
             },
-            "timestamp": payload.get("timestamp"),
+            "timestamp": timestamp,
         }
     finally:
         for path in temp_paths:
@@ -208,3 +463,73 @@ def handle_diary_refresh(payload: Dict) -> Dict:
     date_key = payload.get("date") or memory_date_from_payload("")
     refreshed = refresh_ai_diary(date_key)
     return {"ok": refreshed, **get_diary_index_payload(date_key)}
+
+
+def handle_memory_query(params: Dict[str, list[str]]) -> Dict:
+    query = (params.get("query") or [""])[0].strip()
+    user_id = (params.get("user_id") or params.get("userId") or [DEFAULT_MEMORY_USER_ID])[0]
+    memory_type = (params.get("type") or [""])[0]
+    try:
+        k = int((params.get("k") or ["10"])[0])
+    except ValueError:
+        k = 10
+    k = max(1, min(k, 50))
+    if query:
+        items = recall_long_memories(query, k=k, user_id=user_id, memory_type=memory_type)
+        mode = "recall"
+    else:
+        items = list_long_memories(limit=k, user_id=user_id, memory_type=memory_type)
+        mode = "list"
+    with LONG_MEMORY_LOCK:
+        count = long_memory.collection.count()
+    return {
+        "mode": mode,
+        "query": query,
+        "k": k,
+        "user_id": user_id,
+        "count": count,
+        "items": items,
+    }
+
+
+def handle_memory_delete(payload: Dict) -> Dict:
+    memory_id = (payload.get("id") or "").strip()
+    if not memory_id:
+        return {"ok": False, "error": "missing id"}
+    with LONG_MEMORY_LOCK:
+        long_memory.delete_memory(memory_id)
+        count = long_memory.collection.count()
+    return {"ok": True, "id": memory_id, "count": count}
+
+
+def handle_memory_clear(payload: Dict) -> Dict:
+    user_id = (payload.get("user_id") or payload.get("userId") or DEFAULT_MEMORY_USER_ID).strip()
+    memory_type = (payload.get("type") or "").strip()
+    with LONG_MEMORY_LOCK:
+        items = long_memory.list_memories(
+            limit=max(long_memory.collection.count(), 1),
+            user_id=user_id or None,
+            memory_type=memory_type or None,
+        )
+        for item in items:
+            long_memory.delete_memory(item["id"])
+        count = long_memory.collection.count()
+    return {
+        "ok": True,
+        "deleted": len(items),
+        "user_id": user_id,
+        "type": memory_type,
+        "count": count,
+    }
+
+
+def handle_memory_decay(payload: Dict) -> Dict:
+    threshold = payload.get("threshold", 0.05)
+    try:
+        threshold = float(threshold)
+    except (TypeError, ValueError):
+        threshold = 0.05
+    with LONG_MEMORY_LOCK:
+        actions = long_memory.apply_decay(threshold=threshold, dry_run=False)
+        count = long_memory.collection.count()
+    return {"ok": True, "threshold": threshold, "actions": actions, "count": count}

@@ -19,6 +19,10 @@ from emotion_model.train_self_mm_mediapipe import (
     prepare_face_task,
 )
 
+AUDIO_FEATURE_ORDER = ["logF0"] + [f"mfcc_{index:02d}" for index in range(1, 21)] + [
+    f"cqt_{index:02d}" for index in range(1, 13)
+]
+
 
 def first_non_empty_text(*values: object) -> str:
     for value in values:
@@ -160,3 +164,9 @@ def summarize_video_tensor(video_tensor: torch.Tensor) -> Dict[str, float]:
     arr = video_tensor.detach().cpu().numpy()[0]
     values = arr.mean(axis=0) if arr.size else np.zeros((VIDEO_DIM,), dtype=np.float32)
     return {name: float(values[index]) for index, name in enumerate(VIDEO_FEATURE_ORDER)}
+
+
+def summarize_audio_tensor(audio_tensor: torch.Tensor) -> Dict[str, float]:
+    arr = audio_tensor.detach().cpu().numpy()[0]
+    values = arr.mean(axis=0) if arr.size else np.zeros((AUDIO_DIM,), dtype=np.float32)
+    return {name: float(values[index]) for index, name in enumerate(AUDIO_FEATURE_ORDER)}
