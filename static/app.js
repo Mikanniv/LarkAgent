@@ -16,6 +16,7 @@ const state = {
   emotionMonitorTimer: null,
   diaryRefreshTimer: null,
   diarySaveTimer: null,
+  speechReplyTimer: null,
   selectedDiaryDate: "",
   diaryDates: [],
   selectedDiaryIsToday: true,
@@ -27,6 +28,7 @@ const state = {
   lastPeriodicEmotionAt: 0,
   emotionRequestPending: false,
   chatRequestPending: false,
+  chatRequestPromise: null,
   speechReplyPending: false,
   proactivePending: false,
   proactiveCooldownUntil: 0,
@@ -702,6 +704,17 @@ function consumeSpeechTranscript() {
   return transcript;
 }
 
+function clearPendingSpeechReply(resetTranscript = false) {
+  if (state.speechReplyTimer) {
+    window.clearTimeout(state.speechReplyTimer);
+    state.speechReplyTimer = null;
+  }
+  state.speechReplyPending = false;
+  if (resetTranscript) {
+    state.speechTranscript = "";
+  }
+}
+
 function hasClearSemanticText(text) {
   const normalized = (text || "").replace(/\s+/g, "");
   if (normalized.length < 2) {
@@ -718,7 +731,12 @@ function maybeReplyToSpeechTranscript() {
     return;
   }
   state.speechReplyPending = true;
-  window.setTimeout(async () => {
+  state.speechReplyTimer = window.setTimeout(async () => {
+    state.speechReplyTimer = null;
+    if (state.chatRequestPending || els.messageInput.value.trim()) {
+      state.speechReplyPending = false;
+      return;
+    }
     const transcript = consumeSpeechTranscript();
     if (!hasClearSemanticText(transcript)) {
       state.speechReplyPending = false;
@@ -989,53 +1007,57 @@ async function sendMessage(message, options = {}) {
     throw new Error("chat_request_pending");
   }
   state.chatRequestPending = true;
-  captureAudioFeatures();
-  captureVideoFeatures();
-  try {
-    const media = await buildRecentMediaPayload();
-    const transcript = options.transcript || (message ? "" : consumeSpeechTranscript());
-    const visibleUserText = message || transcript;
+  state.chatRequestPromise = (async () => {
+    captureAudioFeatures();
+    captureVideoFeatures();
+    try {
+      const media = await buildRecentMediaPayload();
+      const transcript = options.transcript || (message ? "" : consumeSpeechTranscript());
+      const visibleUserText = message || transcript;
 
-    const payload = {
-      message,
-      transcript,
-      proactive_reason: options.proactiveReason || "",
-      history: state.history,
-      audio: {},
-      video: {},
-      ...media,
-      timestamp: chinaTimestamp(),
-    };
+      const payload = {
+        message,
+        transcript,
+        proactive_reason: options.proactiveReason || "",
+        history: state.history,
+        audio: {},
+        video: {},
+        ...media,
+        timestamp: chinaTimestamp(),
+      };
 
-    els.agentStatus.textContent = "Agent 思考中";
-    const response = await fetch(apiUrl("/api/chat"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      els.agentStatus.textContent = "Agent 思考中";
+      const response = await fetch(apiUrl("/api/chat"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
 
-    const result = await response.json();
-    if (visibleUserText) {
-      state.history.push({ role: "user", content: visibleUserText });
+      const result = await response.json();
+      if (visibleUserText) {
+        state.history.push({ role: "user", content: visibleUserText });
+      }
+      if (result.agent.reply) {
+        state.history.push({ role: "assistant", content: result.agent.reply });
+      }
+      saveChatHistory();
+      state.lastInteractionAt = Date.now();
+      if (visibleUserText) {
+        state.lastUserInteractionAt = Date.now();
+        state.lastPeriodicEmotionAt = 0;
+      }
+      updateDashboard(result);
+      return result;
+    } finally {
+      state.chatRequestPending = false;
+      state.chatRequestPromise = null;
     }
-    if (result.agent.reply) {
-      state.history.push({ role: "assistant", content: result.agent.reply });
-    }
-    saveChatHistory();
-    state.lastInteractionAt = Date.now();
-    if (visibleUserText) {
-      state.lastUserInteractionAt = Date.now();
-      state.lastPeriodicEmotionAt = 0;
-    }
-    updateDashboard(result);
-    return result;
-  } finally {
-    state.chatRequestPending = false;
-  }
+  })();
+  return state.chatRequestPromise;
 }
 
 async function computeEmotionOnly(reason = "periodic") {
@@ -1216,12 +1238,17 @@ els.journalUserTab.addEventListener("click", () => setJournalMode("user"));
 els.chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (state.chatRequestPending) {
-    return;
+    try {
+      await state.chatRequestPromise;
+    } catch (error) {
+      // 等待上一条回复结束，不在这里额外提示失败。
+    }
   }
   const message = els.messageInput.value.trim();
   if (!message) {
     return;
   }
+  clearPendingSpeechReply(true);
 
   addBubble("user", message);
   els.messageInput.value = "";
