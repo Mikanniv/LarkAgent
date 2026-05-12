@@ -12,11 +12,6 @@ class FineGrainedEmotion:
     arousal: float
     confidence: float
 
-
-def sigmoid(value: float) -> float:
-    return 1.0 / (1.0 + math.exp(-value))
-
-
 def derive_architecture_emotion(
     raw_scores: Dict[str, float],
     video: Dict[str, float],
@@ -26,13 +21,13 @@ def derive_architecture_emotion(
     text_raw = raw_scores["text"]
     audio_raw = raw_scores["audio"]
     video_raw = raw_scores["video"]
-    valence = math.tanh((0.55 * fusion_raw + 0.25 * text_raw + 0.15 * video_raw + 0.05 * audio_raw) / 1.8)
+    valence = math.tanh(0.55 * fusion_raw + 0.25 * text_raw + 0.15 * video_raw + 0.05 * audio_raw)
     valence = clamp(
         valence
-        + 0.18 * float(video.get("smile", 0.0))
-        + 0.08 * float(video.get("cheekRaise", 0.0))
-        - 0.18 * float(video.get("frown", 0.0))
-        - 0.06 * float(video.get("squint", 0.0)),
+        + 0.22 * float(video.get("smile", 0.0))
+        + 0.10 * float(video.get("cheekRaise", 0.0))
+        - 0.22 * float(video.get("frown", 0.0))
+        - 0.08 * float(video.get("squint", 0.0)),
         -1.0,
         1.0,
     )
@@ -46,14 +41,13 @@ def derive_architecture_emotion(
         0.0,
         1.0,
     )
-    arousal = clamp(
-        0.45 * sigmoid(abs(text_raw))
-        + 0.20 * sigmoid(abs(audio_raw))
-        + 0.10 * sigmoid(abs(video_raw))
-        + 0.25 * expression_arousal,
-        0.0,
-        1.0,
+    arousal_base = (
+        0.45 * math.tanh(abs(text_raw))
+        + 0.20 * math.tanh(abs(audio_raw))
+        + 0.10 * math.tanh(abs(video_raw))
+        + 0.25 * expression_arousal
     )
+    arousal = clamp(0.1 + arousal_base + expression_arousal, 0.0, 1.0)
     availability = clamp(
         0.50 * float(modalities.get("text", False))
         + 0.35 * float(modalities.get("audio", False))
@@ -71,13 +65,13 @@ def derive_architecture_emotion(
     )
     strength = clamp(0.55 * abs(valence) + 0.45 * arousal, 0.0, 1.0)
     confidence = clamp(0.4 * availability + 0.3 * agreement + 0.3 * strength, 0.0, 1.0)
-    if valence >= 0.75 and arousal >= 0.50:
+    if valence >= 0.60 and arousal >= 0.50:
         label = "兴奋"
-    elif valence >= 0.50:
+    elif valence >= 0.35:
         label = "高兴"
-    elif valence <= -0.75:
+    elif valence <= -0.60:
         label = "愤怒"
-    elif valence <= -0.50:
+    elif valence <= -0.35:
         label = "紧张"
     elif valence >= 0.20 and arousal < 0.50:
         label = "平静"

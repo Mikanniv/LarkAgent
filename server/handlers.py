@@ -21,6 +21,21 @@ from server.service import (
 
 class AppHandler(BaseHTTPRequestHandler):
     @staticmethod
+    def asset_version() -> str:
+        candidates = [
+            STATIC_DIR / "app.js",
+            STATIC_DIR / "memory.js",
+            STATIC_DIR / "styles.css",
+        ]
+        latest_mtime = 0
+        for candidate in candidates:
+            try:
+                latest_mtime = max(latest_mtime, int(candidate.stat().st_mtime))
+            except FileNotFoundError:
+                continue
+        return str(latest_mtime or 1)
+
+    @staticmethod
     def _is_client_disconnect(exc: Exception) -> bool:
         return isinstance(exc, (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, socket.timeout))
 
@@ -44,10 +59,10 @@ class AppHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         route = unquote(parsed.path)
         if route in {"/", "/index.html"}:
-            self.serve_file(STATIC_DIR / "index.html")
+            self.serve_html(STATIC_DIR / "index.html")
             return
         if route in {"/memory", "/memory.html"}:
-            self.serve_file(STATIC_DIR / "memory.html")
+            self.serve_html(STATIC_DIR / "memory.html")
             return
         if route == "/api/diary":
             query = parse_qs(parsed.query)
@@ -121,6 +136,19 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_cors_headers()
         self.send_header("Content-Type", mime_type or "application/octet-stream")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.safe_write(data)
+
+    def serve_html(self, path: Path):
+        if not path.exists() or not path.is_file():
+            self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+            return
+        html = path.read_text(encoding="utf-8").replace("{{asset_version}}", self.asset_version())
+        data = html.encode("utf-8")
+        self.send_response(HTTPStatus.OK)
+        self.send_cors_headers()
+        self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.safe_write(data)

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="app-api-base" content="https://api.irises.me" />
     <title>云雀</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v={{asset_version}}" />
   </head>
   <body>
     <div class="noise noise-left"></div>
@@ -262,6 +262,6 @@
     </section>
 
     <canvas id="frameCanvas" width="320" height="240" hidden></canvas>
-    <script src="app.js"></script>
+    <script src="app.js?v={{asset_version}}"></script>
   </body>
-  </html>
+</html>
