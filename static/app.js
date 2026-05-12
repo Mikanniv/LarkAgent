@@ -26,6 +26,7 @@ const state = {
   lastEmotionComputedAt: 0,
   lastPeriodicEmotionAt: 0,
   emotionRequestPending: false,
+  chatRequestPending: false,
   speechReplyPending: false,
   proactivePending: false,
   proactiveCooldownUntil: 0,
@@ -90,8 +91,6 @@ const els = {
   textRaw: document.getElementById("textRaw"),
   audioRaw: document.getElementById("audioRaw"),
   videoRaw: document.getElementById("videoRaw"),
-  modelTag: document.getElementById("modelTag"),
-  agentMeta: document.getElementById("agentMeta"),
   emotionRing: document.getElementById("emotionRing"),
   sidebarEmotionTab: document.getElementById("sidebarEmotionTab"),
   sidebarDiaryTab: document.getElementById("sidebarDiaryTab"),
@@ -477,7 +476,6 @@ async function loadDiary(dateText = "") {
     }
     const payload = await response.json();
     renderDiarySelection(payload);
-    els.agentMeta.textContent = `记忆目录：${payload.selected.memory_dir}`;
   } catch (error) {
     els.aiDiary.textContent = "日记文件读取失败，请稍后重试。";
   }
@@ -495,9 +493,9 @@ async function saveUserDiary() {
     }
     const payload = await response.json();
     renderDiarySelection(payload);
-    els.agentMeta.textContent = `用户日记已保存到：${payload.selected.user_path}`;
+    els.diaryEditState.textContent = "用户日记已保存";
   } catch (error) {
-    els.agentMeta.textContent = "用户日记保存失败，请稍后重试。";
+    els.diaryEditState.textContent = "用户日记保存失败";
   }
 }
 
@@ -541,32 +539,6 @@ function styleFromValence(valence) {
   return "conic-gradient(from 20deg, #4cc6cf, #8fd4ff, #ffd071, #4cc6cf)";
 }
 
-function agentSourceLabel(source) {
-  if (source === "kimi") {
-    return "Kimi 已回应";
-  }
-  if (source === "scripted") {
-    return "脚本回应";
-  }
-  if (source === "fallback") {
-    return "本地兜底回应";
-  }
-  return "情绪已更新";
-}
-
-function agentSourceDetail(source) {
-  if (source === "kimi") {
-    return "Kimi";
-  }
-  if (source === "scripted") {
-    return "脚本规则";
-  }
-  if (source === "fallback") {
-    return "本地兜底";
-  }
-  return source || "none";
-}
-
 async function pingBackend() {
   try {
     const response = await fetch(apiUrl("/api/analyze"), {
@@ -592,7 +564,7 @@ async function toggleCapture() {
       audio: true,
     });
   } catch (error) {
-    els.captureStatus.textContent = "采集权限被拒绝";
+    els.captureStatus.textContent = "权限被拒绝";
     return;
   }
 
@@ -739,7 +711,7 @@ function hasClearSemanticText(text) {
 }
 
 function maybeReplyToSpeechTranscript() {
-  if (state.speechReplyPending || els.messageInput.value.trim()) {
+  if (state.speechReplyPending || state.chatRequestPending || els.messageInput.value.trim()) {
     return;
   }
   if (!hasClearSemanticText(state.speechTranscript)) {
@@ -976,27 +948,7 @@ function renderBars(items) {
 
 function updateDashboard(result) {
   const emotion = result.emotion;
-  els.modelTag.textContent = result.model.name;
-  if (result.agent.source === "none") {
-    els.agentStatus.textContent = "情绪已更新";
-  }
-  els.agentStatus.textContent = agentSourceLabel(result.agent.source);
-  const emotionModelDetail = `情绪模型：${result.model.name}（${result.model.weights}）`;
-  if (result.agent.source === "none") {
-    els.agentStatus.textContent = "情绪已更新";
-  }
-  const agentDetail = result.agent.api_ready
-    ? `对话模型：${result.agent.model}；回复来源：${agentSourceDetail(result.agent.source)}${result.agent.error ? `；Kimi 未产出可用回复，已切到本地兜底（${result.agent.error}）` : ""}`
-    : "未检测到 Kimi API 配置，当前显示的是本地回应；请检查 .env 中的 KIMI_API 和 KIMI_MODEL。";
-  const memoryDetail = result.memory?.memory_dir ? ` 记忆目录：${result.memory.memory_dir}` : "";
-  const longMemoryDetail = result.long_memory?.update?.written
-    ? `；长期记忆已更新：${result.long_memory.update.document}`
-    : `；召回长期记忆 ${result.long_memory?.recalled?.length ?? 0} 条`;
-  els.agentMeta.textContent = `${emotionModelDetail}；${agentDetail}${memoryDetail}${longMemoryDetail}`;
-
-  if (result.agent.source === "none") {
-    els.agentMeta.textContent = `${emotionModelDetail}；本次仅计算并保存情绪，未触发文本回复${memoryDetail}`;
-  }
+  els.agentStatus.textContent = result.agent.source === "none" ? "情绪已更新" : "云雀已回应";
 
   els.emotionLabel.textContent = emotion.label;
   els.fusionScore.textContent = result.scores.fusion.toFixed(2);
@@ -1033,53 +985,61 @@ function updateDashboard(result) {
 }
 
 async function sendMessage(message, options = {}) {
+  if (state.chatRequestPending) {
+    throw new Error("chat_request_pending");
+  }
+  state.chatRequestPending = true;
   captureAudioFeatures();
   captureVideoFeatures();
-  const media = await buildRecentMediaPayload();
-  const transcript = options.transcript || (message ? "" : consumeSpeechTranscript());
-  const visibleUserText = message || transcript;
+  try {
+    const media = await buildRecentMediaPayload();
+    const transcript = options.transcript || (message ? "" : consumeSpeechTranscript());
+    const visibleUserText = message || transcript;
 
-  const payload = {
-    message,
-    transcript,
-    proactive_reason: options.proactiveReason || "",
-    history: state.history,
-    audio: {},
-    video: {},
-    ...media,
-    timestamp: chinaTimestamp(),
-  };
+    const payload = {
+      message,
+      transcript,
+      proactive_reason: options.proactiveReason || "",
+      history: state.history,
+      audio: {},
+      video: {},
+      ...media,
+      timestamp: chinaTimestamp(),
+    };
 
-  els.agentStatus.textContent = "Agent 思考中";
-  const response = await fetch(apiUrl("/api/chat"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+    els.agentStatus.textContent = "Agent 思考中";
+    const response = await fetch(apiUrl("/api/chat"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-  const result = await response.json();
-  if (visibleUserText) {
-    state.history.push({ role: "user", content: visibleUserText });
+    const result = await response.json();
+    if (visibleUserText) {
+      state.history.push({ role: "user", content: visibleUserText });
+    }
+    if (result.agent.reply) {
+      state.history.push({ role: "assistant", content: result.agent.reply });
+    }
+    saveChatHistory();
+    state.lastInteractionAt = Date.now();
+    if (visibleUserText) {
+      state.lastUserInteractionAt = Date.now();
+      state.lastPeriodicEmotionAt = 0;
+    }
+    updateDashboard(result);
+    return result;
+  } finally {
+    state.chatRequestPending = false;
   }
-  if (result.agent.reply) {
-    state.history.push({ role: "assistant", content: result.agent.reply });
-  }
-  saveChatHistory();
-  state.lastInteractionAt = Date.now();
-  if (visibleUserText) {
-    state.lastUserInteractionAt = Date.now();
-    state.lastPeriodicEmotionAt = 0;
-  }
-  updateDashboard(result);
-  return result;
 }
 
 async function computeEmotionOnly(reason = "periodic") {
-  if (!state.stream || state.emotionRequestPending) {
+  if (!state.stream || state.emotionRequestPending || state.chatRequestPending) {
     return null;
   }
   state.emotionRequestPending = true;
@@ -1116,7 +1076,7 @@ async function computeEmotionOnly(reason = "periodic") {
 }
 
 async function checkEmotionSchedule() {
-  if (!state.stream || state.proactivePending || state.emotionRequestPending) {
+  if (!state.stream || state.proactivePending || state.emotionRequestPending || state.chatRequestPending) {
     return;
   }
   if (els.messageInput.value.trim()) {
@@ -1142,7 +1102,7 @@ async function checkEmotionSchedule() {
 }
 
 async function checkIdleProactiveReply() {
-  if (state.proactivePending || els.messageInput.value.trim()) {
+  if (state.proactivePending || state.chatRequestPending || els.messageInput.value.trim()) {
     return;
   }
   const now = Date.now();
@@ -1153,7 +1113,7 @@ async function checkIdleProactiveReply() {
 }
 
 async function triggerProactiveReply(reason = "idle") {
-  if (state.proactivePending) {
+  if (state.proactivePending || state.chatRequestPending) {
     return;
   }
   if (els.messageInput.value.trim()) {
@@ -1255,6 +1215,9 @@ els.journalAiTab.addEventListener("click", () => setJournalMode("ai"));
 els.journalUserTab.addEventListener("click", () => setJournalMode("user"));
 els.chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (state.chatRequestPending) {
+    return;
+  }
   const message = els.messageInput.value.trim();
   if (!message) {
     return;

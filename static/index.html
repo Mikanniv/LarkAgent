@@ -21,8 +21,8 @@
           </p>
 
           <div class="intro-pill-row">
-            <span class="status-pill">情绪模型：MulT</span>
-            <span class="status-pill">对话模型：Kimi K2.5</span>
+            <span class="status-pill">多模态情绪分析</span>
+            <span class="status-pill">陪伴式文本回应</span>
             <span class="status-pill">实时音视频采集</span>
           </div>
         </div>
@@ -59,9 +59,8 @@
         <div class="sidebar-appbar">
           <div>
             <p class="eyebrow">Yunque</p>
-            <h2>云雀侧边栏</h2>
+            <h2>侧边栏</h2>
           </div>
-          <p class="sidebar-copy">查看情绪画像与日记记录</p>
         </div>
 
         <nav class="sidebar-nav">
@@ -71,7 +70,7 @@
           </button>
           <button class="sidebar-link" id="sidebarDiaryTab" type="button">
             <span class="sidebar-link-title">日记</span>
-            <span class="sidebar-link-copy">浏览 AI记与用户记</span>
+            <span class="sidebar-link-copy">AI记与用户记</span>
           </button>
         </nav>
 
@@ -80,9 +79,9 @@
             <div class="panel-head">
               <div>
                 <h2>情绪画像</h2>
-                <p class="panel-copy">主情绪、PA状态与模态特征概览。</p>
+                <p class="panel-copy">主情绪、VA值与模态特征概览。</p>
               </div>
-              <div class="mini-tag" id="modelTag">MulT</div>
+              <div class="mini-tag">SELF_MM</div>
             </div>
 
             <div class="emotion-core">
@@ -97,7 +96,7 @@
 
             <div class="radar-like">
               <div class="metric-card">
-                <span>Valence</span>
+                <span>效价 Valence</span>
                 <strong id="valenceValue">0.00</strong>
               </div>
               <div class="metric-card">
@@ -116,13 +115,11 @@
                 <span>音频 <strong id="audioRaw">0.00</strong></span>
                 <span>视频 <strong id="videoRaw">0.00</strong></span>
               </div>
-              <p id="agentMeta">当前情绪模型与对话模型会在后端协同工作。</p>
             </div>
 
             <div class="feature-panel">
               <div class="feature-head">
                 <h3>音频特征</h3>
-                <span class="mini-tag">模型输入的 33 维 LibROSA 特征</span>
               </div>
               <div class="feature-list" id="audioFeatureList"></div>
             </div>
@@ -130,7 +127,6 @@
             <div class="feature-panel">
               <div class="feature-head">
                 <h3>视频特征</h3>
-                <span class="mini-tag">当前采集的 9 维视频与表情特征</span>
               </div>
               <div class="feature-list" id="videoFeatureList"></div>
             </div>
@@ -201,24 +197,23 @@
           <div>
             <h1>云雀：多模态情感陪伴Agent</h1>
             <p class="hero-copy">
-              文本、音频、视频实时进入后端，多模态情绪模型输出细粒度状态分数，云雀再据此生成陪伴式回应。
+              多模态情绪模型实时分析文本、音频和视频模态，输出valence和arousal，云雀再据此生成回复。
             </p>
           </div>
           <div class="status-stack">
             <div class="status-pill" id="backendStatus">模型加载中</div>
             <div class="status-pill" id="captureStatus">未开启音视频权限</div>
-            <div class="status-pill" id="agentStatus">Agent 待命</div>
-            <a class="status-pill status-link" href="./memory.html">长期记忆库</a>
+            <div class="status-pill" id="agentStatus">云雀已上线</div>
+            <a class="status-pill status-link" href="./memory.html">记忆库</a>
           </div>
         </section>
 
         <article class="panel chat-panel">
           <div class="panel-head">
             <div>
-              <h2>情绪陪伴对话</h2>
               <p class="panel-copy">通过文字、音频和视频三个模态，和云雀进行对话吧。</p>
             </div>
-            <button id="toggleCapture" class="primary-button">开始采集</button>
+            <button id="toggleCapture" class="primary-button">获取麦克风与摄像头权限</button>
           </div>
 
           <div class="media-chat-row">

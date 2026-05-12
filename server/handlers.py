@@ -1,5 +1,6 @@
 import json
 import mimetypes
+import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -19,6 +20,18 @@ from server.service import (
 
 
 class AppHandler(BaseHTTPRequestHandler):
+    @staticmethod
+    def _is_client_disconnect(exc: Exception) -> bool:
+        return isinstance(exc, (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, socket.timeout))
+
+    def safe_write(self, data: bytes):
+        try:
+            self.wfile.write(data)
+        except Exception as exc:
+            # 浏览器刷新、跳页或取消请求时，客户端可能先断开连接。
+            if not self._is_client_disconnect(exc):
+                raise
+
     def do_OPTIONS(self):
         self.send_response(HTTPStatus.NO_CONTENT)
         self.send_cors_headers()
@@ -110,7 +123,7 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", mime_type or "application/octet-stream")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        self.safe_write(data)
 
     def send_json(self, payload, status=HTTPStatus.OK):
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -119,7 +132,7 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        self.safe_write(data)
 
     def send_cors_headers(self):
         origin = self.headers.get("Origin", "")

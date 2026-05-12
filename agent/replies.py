@@ -300,7 +300,18 @@ def decide_memory_update(
 def reply_looks_bad(text: str, history: List[Dict] | None = None, proactive: bool = False) -> bool:
     if not text:
         return True
-    banned_fragments = ["首先，用户", "关键点：", "分析过程", "作为AI", "作为助手"]
+    banned_fragments = [
+        "首先，用户",
+        "关键点：",
+        "分析过程",
+        "思考过程",
+        "推理过程",
+        "作为AI",
+        "作为助手",
+        "用户当前",
+        "最终回复：",
+        "回复：",
+    ]
     if any(fragment in text for fragment in banned_fragments):
         return True
     if proactive:
