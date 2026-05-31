@@ -5,6 +5,13 @@ from typing import Dict, List
 from core.utils import clamp
 
 
+VALENCE_WEIGHTS = {
+    "text": 0.3,
+    "audio": 0.3,
+    "video": 0.4,
+}
+
+
 @dataclass
 class FineGrainedEmotion:
     label: str
@@ -21,7 +28,19 @@ def derive_architecture_emotion(
     text_raw = raw_scores["text"]
     audio_raw = raw_scores["audio"]
     video_raw = raw_scores["video"]
-    valence = math.tanh(0.55 * fusion_raw + 0.25 * text_raw + 0.15 * video_raw + 0.05 * audio_raw)
+    valence_denominator = sum(
+        VALENCE_WEIGHTS[name] * float(modalities.get(name, False))
+        for name in VALENCE_WEIGHTS
+    )
+    if valence_denominator > 0:
+        valence_fusion = (
+            VALENCE_WEIGHTS["text"] * float(modalities.get("text", False)) * text_raw
+            + VALENCE_WEIGHTS["audio"] * float(modalities.get("audio", False)) * audio_raw
+            + VALENCE_WEIGHTS["video"] * float(modalities.get("video", False)) * video_raw
+        ) / valence_denominator
+    else:
+        valence_fusion = 0.0
+    valence = math.tanh(valence_fusion)
     valence = clamp(
         valence
         + 0.22 * float(video.get("smile", 0.0))

@@ -74,3 +74,11 @@ ALLOWED_ORIGINS = [
 KIMI_API_KEY = os.getenv("KIMI_API") or os.getenv("KIMI_API_KEY", "")
 KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2.5")
 KIMI_API_BASE = os.getenv("KIMI_API_BASE", "https://api.moonshot.cn/v1")
+
+R2_ENABLED = os.getenv("R2_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}
+R2_BUCKET = os.getenv("R2_BUCKET", "").strip()
+R2_ENDPOINT = os.getenv("R2_ENDPOINT", "").strip()
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID", "").strip()
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "").strip()
+R2_REGION = os.getenv("R2_REGION", "auto").strip() or "auto"
+R2_PREFIX = os.getenv("R2_PREFIX", "diaries").strip().strip("/")

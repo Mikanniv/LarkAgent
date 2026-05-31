@@ -8,7 +8,14 @@ from agent.replies import agent_payload, decide_memory_update, generate_agent_re
 from core.config import AI_DIARY_UPDATE_INTERVAL, SELF_MM_MODEL_PATH
 from core.utils import memory_date_from_payload, normalize_timestamp_to_china
 from diary.generator import refresh_ai_diary_from_snapshot
-from diary.store import get_diary_index_payload, get_diary_payload, save_user_diary
+from diary.store import (
+    delete_diary_data,
+    get_diary_index_payload,
+    get_diary_payload,
+    mark_ai_diary_reviewed,
+    read_ai_diary_meta,
+    save_user_diary,
+)
 from emotion.mapping import derive_architecture_emotion, make_emotion_bars
 from emotion.media import (
     build_audio_tensor_from_media,
@@ -34,6 +41,16 @@ EMOTION_STATE = {
     "recent_va": [],
     "smoothed": None,
 }
+
+
+def current_user_id(payload: Dict | None = None) -> str:
+    payload = payload or {}
+    user_id = (payload.get("user_id") or payload.get("userId") or DEFAULT_MEMORY_USER_ID)
+    return str(user_id).strip() or DEFAULT_MEMORY_USER_ID
+
+
+def memory_snapshot_key(user_id: str, date_key: str) -> str:
+    return f"{user_id}:{date_key}"
 
 
 def normalize_memory_document(document: str) -> str:
@@ -180,6 +197,11 @@ def list_long_memories(
         )
 
 
+def count_long_memories(user_id: str | None = DEFAULT_MEMORY_USER_ID, memory_type: str | None = None) -> int:
+    with LONG_MEMORY_LOCK:
+        return long_memory.count_memories(user_id=user_id or None, memory_type=memory_type or None)
+
+
 def write_memory_from_decision(
     decision: Dict,
     user_id: str,
@@ -291,36 +313,45 @@ def get_emotion_runner() -> SelfMMRunner:
     return EMOTION_RUNNER
 
 
-def mark_memory_snapshot(date_key: str, snapshot: Dict) -> None:
+def mark_memory_snapshot(user_id: str, date_key: str, snapshot: Dict) -> None:
+    key = memory_snapshot_key(user_id, date_key)
     with MEMORY_LOCK:
-        MEMORY_STATE["latest_by_date"][date_key] = snapshot
-        MEMORY_STATE["dirty_dates"].add(date_key)
+        MEMORY_STATE["latest_by_date"][key] = snapshot
+        MEMORY_STATE["dirty_dates"].add((user_id, date_key))
 
 
-def refresh_ai_diary(date_key: str) -> bool:
+def refresh_ai_diary(date_key: str, user_id: str = DEFAULT_MEMORY_USER_ID) -> bool:
+    if date_key >= memory_date_from_payload(""):
+        return False
+    if read_ai_diary_meta(date_key, user_id=user_id).get("status") in {"pending", "confirmed", "corrected"}:
+        with MEMORY_LOCK:
+            MEMORY_STATE["dirty_dates"].discard((user_id, date_key))
+        return False
     with MEMORY_LOCK:
-        snapshot = MEMORY_STATE["latest_by_date"].get(date_key)
+        snapshot = MEMORY_STATE["latest_by_date"].get(memory_snapshot_key(user_id, date_key))
         if snapshot is None:
             return False
-    refreshed = refresh_ai_diary_from_snapshot(date_key, snapshot)
+    refreshed = refresh_ai_diary_from_snapshot(date_key, snapshot, user_id=user_id)
     with MEMORY_LOCK:
-        MEMORY_STATE["dirty_dates"].discard(date_key)
+        MEMORY_STATE["dirty_dates"].discard((user_id, date_key))
     return refreshed
 
 
 def ai_diary_worker() -> None:
     while True:
         time.sleep(max(20, AI_DIARY_UPDATE_INTERVAL))
+        today = memory_date_from_payload("")
         with MEMORY_LOCK:
-            dirty_dates = list(MEMORY_STATE["dirty_dates"])
-        for date_key in dirty_dates:
+            dirty_dates = [(user_id, date_key) for user_id, date_key in MEMORY_STATE["dirty_dates"] if date_key < today]
+        for user_id, date_key in dirty_dates:
             try:
-                refresh_ai_diary(date_key)
+                refresh_ai_diary(date_key, user_id=user_id)
             except Exception:
                 continue
 
 
 def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
+    user_id = current_user_id(payload)
     user_text, text_source = resolve_text_input(payload)
     history = payload.get("history", []) or []
     proactive = bool(payload.get("proactive"))
@@ -353,7 +384,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
         agent_source = "none"
         agent_error = ""
         long_memory_payload = {
-            "user_id": DEFAULT_MEMORY_USER_ID,
+            "user_id": user_id,
             "recalled": [],
             "update": {"written": False, "decision": {"should_write": False, "reason": "未触发文本回复"}},
         }
@@ -371,7 +402,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
                     "proactive_reason": payload.get("proactive_reason") or payload.get("proactiveReason") or "主动回应",
                 }
             memory_query = user_text or raw_scores.get("proactive_reason") or "主动关心当前状态"
-            recalled_memories = recall_long_memories(memory_query, k=3, user_id=DEFAULT_MEMORY_USER_ID)
+            recalled_memories = recall_long_memories(memory_query, k=3, user_id=user_id)
             agent_reply, agent_source, agent_error = generate_agent_reply(
                 user_text,
                 emotion,
@@ -391,7 +422,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
             )
             memory_update = write_memory_from_decision(
                 decision,
-                user_id=DEFAULT_MEMORY_USER_ID,
+                user_id=user_id,
                 date_key=date_key,
                 timestamp=timestamp,
                 emotion=emotion.__dict__,
@@ -399,7 +430,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
             )
             memory_update["decision_source"] = decision_source
             long_memory_payload = {
-                "user_id": DEFAULT_MEMORY_USER_ID,
+                "user_id": user_id,
                 "recalled": recalled_memories,
                 "update": memory_update,
             }
@@ -407,6 +438,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
         if should_reply and agent_reply:
             predicted_history.append({"role": "assistant", "content": agent_reply})
         mark_memory_snapshot(
+            user_id,
             date_key,
             {
                 "emotion": emotion.__dict__,
@@ -415,7 +447,9 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
                 "audio": audio_summary,
                 "video": video_summary,
                 "modalities": modalities,
+                "recent_va": emotion_state["recent_va"],
                 "timestamp": timestamp,
+                "user_id": user_id,
             },
         )
 
@@ -426,7 +460,7 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
             "emotion_state": emotion_state,
             "emotion_bars": make_emotion_bars(emotion),
             "agent": agent_payload(agent_reply, agent_source, agent_error),
-            "memory": get_diary_payload(date_key),
+            "memory": get_diary_payload(date_key, user_id=user_id),
             "long_memory": long_memory_payload,
             "modal_inputs": {
                 "text_available": modalities["text"],
@@ -451,23 +485,107 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
 
 
 def handle_diary_user(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
     date_key = payload.get("date") or memory_date_from_payload("")
-    response = save_user_diary(date_key, payload.get("markdown", ""))
+    response = save_user_diary(date_key, payload.get("markdown", ""), user_id=user_id)
     if date_key == memory_date_from_payload(""):
         with MEMORY_LOCK:
-            MEMORY_STATE["dirty_dates"].add(date_key)
+            MEMORY_STATE["dirty_dates"].add((user_id, date_key))
     return response
 
 
 def handle_diary_refresh(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
     date_key = payload.get("date") or memory_date_from_payload("")
-    refreshed = refresh_ai_diary(date_key)
-    return {"ok": refreshed, **get_diary_index_payload(date_key)}
+    refreshed = refresh_ai_diary(date_key, user_id=user_id)
+    return {"ok": refreshed, **get_diary_index_payload(date_key, user_id=user_id)}
+
+
+def diary_review_document(date_key: str, action: str, ai_markdown: str, correction: str) -> str:
+    if action == "correct":
+        return f"用户修正了 {date_key} 的AI记：{correction.strip()}"
+    excerpt = re.sub(r"\s+", " ", (ai_markdown or "").strip())
+    if len(excerpt) > 90:
+        excerpt = f"{excerpt[:90]}..."
+    return f"用户确认 {date_key} 的AI记准确：{excerpt}"
+
+
+def snapshot_for_diary_review(date_key: str, user_id: str = DEFAULT_MEMORY_USER_ID) -> Dict:
+    with MEMORY_LOCK:
+        snapshot = MEMORY_STATE["latest_by_date"].get(memory_snapshot_key(user_id, date_key)) or {}
+    return snapshot
+
+
+def emotion_for_memory_write(snapshot: Dict) -> Dict[str, float]:
+    recent = snapshot.get("recent_va") or []
+    if recent:
+        valence_values = [float(item.get("valence", 0.0)) for item in recent]
+        arousal_values = [float(item.get("arousal", 0.0)) for item in recent]
+        return {
+            "valence": sum(valence_values) / len(valence_values),
+            "arousal": sum(arousal_values) / len(arousal_values),
+        }
+    emotion = snapshot.get("emotion") or {}
+    return {
+        "valence": float(emotion.get("valence", 0.0)),
+        "arousal": float(emotion.get("arousal", 0.0)),
+    }
+
+
+def handle_diary_review(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
+    date_key = payload.get("date") or memory_date_from_payload("")
+    action = (payload.get("action") or "").strip().lower()
+    correction = (payload.get("correction") or "").strip()
+    if action not in {"confirm", "correct"}:
+        return {"ok": False, "error": "invalid action", **get_diary_index_payload(date_key, user_id=user_id)}
+    if action == "correct" and not correction:
+        return {"ok": False, "error": "missing correction", **get_diary_index_payload(date_key, user_id=user_id)}
+
+    diary_payload = get_diary_payload(date_key, user_id=user_id)
+    if not diary_payload.get("ai_review_available"):
+        return {"ok": False, "error": "ai diary is not pending review", **get_diary_index_payload(date_key, user_id=user_id)}
+
+    snapshot = snapshot_for_diary_review(date_key, user_id=user_id)
+    emotion = emotion_for_memory_write(snapshot)
+    modalities = snapshot.get("modalities") or {"text": True, "audio": False, "video": False}
+    timestamp = snapshot.get("timestamp") or normalize_timestamp_to_china("")
+    confirmation = "corrected" if action == "correct" else "confirmed"
+    document = diary_review_document(date_key, action, diary_payload.get("ai_raw_markdown", ""), correction)
+    confidence = 0.9 if action == "correct" else 0.85
+    memory = long_memory.create_memory(
+        document=document,
+        date=date_key,
+        timestamp=timestamp,
+        user="user",
+        user_id=user_id,
+        type="summary",
+        source="diary_user",
+        has_emotion=bool(snapshot.get("emotion")),
+        valence=emotion.get("valence", 0.0),
+        arousal=emotion.get("arousal", 0.0),
+        confidence=confidence,
+        text=modalities.get("text", False),
+        audio=modalities.get("audio", False),
+        video=modalities.get("video", False),
+        confirmation=confirmation,
+    )
+    with LONG_MEMORY_LOCK:
+        memory_id = long_memory.add_memory(memory)
+    mark_ai_diary_reviewed(date_key, confirmation, correction=correction, memory_id=memory_id, user_id=user_id)
+    with MEMORY_LOCK:
+        MEMORY_STATE["dirty_dates"].discard((user_id, date_key))
+    return {
+        "ok": True,
+        "action": action,
+        "memory": {"id": memory_id, "document": memory["document"], "metadata": memory["metadata"]},
+        **get_diary_index_payload(date_key, user_id=user_id),
+    }
 
 
 def handle_memory_query(params: Dict[str, list[str]]) -> Dict:
     query = (params.get("query") or [""])[0].strip()
-    user_id = (params.get("user_id") or params.get("userId") or [DEFAULT_MEMORY_USER_ID])[0]
+    user_id = (params.get("_auth_user_id") or params.get("user_id") or params.get("userId") or [DEFAULT_MEMORY_USER_ID])[0]
     memory_type = (params.get("type") or [""])[0]
     try:
         k = int((params.get("k") or ["10"])[0])
@@ -482,28 +600,35 @@ def handle_memory_query(params: Dict[str, list[str]]) -> Dict:
         mode = "list"
     with LONG_MEMORY_LOCK:
         count = long_memory.collection.count()
+    filtered_count = count_long_memories(user_id=user_id, memory_type=memory_type)
     return {
         "mode": mode,
         "query": query,
         "k": k,
         "user_id": user_id,
         "count": count,
+        "filtered_count": filtered_count,
         "items": items,
     }
 
 
 def handle_memory_delete(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
     memory_id = (payload.get("id") or "").strip()
     if not memory_id:
         return {"ok": False, "error": "missing id"}
     with LONG_MEMORY_LOCK:
+        current = long_memory.collection.get(ids=[memory_id], include=["metadatas"])
+        metadata = dict((current.get("metadatas") or [{}])[0] or {}) if current.get("ids") else {}
+        if not metadata or metadata.get("user_id") != user_id:
+            return {"ok": False, "error": "memory not found"}
         long_memory.delete_memory(memory_id)
         count = long_memory.collection.count()
-    return {"ok": True, "id": memory_id, "count": count}
+    return {"ok": True, "id": memory_id, "user_id": user_id, "count": count}
 
 
 def handle_memory_clear(payload: Dict) -> Dict:
-    user_id = (payload.get("user_id") or payload.get("userId") or DEFAULT_MEMORY_USER_ID).strip()
+    user_id = current_user_id(payload)
     memory_type = (payload.get("type") or "").strip()
     with LONG_MEMORY_LOCK:
         items = long_memory.list_memories(
@@ -520,6 +645,43 @@ def handle_memory_clear(payload: Dict) -> Dict:
         "user_id": user_id,
         "type": memory_type,
         "count": count,
+    }
+
+
+def clear_memories_for_user(user_id: str) -> Dict:
+    with LONG_MEMORY_LOCK:
+        items = long_memory.list_memories(
+            limit=max(long_memory.collection.count(), 1),
+            user_id=user_id,
+        )
+        for item in items:
+            long_memory.delete_memory(item["id"])
+        count = long_memory.collection.count()
+    return {"user_id": user_id, "deleted": len(items), "count": count}
+
+
+def handle_user_clear(payload: Dict) -> Dict:
+    user_ids = [current_user_id(payload)]
+    if payload.get("include_local_user", True) and DEFAULT_MEMORY_USER_ID not in user_ids:
+        user_ids.append(DEFAULT_MEMORY_USER_ID)
+
+    memory_results = [clear_memories_for_user(user_id) for user_id in user_ids]
+    diary_results = [delete_diary_data(user_id) for user_id in user_ids]
+
+    with MEMORY_LOCK:
+        for user_id in user_ids:
+            for key in list(MEMORY_STATE["latest_by_date"].keys()):
+                if key.startswith(f"{user_id}:"):
+                    MEMORY_STATE["latest_by_date"].pop(key, None)
+            MEMORY_STATE["dirty_dates"] = {
+                item for item in MEMORY_STATE["dirty_dates"] if not (isinstance(item, tuple) and item[0] == user_id)
+            }
+
+    return {
+        "ok": True,
+        "user_ids": user_ids,
+        "memory": memory_results,
+        "diary": diary_results,
     }
 
 

@@ -1,5 +1,6 @@
 import json
 import mimetypes
+import os
 import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
@@ -9,17 +10,37 @@ from urllib.parse import parse_qs, unquote, urlparse
 from core.config import ALLOWED_ORIGINS, FACE_TASK_PATH, STATIC_DIR
 from diary.store import get_diary_index_payload
 from server.service import (
+    DEFAULT_MEMORY_USER_ID,
     analyze_and_reply,
     handle_diary_refresh,
+    handle_diary_review,
     handle_diary_user,
     handle_memory_clear,
     handle_memory_decay,
     handle_memory_delete,
     handle_memory_query,
+    handle_user_clear,
 )
 
 
+INTERNAL_SECRET = os.environ.get("YUNQUE_INTERNAL_SECRET", "").strip()
+
+
 class AppHandler(BaseHTTPRequestHandler):
+    @staticmethod
+    def is_allowed_origin(origin: str) -> bool:
+        if not origin:
+            return False
+        if "*" in ALLOWED_ORIGINS or origin in ALLOWED_ORIGINS:
+            return True
+        parsed = urlparse(origin)
+        hostname = parsed.hostname or ""
+        return parsed.scheme == "https" and (
+            hostname == "irises.me"
+            or hostname.endswith(".irises.me")
+            or hostname.endswith(".pages.dev")
+        )
+
     @staticmethod
     def asset_version() -> str:
         candidates = [
@@ -65,12 +86,20 @@ class AppHandler(BaseHTTPRequestHandler):
             self.serve_html(STATIC_DIR / "memory.html")
             return
         if route == "/api/diary":
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
             query = parse_qs(parsed.query)
             requested_date = (query.get("date") or [""])[0]
-            self.send_json(get_diary_index_payload(requested_date))
+            self.send_json(get_diary_index_payload(requested_date, user_id=user_id))
             return
         if route == "/api/memory":
-            self.send_json(handle_memory_query(parse_qs(parsed.query)))
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            query["_auth_user_id"] = [user_id]
+            self.send_json(handle_memory_query(query))
             return
         if route == "/face_landmarker.task":
             self.serve_file(FACE_TASK_PATH)
@@ -92,9 +121,11 @@ class AppHandler(BaseHTTPRequestHandler):
             "/api/chat",
             "/api/diary/user",
             "/api/diary/refresh",
+            "/api/diary/review",
             "/api/memory/clear",
             "/api/memory/delete",
             "/api/memory/decay",
+            "/api/user/clear",
         }:
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
             return
@@ -107,6 +138,11 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Invalid JSON payload"}, status=HTTPStatus.BAD_REQUEST)
             return
 
+        user_id = self.api_user_id()
+        if user_id is None:
+            return
+        payload["user_id"] = user_id
+
         try:
             if route == "/api/analyze":
                 response = analyze_and_reply(payload, should_reply=False)
@@ -116,16 +152,29 @@ class AppHandler(BaseHTTPRequestHandler):
                 response = handle_diary_user(payload)
             elif route == "/api/diary/refresh":
                 response = handle_diary_refresh(payload)
+            elif route == "/api/diary/review":
+                response = handle_diary_review(payload)
             elif route == "/api/memory/clear":
                 response = handle_memory_clear(payload)
             elif route == "/api/memory/delete":
                 response = handle_memory_delete(payload)
+            elif route == "/api/user/clear":
+                response = handle_user_clear(payload)
             else:
                 response = handle_memory_decay(payload)
         except Exception as exc:
             self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
         self.send_json(response)
+
+    def api_user_id(self) -> str | None:
+        if INTERNAL_SECRET:
+            received = self.headers.get("X-Yunque-Internal-Secret", "")
+            if received != INTERNAL_SECRET:
+                self.send_json({"ok": False, "error": "unauthorized"}, status=HTTPStatus.UNAUTHORIZED)
+                return None
+        user_id = (self.headers.get("X-Yunque-User-Id") or DEFAULT_MEMORY_USER_ID).strip()
+        return user_id or DEFAULT_MEMORY_USER_ID
 
     def serve_file(self, path: Path):
         if not path.exists() or not path.is_file():
@@ -167,7 +216,7 @@ class AppHandler(BaseHTTPRequestHandler):
         if "*" in ALLOWED_ORIGINS:
             self.send_header("Access-Control-Allow-Origin", "*")
             return
-        if origin and origin in ALLOWED_ORIGINS:
+        if self.is_allowed_origin(origin):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
 

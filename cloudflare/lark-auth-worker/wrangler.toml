@@ -1,0 +1,17 @@
+name = "lark-auth-worker"
+main = "src/index.js"
+compatibility_date = "2024-11-18"
+
+routes = [
+  { pattern = "worker.lark.irises.me/*", zone_name = "irises.me" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lark_users"
+database_id = "b982c3b6-f302-40db-ac2a-37f990b8d07b"
+
+[vars]
+ALLOWED_ORIGINS = "https://lark.irises.me,http://localhost:8001,http://127.0.0.1:8001"
+ORIGIN_BASE = "https://api.lark.irises.me"
+SESSION_MAX_AGE_SECONDS = "604800"

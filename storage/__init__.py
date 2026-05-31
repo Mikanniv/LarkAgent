@@ -1,0 +1,2 @@
+"""Storage adapters used by the backend."""
+

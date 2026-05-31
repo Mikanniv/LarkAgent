@@ -31,8 +31,11 @@ const state = {
   chatRequestPromise: null,
   speechReplyPending: false,
   proactivePending: false,
+  proactiveIdleLevel: 1,
+  nextIdleProactiveAt: 0,
   proactiveCooldownUntil: 0,
   lastProactiveAt: 0,
+  authUser: null,
   activeSidebarView: "emotion",
   videoStats: {
     brightness: 0,
@@ -72,10 +75,18 @@ const state = {
 const els = {
   introScreen: document.getElementById("introScreen"),
   enterAppButton: document.getElementById("enterAppButton"),
+  authToggleButton: document.getElementById("authToggleButton"),
+  authForm: document.getElementById("authForm"),
+  authUsername: document.getElementById("authUsername"),
+  authPassword: document.getElementById("authPassword"),
+  authLoginButton: document.getElementById("authLoginButton"),
+  authRegisterButton: document.getElementById("authRegisterButton"),
+  authStatus: document.getElementById("authStatus"),
   appShell: document.getElementById("appShell"),
   backendStatus: document.getElementById("backendStatus"),
   captureStatus: document.getElementById("captureStatus"),
   agentStatus: document.getElementById("agentStatus"),
+  clearDataButton: document.getElementById("clearDataButton"),
   toggleCapture: document.getElementById("toggleCapture"),
   chatForm: document.getElementById("chatForm"),
   messageInput: document.getElementById("messageInput"),
@@ -99,6 +110,13 @@ const els = {
   emotionView: document.getElementById("emotionView"),
   diaryView: document.getElementById("diaryView"),
   aiDiary: document.getElementById("aiDiary"),
+  aiDiaryActions: document.getElementById("aiDiaryActions"),
+  aiDiaryConfirmButton: document.getElementById("aiDiaryConfirmButton"),
+  aiDiaryCorrectButton: document.getElementById("aiDiaryCorrectButton"),
+  aiDiaryCorrectionModal: document.getElementById("aiDiaryCorrectionModal"),
+  aiDiaryCorrectionInput: document.getElementById("aiDiaryCorrectionInput"),
+  aiDiaryCorrectionCancel: document.getElementById("aiDiaryCorrectionCancel"),
+  aiDiaryCorrectionSubmit: document.getElementById("aiDiaryCorrectionSubmit"),
   userDiary: document.getElementById("userDiary"),
   diaryDateCount: document.getElementById("diaryDateCount"),
   diarySelectedDate: document.getElementById("diarySelectedDate"),
@@ -130,17 +148,36 @@ const chinaDateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
 });
 const EMOTION_IDLE_DELAY_MS = 15000;
 const EMOTION_PERIODIC_INTERVAL_MS = 10000;
-const PROACTIVE_IDLE_MS = 120000;
+const PROACTIVE_IDLE_BASE_MS = 2 * 60 * 1000;
+const PROACTIVE_IDLE_MAX_MS = 128 * 60 * 1000;
 const PROACTIVE_COOLDOWN_MS = 120000;
 const EMOTION_MONITOR_INTERVAL_MS = 1000;
 const CHAT_HISTORY_STORAGE_KEY = "yunque.chat.history.v1";
 const MAX_STORED_CHAT_MESSAGES = 80;
 
+function proactiveIdleDelay(level = state.proactiveIdleLevel) {
+  const safeLevel = Math.max(1, Number(level) || 1);
+  return Math.min(2 ** (safeLevel - 1) * PROACTIVE_IDLE_BASE_MS, PROACTIVE_IDLE_MAX_MS);
+}
+
+function resetProactiveIdleSchedule(now = Date.now()) {
+  state.proactiveIdleLevel = 1;
+  state.nextIdleProactiveAt = now + proactiveIdleDelay(1);
+}
+
+function advanceProactiveIdleSchedule(now = Date.now()) {
+  state.proactiveIdleLevel = Math.min(state.proactiveIdleLevel + 1, 7);
+  state.nextIdleProactiveAt = now + proactiveIdleDelay(state.proactiveIdleLevel);
+}
+
 function resolveApiBase() {
+  const metaBase = document.querySelector('meta[name="app-api-base"]')?.content?.trim() || "";
+  if (new URLSearchParams(window.location.search).get("cloud-auth") === "1" && metaBase) {
+    return metaBase.replace(/\/$/, "");
+  }
   if (["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(window.location.hostname)) {
     return window.location.origin.replace(/\/$/, "");
   }
-  const metaBase = document.querySelector('meta[name="app-api-base"]')?.content?.trim() || "";
   if (metaBase) {
     return metaBase.replace(/\/$/, "");
   }
@@ -150,6 +187,126 @@ function resolveApiBase() {
 function apiUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE}${normalizedPath}`;
+}
+
+function authRequired() {
+  try {
+    return new URL(API_BASE).hostname === "worker.lark.irises.me";
+  } catch {
+    return !["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(window.location.hostname);
+  }
+}
+
+function setAuthStatus(text) {
+  if (els.authStatus) {
+    els.authStatus.textContent = text;
+  }
+}
+
+function setAuthPopover(open) {
+  if (els.authForm) {
+    els.authForm.hidden = !open;
+  }
+}
+
+function updateAuthUi(user) {
+  state.authUser = user || null;
+  if (!els.authForm) {
+    return;
+  }
+  if (!authRequired()) {
+    els.authForm.hidden = true;
+    if (els.authToggleButton) {
+      els.authToggleButton.hidden = true;
+    }
+    els.enterAppButton.disabled = false;
+    return;
+  }
+  els.enterAppButton.disabled = !state.authUser;
+  if (state.authUser) {
+    setAuthPopover(false);
+    if (els.authToggleButton) {
+      els.authToggleButton.textContent = `已登录：${state.authUser.username}`;
+    }
+    setAuthStatus(`已登录：${state.authUser.username}`);
+  } else {
+    if (els.authToggleButton) {
+      els.authToggleButton.textContent = "登录 / 注册";
+    }
+    setAuthStatus("请先登录或注册，云雀会按账号隔离长期记忆。");
+  }
+}
+
+async function loadCurrentUser() {
+  if (!authRequired()) {
+    updateAuthUi({ id: "local_user", username: "本地调试" });
+    return;
+  }
+  try {
+    const response = await fetch(apiUrl("/api/auth/me"), { credentials: "include" });
+    const payload = await response.json();
+    updateAuthUi(payload.user || null);
+  } catch (error) {
+    updateAuthUi(null);
+  }
+}
+
+async function submitAuth(mode) {
+  const username = els.authUsername?.value.trim() || "";
+  const password = els.authPassword?.value || "";
+  if (!username || password.length < 8) {
+    setAuthStatus("请输入用户名和至少 8 位密码。");
+    return;
+  }
+  setAuthStatus(mode === "register" ? "正在注册..." : "正在登录...");
+  try {
+    const response = await fetch(apiUrl(`/api/auth/${mode}`), {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const payload = await readApiResponse(response);
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || `HTTP ${response.status}`);
+    }
+    els.authPassword.value = "";
+    updateAuthUi(payload.user);
+    loadDiary();
+    startDiaryRefreshLoop();
+    pingBackend();
+  } catch (error) {
+    setAuthStatus(authErrorMessage(mode, error));
+  }
+}
+
+async function readApiResponse(response) {
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: false, error: `HTTP ${response.status}` };
+  }
+}
+
+function authErrorMessage(mode, error) {
+  const reason = error?.message || "";
+  const messages = {
+    invalid_username: "用户名需要 2 到 32 个字符。",
+    invalid_password: "密码需要 8 到 128 位。",
+    username_taken: "这个用户名已经被使用了。",
+    invalid_credentials: "用户名或密码不对。",
+  };
+  if (messages[reason]) {
+    return messages[reason];
+  }
+  if (reason.startsWith("HTTP 5")) {
+    return "登录服务暂时异常，稍后再试或重新部署 Worker。";
+  }
+  return mode === "register" ? "注册失败，请稍后再试。" : "登录失败，请稍后再试。";
 }
 
 function chinaDateParts(date = new Date()) {
@@ -167,6 +324,11 @@ function chinaTimestamp(date = new Date()) {
 }
 
 function enterApp() {
+  if (authRequired() && !state.authUser) {
+    setAuthStatus("请先登录或注册，再进入云雀。");
+    setAuthPopover(true);
+    return;
+  }
   if (els.introScreen) {
     els.introScreen.style.display = "none";
   }
@@ -176,6 +338,7 @@ function enterApp() {
   if (!state.lastUserInteractionAt && !state.lastInteractionAt) {
     state.lastUserInteractionAt = Date.now();
     state.lastInteractionAt = state.lastUserInteractionAt;
+    resetProactiveIdleSchedule(state.lastUserInteractionAt);
   }
   startEmotionMonitorLoop();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -310,10 +473,49 @@ function loadChatHistory() {
 function renderChatHistory() {
   els.chatList.innerHTML = "";
   if (!state.history.length) {
-    addBubble("assistant", "我已经准备好啦！你可以输入想和我说的话，我会结合多模态来回应你。");
+    addBubble("assistant", "你好！我是云雀。今天有什么想要分享的事情吗，我会认真倾听的～");
     return;
   }
   state.history.forEach((item) => addBubble(item.role, item.content));
+}
+
+function clearLocalChatCache() {
+  state.history = [];
+  try {
+    window.localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+  } catch (error) {
+    // 本地存储不可用时不影响服务端清理。
+  }
+  renderChatHistory();
+}
+
+async function clearUserData() {
+  const confirmed = window.confirm(
+    "确定清除当前浏览器对话缓存，并删除当前账号与 local_user 的长期记忆和日记吗？这个操作不可撤销。"
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  clearLocalChatCache();
+  els.agentStatus.textContent = "正在清理数据";
+  try {
+    const response = await fetch(apiUrl("/api/user/clear"), {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ include_local_user: true }),
+    });
+    const payload = await readApiResponse(response);
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || `HTTP ${response.status}`);
+    }
+    els.agentStatus.textContent = "缓存已清除";
+    await loadDiary();
+  } catch (error) {
+    els.agentStatus.textContent = "清理失败";
+    addBubble("assistant", "本地对话缓存已经清掉了，但后端记忆/日记清理失败，请检查后端和 R2 配置。");
+  }
 }
 
 function addBubble(role, content) {
@@ -451,8 +653,26 @@ function setJournalMode(mode) {
   els.aiDiary.classList.toggle("is-active", isAi);
   els.userDiary.classList.toggle("is-active", !isAi);
   els.journalHint.textContent = isAi
-    ? "云雀写下的用户观察记录。"
-    : "编辑或查看当前日期对应的用户日记。";
+    ? "云雀的用户观察记录。"
+    : "编辑或查看用户日记。";
+}
+
+function renderAiDiaryState(selected) {
+  const placeholder = selected.ai_placeholder || "云雀正在努力总结中...";
+  els.aiDiary.textContent = selected.ai_markdown || placeholder;
+  const canReview = Boolean(selected.ai_review_available);
+  if (els.aiDiaryActions) {
+    els.aiDiaryActions.hidden = !canReview;
+  }
+  if (canReview) {
+    els.diaryEditState.textContent = "AI记待确认";
+  } else if (selected.ai_status === "confirmed") {
+    els.diaryEditState.textContent = "AI记已确认";
+  } else if (selected.ai_status === "corrected") {
+    els.diaryEditState.textContent = "AI记已修正";
+  } else {
+    els.diaryEditState.textContent = selected.is_today ? "今日日记" : "历史日记";
+  }
 }
 
 function renderDiarySelection(payload) {
@@ -463,16 +683,15 @@ function renderDiarySelection(payload) {
   state.visibleCalendarMonth = monthKeyFromDate(selected.date);
   renderCalendar();
   els.diarySelectedDate.textContent = formatDiaryDate(selected.date);
-  els.diaryEditState.textContent = selected.is_today ? "今日日记" : "历史日记";
   els.userDiary.readOnly = false;
   els.userDiary.value = selected.user_markdown || "";
-  els.aiDiary.textContent = selected.ai_markdown || "AI 记忆会根据对话和当前状态自动更新。";
+  renderAiDiaryState(selected);
 }
 
 async function loadDiary(dateText = "") {
   try {
     const query = dateText ? `?date=${encodeURIComponent(dateText)}` : "";
-    const response = await fetch(apiUrl(`/api/diary${query}`));
+    const response = await fetch(apiUrl(`/api/diary${query}`), { credentials: "include" });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -487,6 +706,7 @@ async function saveUserDiary() {
   try {
     const response = await fetch(apiUrl("/api/diary/user"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: state.selectedDiaryDate, markdown: els.userDiary.value }),
     });
@@ -513,7 +733,9 @@ async function refreshAiDiary() {
     return;
   }
   try {
-    const response = await fetch(apiUrl(`/api/diary?date=${encodeURIComponent(state.selectedDiaryDate)}`));
+    const response = await fetch(apiUrl(`/api/diary?date=${encodeURIComponent(state.selectedDiaryDate)}`), {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -531,6 +753,47 @@ function startDiaryRefreshLoop() {
   state.diaryRefreshTimer = window.setInterval(refreshAiDiary, 15000);
 }
 
+function openAiDiaryCorrectionModal() {
+  els.aiDiaryCorrectionInput.value = "";
+  els.aiDiaryCorrectionModal.hidden = false;
+  window.setTimeout(() => els.aiDiaryCorrectionInput.focus(), 0);
+}
+
+function closeAiDiaryCorrectionModal() {
+  els.aiDiaryCorrectionModal.hidden = true;
+  els.aiDiaryCorrectionInput.value = "";
+}
+
+async function submitAiDiaryReview(action, correction = "") {
+  if (!state.selectedDiaryDate) {
+    return;
+  }
+  try {
+    const response = await fetch(apiUrl("/api/diary/review"), {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: state.selectedDiaryDate,
+        action,
+        correction,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    if (!payload.ok) {
+      throw new Error(payload.error || "review_failed");
+    }
+    renderDiarySelection(payload);
+    els.diaryEditState.textContent = action === "correct" ? "AI记修改已提交" : "AI记已确认";
+    closeAiDiaryCorrectionModal();
+  } catch (error) {
+    els.diaryEditState.textContent = "AI记确认失败";
+  }
+}
+
 function styleFromValence(valence) {
   if (valence >= 0.28) {
     return "conic-gradient(from 20deg, #78d69b, #4cc6cf, #ffd071, #78d69b)";
@@ -545,6 +808,7 @@ async function pingBackend() {
   try {
     const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: "", audio: {}, video: {}, history: [], timestamp: chinaTimestamp() }),
     });
@@ -582,6 +846,7 @@ async function toggleCapture() {
   startFeatureLoop();
   state.lastInteractionAt = Date.now();
   state.lastUserInteractionAt = Date.now();
+  resetProactiveIdleSchedule(state.lastUserInteractionAt);
   state.lastEmotionComputedAt = Date.now();
   state.lastPeriodicEmotionAt = 0;
   startEmotionMonitorLoop();
@@ -746,6 +1011,7 @@ function maybeReplyToSpeechTranscript() {
     const typingBubble = addTypingBubble();
     state.lastUserInteractionAt = Date.now();
     state.lastInteractionAt = Date.now();
+    resetProactiveIdleSchedule(state.lastUserInteractionAt);
     try {
       const result = await sendMessage("", { transcript });
       state.proactiveCooldownUntil = Date.now() + PROACTIVE_COOLDOWN_MS;
@@ -984,7 +1250,7 @@ function updateDashboard(result) {
   renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, result.media_features?.audio || {});
   renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, result.media_features?.video || {});
   if (result.memory) {
-    if (!state.selectedDiaryDate || result.memory.date === state.selectedDiaryDate) {
+    if (!state.selectedDiaryDate || result.memory.date === state.selectedDiaryDate || state.selectedDiaryIsToday) {
       state.selectedDiaryDate = result.memory.date;
       state.selectedDiaryIsToday = Boolean(result.memory.is_today);
       if (!state.diaryDates.includes(result.memory.date)) {
@@ -993,8 +1259,7 @@ function updateDashboard(result) {
       state.visibleCalendarMonth = monthKeyFromDate(result.memory.date);
       renderCalendar();
       els.diarySelectedDate.textContent = formatDiaryDate(result.memory.date);
-      els.diaryEditState.textContent = result.memory.is_today ? "今日日记" : "历史日记";
-      els.aiDiary.textContent = result.memory.ai_markdown || "AI 记忆会根据当天对话和状态自动更新。";
+      renderAiDiaryState(result.memory);
       if (document.activeElement !== els.userDiary) {
         els.userDiary.value = result.memory.user_markdown || "";
       }
@@ -1029,6 +1294,7 @@ async function sendMessage(message, options = {}) {
       els.agentStatus.textContent = "Agent 思考中";
       const response = await fetch(apiUrl("/api/chat"), {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -1049,6 +1315,7 @@ async function sendMessage(message, options = {}) {
       if (visibleUserText) {
         state.lastUserInteractionAt = Date.now();
         state.lastPeriodicEmotionAt = 0;
+        resetProactiveIdleSchedule(state.lastUserInteractionAt);
       }
       updateDashboard(result);
       return result;
@@ -1071,6 +1338,7 @@ async function computeEmotionOnly(reason = "periodic") {
   try {
     const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: "",
@@ -1119,6 +1387,7 @@ async function checkEmotionSchedule() {
   }
   const result = await computeEmotionOnly("idle_periodic");
   if (result?.emotion_state?.significant_change) {
+    resetProactiveIdleSchedule(Date.now());
     await triggerProactiveReply("emotion_shift");
   }
 }
@@ -1129,8 +1398,11 @@ async function checkIdleProactiveReply() {
   }
   const now = Date.now();
   const lastUserAt = state.lastUserInteractionAt || state.lastInteractionAt || now;
-  if (now - lastUserAt >= PROACTIVE_IDLE_MS) {
-    await triggerProactiveReply("idle_120s");
+  if (!state.nextIdleProactiveAt) {
+    resetProactiveIdleSchedule(lastUserAt);
+  }
+  if (now >= state.nextIdleProactiveAt) {
+    await triggerProactiveReply(`idle_${Math.round(proactiveIdleDelay() / 60000)}m`);
   }
 }
 
@@ -1161,6 +1433,7 @@ async function triggerProactiveReply(reason = "idle") {
   try {
     const response = await fetch(apiUrl("/api/chat"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: "",
@@ -1191,6 +1464,11 @@ async function triggerProactiveReply(reason = "idle") {
     typingBubble.remove();
     if (result.agent.reply) {
       addBubble("assistant", result.agent.reply);
+    }
+    if (reason === "emotion_shift") {
+      resetProactiveIdleSchedule(Date.now());
+    } else if (reason.startsWith("idle_")) {
+      advanceProactiveIdleSchedule(Date.now());
     }
   } catch (error) {
     typingBubble.remove();
@@ -1227,7 +1505,19 @@ function startFeatureLoop() {
 }
 
 els.toggleCapture.addEventListener("click", toggleCapture);
+els.clearDataButton?.addEventListener("click", clearUserData);
 els.enterAppButton?.addEventListener("click", enterApp);
+els.authToggleButton?.addEventListener("click", () => {
+  if (!state.authUser) {
+    setAuthPopover(els.authForm?.hidden);
+    els.authUsername?.focus();
+  }
+});
+els.authForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitAuth("login");
+});
+els.authRegisterButton?.addEventListener("click", () => submitAuth("register"));
 els.sidebarEmotionTab?.addEventListener("click", () => setSidebarView("emotion"));
 els.sidebarDiaryTab?.addEventListener("click", () => setSidebarView("diary"));
 els.userDiary.addEventListener("input", scheduleUserDiarySave);
@@ -1235,6 +1525,23 @@ els.calendarPrev.addEventListener("click", () => moveCalendarMonth(-1));
 els.calendarNext.addEventListener("click", () => moveCalendarMonth(1));
 els.journalAiTab.addEventListener("click", () => setJournalMode("ai"));
 els.journalUserTab.addEventListener("click", () => setJournalMode("user"));
+els.aiDiaryConfirmButton?.addEventListener("click", () => submitAiDiaryReview("confirm"));
+els.aiDiaryCorrectButton?.addEventListener("click", openAiDiaryCorrectionModal);
+els.aiDiaryCorrectionCancel?.addEventListener("click", closeAiDiaryCorrectionModal);
+els.aiDiaryCorrectionModal?.addEventListener("click", (event) => {
+  if (event.target === els.aiDiaryCorrectionModal) {
+    closeAiDiaryCorrectionModal();
+  }
+});
+els.aiDiaryCorrectionSubmit?.addEventListener("click", () => {
+  const correction = els.aiDiaryCorrectionInput.value.trim();
+  if (!correction) {
+    els.diaryEditState.textContent = "请先填写修改意见";
+    els.aiDiaryCorrectionInput.focus();
+    return;
+  }
+  submitAiDiaryReview("correct", correction);
+});
 els.chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (state.chatRequestPending) {
@@ -1255,6 +1562,7 @@ els.chatForm.addEventListener("submit", async (event) => {
   const typingBubble = addTypingBubble();
   state.lastInteractionAt = Date.now();
   state.lastUserInteractionAt = Date.now();
+  resetProactiveIdleSchedule(state.lastUserInteractionAt);
 
   try {
     const result = await sendMessage(message);
@@ -1270,15 +1578,21 @@ els.chatForm.addEventListener("submit", async (event) => {
 
 window.addEventListener("beforeunload", stopCapture);
 
-loadDiary();
 setJournalMode("ai");
 setSidebarView("emotion");
 loadChatHistory();
 renderChatHistory();
 renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, {});
 renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, {});
-startDiaryRefreshLoop();
-pingBackend();
-if (shouldOpenChatDirectly()) {
-  enterApp();
-}
+loadCurrentUser().then(() => {
+  if (!authRequired() || state.authUser) {
+    loadDiary();
+    startDiaryRefreshLoop();
+    pingBackend();
+  } else {
+    els.backendStatus.textContent = "请先登录";
+  }
+  if (shouldOpenChatDirectly()) {
+    enterApp();
+  }
+});

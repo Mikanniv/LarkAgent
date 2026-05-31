@@ -1,0 +1,47 @@
+{
+  "formula": "fusion = w_text * label_T + w_audio * label_A + w_video * label_V",
+  "label_file": "/Users/irises/云雀/data/label.csv",
+  "target": "label",
+  "features": [
+    "label_T",
+    "label_A",
+    "label_V"
+  ],
+  "constraint": "softmax weights; each weight >= 0 and sum(weights) = 1",
+  "loss": "mse",
+  "weights": {
+    "text": 0.276191,
+    "audio": 0.333688,
+    "video": 0.390121
+  },
+  "raw_logits": {
+    "text": -0.167934,
+    "audio": 0.021178,
+    "video": 0.177428
+  },
+  "metrics": {
+    "train": {
+      "count": 1368,
+      "mse": 0.081303,
+      "mae": 0.210176
+    },
+    "valid": {
+      "count": 456,
+      "mse": 0.074548,
+      "mae": 0.20196
+    },
+    "test": {
+      "count": 457,
+      "mse": 0.075712,
+      "mae": 0.197409
+    }
+  },
+  "training": {
+    "epochs_requested": 2000,
+    "epochs_run": 415,
+    "lr": 0.03,
+    "weight_decay": 0.0,
+    "patience": 300,
+    "seed": 42
+  }
+}

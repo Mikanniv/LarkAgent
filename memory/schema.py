@@ -41,7 +41,7 @@ def normalize_weights(alpha: float, beta: float, gamma: float) -> tuple[float, f
     values = [max(0.0, float(item)) for item in (alpha, beta, gamma)]
     total = sum(values)
     if total <= 0:
-        return 0.55, 0.30, 0.15
+        return 0.60, 0.35, 0.05
     return values[0] / total, values[1] / total, values[2] / total
 
 
@@ -139,6 +139,7 @@ def create_memory(
         "confidence": confidence,
         "importance": importance,
         "importance_0": importance,
+        "confirmation": confirmation,
     }
     if user_id is not None:
         metadata["user_id"] = user_id
@@ -225,9 +226,9 @@ def recall(
     user_id: str | None = None,
     memory_type: str | Iterable[str] | None = None,
     candidate_pool: int | None = None,
-    alpha: float = 0.55,
-    beta: float = 0.30,
-    gamma: float = 0.15,
+    alpha: float = 0.60,
+    beta: float = 0.35,
+    gamma: float = 0.05,
 ) -> Dict[str, List[List[Any]]]:
     alpha, beta, gamma = normalize_weights(alpha, beta, gamma)
 
@@ -306,6 +307,13 @@ def list_memories(
         )
     items.sort(key=lambda item: item["metadata"].get("timestamp", ""), reverse=True)
     return items
+
+
+def count_memories(user_id: str | None = None, memory_type: str | Iterable[str] | None = None) -> int:
+    if not user_id and not memory_type:
+        return collection.count()
+    results = collection.get(where=_metadata_where(user_id=user_id, memory_type=memory_type), include=[])
+    return len(results.get("ids") or [])
 
 
 def update_memory(memory_id: str, document: str | None = None, metadata_updates: Dict[str, Any] | None = None) -> None:

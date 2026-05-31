@@ -12,6 +12,9 @@ const els = {
 };
 
 const API_BASE = resolveApiBase();
+const state = {
+  authUser: null,
+};
 const CHINA_TIME_ZONE = "Asia/Shanghai";
 const chinaDisplayFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: CHINA_TIME_ZONE,
@@ -38,6 +41,30 @@ function resolveApiBase() {
 function apiUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE}${normalizedPath}`;
+}
+
+function authRequired() {
+  try {
+    return new URL(API_BASE).hostname === "worker.lark.irises.me";
+  } catch {
+    return !["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(window.location.hostname);
+  }
+}
+
+async function loadCurrentUser() {
+  if (!authRequired()) {
+    els.userId.readOnly = false;
+    els.userId.title = "本地调试模式，可以手动切换 user_id。";
+    return;
+  }
+  const response = await fetch(apiUrl("/api/auth/me"), { credentials: "include" });
+  const payload = await response.json();
+  state.authUser = payload.user || null;
+  if (state.authUser) {
+    els.userId.value = state.authUser.id;
+    els.userId.readOnly = true;
+    els.userId.title = "登录模式下由 Worker 注入当前账号，不能手动查询其他用户。";
+  }
 }
 
 function formatNumber(value, digits = 2) {
@@ -80,7 +107,7 @@ function metadataRows(metadata = {}) {
   const rows = [
     ["date", metadata.date],
     ["timestamp", formatChinaTimestamp(metadata.timestamp)],
-    ["user", metadata.user],
+    ["owner", metadata.user],
     ["user_id", metadata.user_id],
     ["type", metadata.type],
     ["source", metadata.source],
@@ -104,7 +131,8 @@ function metadataRows(metadata = {}) {
 function renderItems(payload) {
   const items = payload.items || [];
   els.resultTitle.textContent = payload.mode === "recall" ? "Top-k 召回结果" : "最近记忆";
-  els.resultMeta.textContent = `collection 条目数：${payload.count}；user_id：${payload.user_id || "全部"}；返回 ${items.length} 条`;
+  const filteredCount = payload.filtered_count ?? "-";
+  els.resultMeta.textContent = `当前筛选条目数：${filteredCount}；collection 总条目数：${payload.count}；user_id：${payload.user_id || "全部"}；返回 ${items.length} 条`;
   if (!items.length) {
     els.results.innerHTML = `<article class="memory-empty">暂无结果。可以先和云雀聊天产生长期记忆，或去命令行运行 seed demo。</article>`;
     return;
@@ -138,12 +166,15 @@ function renderItems(payload) {
 }
 
 async function fetchMemories({ query = "", listOnly = false } = {}) {
+  if (authRequired() && !state.authUser) {
+    throw new Error("请先回到聊天页登录，再查看当前账号的长期记忆。");
+  }
   const params = new URLSearchParams();
   if (!listOnly && query.trim()) {
     params.set("query", query.trim());
   }
   params.set("k", els.k.value || "5");
-  if (els.userId.value.trim()) {
+  if (!authRequired() && els.userId.value.trim()) {
     params.set("user_id", els.userId.value.trim());
   }
   if (els.type.value) {
@@ -152,7 +183,7 @@ async function fetchMemories({ query = "", listOnly = false } = {}) {
   els.resultTitle.textContent = "正在查询";
   els.resultMeta.textContent = "等待后端返回 ChromaDB 结果。";
   els.results.innerHTML = "";
-  const response = await fetch(apiUrl(`/api/memory?${params.toString()}`));
+  const response = await fetch(apiUrl(`/api/memory?${params.toString()}`), { credentials: "include" });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
@@ -160,7 +191,10 @@ async function fetchMemories({ query = "", listOnly = false } = {}) {
 }
 
 async function clearCurrentMemories() {
-  const userId = els.userId.value.trim() || "local_user";
+  const userId = authRequired() ? state.authUser?.id || "" : els.userId.value.trim() || "local_user";
+  if (authRequired() && !userId) {
+    throw new Error("请先登录后再查看或清空记忆。");
+  }
   const type = els.type.value;
   const scope = type ? `${userId} / ${type}` : `${userId} / 全部类型`;
   const confirmed = window.confirm(`确定清空 ${scope} 的长期记忆吗？这个操作不可撤销。`);
@@ -171,6 +205,7 @@ async function clearCurrentMemories() {
   els.resultMeta.textContent = "正在删除当前筛选范围内的长期记忆。";
   const response = await fetch(apiUrl("/api/memory/clear"), {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: userId, type }),
   });
@@ -211,4 +246,9 @@ els.clearButton.addEventListener("click", async () => {
   }
 });
 
-fetchMemories({ listOnly: true }).catch(() => {});
+loadCurrentUser()
+  .then(() => fetchMemories({ listOnly: true }))
+  .catch((error) => {
+    els.resultTitle.textContent = "查询失败";
+    els.resultMeta.textContent = String(error.message || error);
+  });

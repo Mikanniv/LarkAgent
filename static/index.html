@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="app-api-base" content="https://api.irises.me" />
+    <meta name="app-api-base" content="https://worker.lark.irises.me" />
     <title>云雀</title>
-    <link rel="stylesheet" href="styles.css?v={{asset_version}}" />
+    <link rel="stylesheet" href="styles.css?v=20260531-2" />
   </head>
   <body>
     <div class="noise noise-left"></div>
@@ -13,8 +13,22 @@
 
     <section class="intro-screen" id="introScreen">
       <div class="intro-shell">
+        <header class="intro-header">
+          <div class="auth-menu">
+            <button class="secondary-button compact-button" id="authToggleButton" type="button">登录 / 注册</button>
+            <form class="auth-popover" id="authForm" hidden>
+              <input id="authUsername" autocomplete="username" placeholder="用户名" />
+              <input id="authPassword" autocomplete="current-password" type="password" placeholder="密码（至少 8 位）" />
+              <div class="auth-actions">
+                <button class="primary-button compact-button" id="authLoginButton" type="submit">登录</button>
+                <button class="secondary-button compact-button" id="authRegisterButton" type="button">注册</button>
+              </div>
+              <p class="intro-note" id="authStatus">请先登录或注册，云雀会按账号隔离长期记忆。</p>
+            </form>
+          </div>
+        </header>
+
         <div class="intro-copy">
-          <p class="eyebrow">Lark / Yunque</p>
           <h1>云雀：多模态情感陪伴 Agent</h1>
           <p class="intro-lead">
             云雀会同时理解你的文字、语音能量和面部表情，把多模态信号送入情绪模型，再由对话模型生成更贴近当下状态的回应。
@@ -136,7 +150,7 @@
             <div class="panel-head panel-head-compact">
               <div>
                 <h2>日记</h2>
-                <p class="panel-copy" id="journalHint">查看不同日期的 AI记 或用户日记。</p>
+                <p class="panel-copy" id="journalHint">查看不同日期的AI记或用户日记。</p>
               </div>
               <span class="mini-tag" id="diarySelectedDate">今天</span>
             </div>
@@ -145,7 +159,6 @@
               <div class="panel-head panel-head-compact">
                 <div>
                   <h3>日历</h3>
-                  <p class="panel-copy">点击日期切换当天或历史日记。</p>
                 </div>
                 <span class="mini-tag" id="diaryDateCount">0 天</span>
               </div>
@@ -175,7 +188,7 @@
               </div>
               <div class="journal-card-body">
                 <div class="diary-body journal-pane is-active" id="aiDiary">
-                  AI 会根据对话和当前状态，在这里生成当天的陪伴摘要。
+                  云雀正在努力总结中...
                 </div>
                 <textarea
                   id="userDiary"
@@ -186,6 +199,10 @@
               </div>
               <div class="journal-footer">
                 <span class="mini-tag" id="diaryEditState">可编辑</span>
+                <div class="ai-diary-actions" id="aiDiaryActions" hidden>
+                  <button type="button" class="secondary-button compact-button" id="aiDiaryCorrectButton">修改</button>
+                  <button type="button" class="primary-button compact-button" id="aiDiaryConfirmButton">确认</button>
+                </div>
               </div>
             </section>
           </section>
@@ -205,6 +222,7 @@
             <div class="status-pill" id="captureStatus">未开启音视频权限</div>
             <div class="status-pill" id="agentStatus">云雀已上线</div>
             <a class="status-pill status-link" href="./memory.html">记忆库</a>
+            <button class="danger-button compact-button" id="clearDataButton" type="button">清除缓存</button>
           </div>
         </section>
 
@@ -229,7 +247,7 @@
               <div class="chat-list" id="chatList">
                 <div class="bubble bubble-agent">
                   <div class="bubble-role">云雀</div>
-                  <div class="bubble-body">我已经准备好啦！你可以输入想和我说的话，我会结合多模态来回应你。</div>
+                  <div class="bubble-body">你好！我是云雀。今天有什么想要分享的事情吗，我会认真倾听的～</div>
                 </div>
               </div>
 
@@ -251,7 +269,7 @@
         <p class="eyebrow">Author</p>
         <h2>项目作者信息</h2>
         <p class="author-copy">
-          多模态情感陪伴 Agent 大创项目演示页。
+          多模态情感陪伴Agent 大创项目演示页。
         </p>
         <div class="author-meta">
           <span class="mini-tag">作者：Irises</span>
@@ -261,7 +279,27 @@
       </div>
     </section>
 
+    <div class="modal-backdrop" id="aiDiaryCorrectionModal" hidden>
+      <section class="correction-dialog" role="dialog" aria-modal="true" aria-labelledby="aiDiaryCorrectionTitle">
+        <div class="panel-head panel-head-compact">
+          <div>
+            <h3 id="aiDiaryCorrectionTitle">修改 AI记</h3>
+            <p class="panel-copy">这条反馈会帮助云雀修正长期记忆。</p>
+          </div>
+        </div>
+        <textarea
+          id="aiDiaryCorrectionInput"
+          rows="6"
+          placeholder="请输入你认为云雀总结得不对的地方，帮助云雀更好地了解你！"
+        ></textarea>
+        <div class="correction-actions">
+          <button type="button" class="secondary-button compact-button" id="aiDiaryCorrectionCancel">取消</button>
+          <button type="button" class="primary-button compact-button" id="aiDiaryCorrectionSubmit">提交</button>
+        </div>
+      </section>
+    </div>
+
     <canvas id="frameCanvas" width="320" height="240" hidden></canvas>
-    <script src="app.js?v={{asset_version}}"></script>
+    <script src="app.js?v=20260531-3"></script>
   </body>
 </html>

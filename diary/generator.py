@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from agent.kimi import call_kimi_chat
-from diary.store import diary_paths, get_diary_payload, write_markdown
+from diary.store import get_diary_payload, mark_ai_diary_pending, write_diary_markdown
 
 
 def build_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str) -> str:
@@ -46,7 +46,7 @@ def build_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str) -
 def build_ai_diary_prompt(date_key: str, snapshot: Dict, user_markdown: str) -> List[Dict[str, str]]:
     emotion = snapshot["emotion"]
     scores = snapshot["scores"]
-    history = snapshot.get("history", [])[-8:]
+    history = snapshot.get("history", [])[-16:]
     history_text = "\n".join(
         [
             f"{'用户' if item.get('role') == 'user' else 'AI'}：{(item.get('content') or '').strip()}"
@@ -92,8 +92,9 @@ def generate_ai_diary_markdown(date_key: str, snapshot: Dict, user_markdown: str
     return build_ai_diary_markdown(date_key, snapshot, user_markdown)
 
 
-def refresh_ai_diary_from_snapshot(date_key: str, snapshot: Dict) -> bool:
-    payload = get_diary_payload(date_key)
+def refresh_ai_diary_from_snapshot(date_key: str, snapshot: Dict, user_id: str | None = None) -> bool:
+    payload = get_diary_payload(date_key, user_id=user_id)
     ai_markdown = generate_ai_diary_markdown(date_key, snapshot, payload["user_markdown"])
-    write_markdown(diary_paths(date_key)["ai"], ai_markdown)
+    write_diary_markdown(date_key, "ai", ai_markdown, user_id=user_id)
+    mark_ai_diary_pending(date_key, user_id=user_id)
     return True

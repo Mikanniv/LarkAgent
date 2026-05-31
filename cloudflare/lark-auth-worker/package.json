@@ -1,0 +1,14 @@
+{
+  "name": "lark-auth-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "wrangler deploy --dry-run",
+    "db:init": "wrangler d1 execute lark_users --remote --file=./schema.sql",
+    "secret:internal": "wrangler secret put INTERNAL_SECRET",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.18.0"
+  }
+}
