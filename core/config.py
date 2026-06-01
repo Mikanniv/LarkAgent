@@ -62,6 +62,10 @@ RUNTIME_MEDIA_DIR = project_path(os.getenv("RUNTIME_MEDIA_DIR", ".cache/runtime_
 MEMORY_DIR = project_path(os.getenv("MEMORY_DIR", "memories"))
 DIARY_DIR = project_path(os.getenv("DIARY_DIR", str(MEMORY_DIR / "diaries")))
 CHROMA_DIR = project_path(os.getenv("CHROMA_DIR", str(MEMORY_DIR / "chroma")))
+CHAT_DB_PATH = project_path(os.getenv("CHAT_DB_PATH", str(MEMORY_DIR / "chat.sqlite3")))
+CHAT_CONTEXT_LIMIT = int(os.getenv("CHAT_CONTEXT_LIMIT", "6"))
+CHAT_DISPLAY_LIMIT = int(os.getenv("CHAT_DISPLAY_LIMIT", "20"))
+DAILY_MEMORY_DECAY_THRESHOLD = float(os.getenv("DAILY_MEMORY_DECAY_THRESHOLD", "0.05"))
 
 HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "8001"))

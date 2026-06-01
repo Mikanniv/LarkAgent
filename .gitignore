@@ -65,6 +65,10 @@ memories/**
 !memories/chroma/
 !memories/chroma/.gitkeep
 
+# Local debug lab data
+debug_diary_lab/*.sqlite3
+debug_diary_lab/*.sqlite3-*
+
 # Models are intentionally kept for private two-device sync.
 models/**/.cache/
 models/**/runs/

@@ -153,7 +153,9 @@ const PROACTIVE_IDLE_MAX_MS = 128 * 60 * 1000;
 const PROACTIVE_COOLDOWN_MS = 120000;
 const EMOTION_MONITOR_INTERVAL_MS = 1000;
 const CHAT_HISTORY_STORAGE_KEY = "yunque.chat.history.v1";
-const MAX_STORED_CHAT_MESSAGES = 80;
+const CHAT_DISPLAY_LIMIT = 20;
+const CHAT_CONTEXT_LIMIT = 6;
+const MAX_LOCAL_CHAT_MESSAGES = 6;
 
 function proactiveIdleDelay(level = state.proactiveIdleLevel) {
   const safeLevel = Math.max(1, Number(level) || 1);
@@ -427,7 +429,7 @@ function bubbleClassForRole(role) {
 }
 
 function roleLabel(role) {
-  return normalizeChatRole(role) === "assistant" ? "Agent" : "User";
+  return normalizeChatRole(role) === "assistant" ? "云雀" : "你";
 }
 
 function normalizeHistoryItem(item) {
@@ -445,29 +447,62 @@ function normalizeHistoryItem(item) {
 }
 
 function pruneChatHistory() {
-  if (state.history.length > MAX_STORED_CHAT_MESSAGES) {
-    state.history = state.history.slice(-MAX_STORED_CHAT_MESSAGES);
+  if (state.history.length > CHAT_DISPLAY_LIMIT) {
+    state.history = state.history.slice(-CHAT_DISPLAY_LIMIT);
   }
 }
 
 function saveChatHistory() {
   try {
     pruneChatHistory();
-    window.localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(state.history));
+    window.localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(state.history.slice(-MAX_LOCAL_CHAT_MESSAGES)));
   } catch (error) {
     // 本地存储不可用时不影响聊天主流程。
   }
 }
 
-function loadChatHistory() {
+function loadLocalChatHistory() {
   try {
     const raw = window.localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     state.history = Array.isArray(parsed) ? parsed.map(normalizeHistoryItem).filter(Boolean) : [];
     pruneChatHistory();
+    saveChatHistory();
   } catch (error) {
     state.history = [];
   }
+}
+
+async function loadChatHistory() {
+  try {
+    const response = await fetch(apiUrl(`/api/chat/history?limit=${CHAT_DISPLAY_LIMIT}`), { credentials: "include" });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    state.history = Array.isArray(payload.items) ? payload.items.map(normalizeHistoryItem).filter(Boolean) : [];
+    pruneChatHistory();
+    saveChatHistory();
+  } catch (error) {
+    loadLocalChatHistory();
+  }
+}
+
+function recentContextHistory() {
+  return state.history.slice(-CHAT_CONTEXT_LIMIT).map((item) => ({
+    role: normalizeChatRole(item.role),
+    content: item.content,
+  }));
+}
+
+function syncChatHistoryFromResult(result) {
+  if (!Array.isArray(result?.chat_history)) {
+    saveChatHistory();
+    return;
+  }
+  state.history = result.chat_history.map(normalizeHistoryItem).filter(Boolean);
+  pruneChatHistory();
+  saveChatHistory();
 }
 
 function renderChatHistory() {
@@ -536,7 +571,7 @@ function addTypingBubble() {
   const wrapper = document.createElement("div");
   wrapper.className = "bubble bubble-agent bubble-typing";
   wrapper.innerHTML = `
-    <div class="bubble-role">Agent</div>
+    <div class="bubble-role">云雀</div>
     <div class="bubble-body">
       <span class="typing-dot"></span>
       <span class="typing-dot"></span>
@@ -657,9 +692,89 @@ function setJournalMode(mode) {
     : "编辑或查看用户日记。";
 }
 
+function appendDiaryText(parent, className, text) {
+  const node = document.createElement("p");
+  node.className = className;
+  node.textContent = text;
+  parent.appendChild(node);
+  return node;
+}
+
+function appendDiarySection(parent, title, items) {
+  if (!items?.length) {
+    return;
+  }
+  const section = document.createElement("section");
+  section.className = "ai-diary-section";
+  const heading = document.createElement("h4");
+  heading.textContent = title;
+  section.appendChild(heading);
+  const list = document.createElement("ul");
+  items.forEach((item) => {
+    const row = document.createElement("li");
+    const id = document.createElement("span");
+    id.className = "ai-diary-item-id";
+    id.textContent = item?.id || "-";
+    const content = document.createElement("span");
+    content.textContent = item?.content || String(item || "");
+    row.append(id, content);
+    list.appendChild(row);
+  });
+  section.appendChild(list);
+  parent.appendChild(section);
+}
+
+function renderStructuredAiDiary(container, selected) {
+  const structured = selected.ai_structured || {};
+  const summary = structured.summary || {};
+  const content = structured.content || {};
+  container.innerHTML = "";
+  const article = document.createElement("article");
+  article.className = "ai-diary-template";
+
+  const title = document.createElement("h3");
+  title.textContent = `AI记 ${selected.date || structured.date || ""}`;
+  article.appendChild(title);
+  appendDiaryText(article, "ai-diary-intro", "今天聊完之后，云雀想先把对你的理解记下来。如果哪里不对，你直接改我就好。");
+
+  const summarySection = document.createElement("section");
+  summarySection.className = "ai-diary-section ai-diary-summary";
+  const summaryTitle = document.createElement("h4");
+  summaryTitle.textContent = "今天的整体感觉";
+  summarySection.appendChild(summaryTitle);
+  appendDiaryText(summarySection, "ai-diary-summary-text", summary.overall_state || "云雀今天还没有足够的状态线索。");
+  appendDiaryText(
+    summarySection,
+    "ai-diary-emotion-line",
+    `主情绪：${summary.emotion_label || "中性"} · valence ${Number(summary.valence || 0).toFixed(2)} · arousal ${Number(summary.arousal || 0).toFixed(2)}`
+  );
+  article.appendChild(summarySection);
+
+  appendDiarySection(article, "云雀觉得今天比较重要的事", content.events || []);
+  appendDiarySection(article, "云雀观察到的状态模式", content.routines || []);
+  appendDiarySection(article, "云雀现在记下来的你的偏好", content.preferences || []);
+  appendDiarySection(article, "云雀留意到的关系线索", content.relationships || []);
+
+  const help = document.createElement("section");
+  help.className = "ai-diary-section ai-diary-help";
+  const helpTitle = document.createElement("h4");
+  helpTitle.textContent = "如果云雀理解错了";
+  help.appendChild(helpTitle);
+  ["“P1 不对，应改成……”", "“E2 可以删掉”", "“补充一条偏好：……”"].forEach((text) => {
+    appendDiaryText(help, "ai-diary-help-line", text);
+  });
+  article.appendChild(help);
+  container.appendChild(article);
+}
+
 function renderAiDiaryState(selected) {
   const placeholder = selected.ai_placeholder || "云雀正在努力总结中...";
-  els.aiDiary.textContent = selected.ai_markdown || placeholder;
+  els.aiDiary.classList.toggle("is-structured", Boolean(selected.ai_structured));
+  if (selected.ai_structured) {
+    renderStructuredAiDiary(els.aiDiary, selected);
+  } else {
+    els.aiDiary.textContent = selected.ai_markdown || placeholder;
+  }
   const canReview = Boolean(selected.ai_review_available);
   if (els.aiDiaryActions) {
     els.aiDiaryActions.hidden = !canReview;
@@ -1284,14 +1399,14 @@ async function sendMessage(message, options = {}) {
         message,
         transcript,
         proactive_reason: options.proactiveReason || "",
-        history: state.history,
+        history: recentContextHistory(),
         audio: {},
         video: {},
         ...media,
         timestamp: chinaTimestamp(),
       };
 
-      els.agentStatus.textContent = "Agent 思考中";
+      els.agentStatus.textContent = "云雀思考中";
       const response = await fetch(apiUrl("/api/chat"), {
         method: "POST",
         credentials: "include",
@@ -1304,13 +1419,17 @@ async function sendMessage(message, options = {}) {
       }
 
       const result = await response.json();
-      if (visibleUserText) {
-        state.history.push({ role: "user", content: visibleUserText });
+      if (Array.isArray(result.chat_history)) {
+        syncChatHistoryFromResult(result);
+      } else {
+        if (visibleUserText) {
+          state.history.push({ role: "user", content: visibleUserText });
+        }
+        if (result.agent.reply) {
+          state.history.push({ role: "assistant", content: result.agent.reply });
+        }
+        saveChatHistory();
       }
-      if (result.agent.reply) {
-        state.history.push({ role: "assistant", content: result.agent.reply });
-      }
-      saveChatHistory();
       state.lastInteractionAt = Date.now();
       if (visibleUserText) {
         state.lastUserInteractionAt = Date.now();
@@ -1344,7 +1463,7 @@ async function computeEmotionOnly(reason = "periodic") {
         message: "",
         transcript: "",
         analyze_reason: reason,
-        history: state.history,
+        history: recentContextHistory(),
         audio: {},
         video: {},
         ...media,
@@ -1427,7 +1546,7 @@ async function triggerProactiveReply(reason = "idle") {
   }
   const media = state.stream ? await buildRecentMediaPayload() : {};
   state.proactivePending = true;
-  els.agentStatus.textContent = "Agent 正在输入";
+  els.agentStatus.textContent = "云雀正在输入";
   const typingBubble = addTypingBubble();
 
   try {
@@ -1440,7 +1559,7 @@ async function triggerProactiveReply(reason = "idle") {
         transcript: consumeSpeechTranscript(),
         proactive: true,
         proactive_reason: reason,
-        history: state.history,
+        history: recentContextHistory(),
         audio: {},
         video: {},
         ...media,
@@ -1453,7 +1572,9 @@ async function triggerProactiveReply(reason = "idle") {
     }
 
     const result = await response.json();
-    if (result.agent.reply) {
+    if (Array.isArray(result.chat_history)) {
+      syncChatHistoryFromResult(result);
+    } else if (result.agent.reply) {
       state.history.push({ role: "assistant", content: result.agent.reply });
       saveChatHistory();
     }
@@ -1580,12 +1701,13 @@ window.addEventListener("beforeunload", stopCapture);
 
 setJournalMode("ai");
 setSidebarView("emotion");
-loadChatHistory();
 renderChatHistory();
 renderFeatureList(els.audioFeatureList, AUDIO_FEATURE_META, {});
 renderFeatureList(els.videoFeatureList, VIDEO_FEATURE_META, {});
-loadCurrentUser().then(() => {
+loadCurrentUser().then(async () => {
   if (!authRequired() || state.authUser) {
+    await loadChatHistory();
+    renderChatHistory();
     loadDiary();
     startDiaryRefreshLoop();
     pingBackend();

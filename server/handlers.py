@@ -12,6 +12,7 @@ from diary.store import get_diary_index_payload
 from server.service import (
     DEFAULT_MEMORY_USER_ID,
     analyze_and_reply,
+    handle_chat_history,
     handle_diary_refresh,
     handle_diary_review,
     handle_diary_user,
@@ -100,6 +101,14 @@ class AppHandler(BaseHTTPRequestHandler):
             query = parse_qs(parsed.query)
             query["_auth_user_id"] = [user_id]
             self.send_json(handle_memory_query(query))
+            return
+        if route == "/api/chat/history":
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            query["_auth_user_id"] = [user_id]
+            self.send_json(handle_chat_history(query))
             return
         if route == "/face_landmarker.task":
             self.serve_file(FACE_TASK_PATH)

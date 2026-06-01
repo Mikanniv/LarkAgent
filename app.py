@@ -2,14 +2,14 @@ import threading
 from http.server import ThreadingHTTPServer
 
 from core.config import HOST, PORT
-from core.config import CHROMA_DIR, DIARY_DIR, MEMORY_DIR, RUNTIME_MEDIA_DIR
+from core.config import CHAT_DB_PATH, CHROMA_DIR, DIARY_DIR, MEMORY_DIR, RUNTIME_MEDIA_DIR
 from diary.store import ensure_diary_dir
 from server.handlers import AppHandler
 from server.service import ai_diary_worker, get_emotion_runner
 
 
 def ensure_runtime_dirs() -> None:
-    for path in (MEMORY_DIR, DIARY_DIR, CHROMA_DIR, RUNTIME_MEDIA_DIR):
+    for path in (MEMORY_DIR, DIARY_DIR, CHROMA_DIR, RUNTIME_MEDIA_DIR, CHAT_DB_PATH.parent):
         path.mkdir(parents=True, exist_ok=True)
     ensure_diary_dir()
 

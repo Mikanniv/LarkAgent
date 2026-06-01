@@ -116,13 +116,29 @@ def write_ai_diary_meta(date_key: str, metadata: Dict, user_id: str | None = Non
     path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def mark_ai_diary_pending(date_key: str, user_id: str | None = None) -> None:
+def mark_ai_diary_pending(
+    date_key: str,
+    user_id: str | None = None,
+    structured: Dict | None = None,
+    memory_links: Dict | None = None,
+) -> None:
+    metadata = {
+        "status": "pending",
+        "generated_at": normalize_timestamp_to_china(""),
+        "version": "v1.1",
+        "memory_links": memory_links or {
+            "preferences": [],
+            "events": [],
+            "routines": [],
+            "relationships": [],
+            "summary": [],
+        },
+    }
+    if structured:
+        metadata["structured"] = structured
     write_ai_diary_meta(
         date_key,
-        {
-            "status": "pending",
-            "generated_at": normalize_timestamp_to_china(""),
-        },
+        metadata,
         user_id=user_id,
     )
 
@@ -132,6 +148,8 @@ def mark_ai_diary_reviewed(
     status: str,
     correction: str = "",
     memory_id: str = "",
+    memory_links: Dict | None = None,
+    review_items: List[Dict] | None = None,
     user_id: str | None = None,
 ) -> Dict:
     metadata = {
@@ -143,6 +161,20 @@ def mark_ai_diary_reviewed(
         metadata["correction"] = correction.strip()
     if memory_id:
         metadata["memory_id"] = memory_id
+    if memory_links is not None:
+        metadata["memory_links"] = memory_links
+    if review_items is not None:
+        metadata["review_items"] = review_items
+    structured = metadata.get("structured")
+    if isinstance(structured, dict):
+        review = structured.setdefault("review", {})
+        review["status"] = metadata["status"]
+        review["review_text"] = correction.strip()
+        review["review_timestamp"] = metadata["reviewed_at"]
+        if memory_links is not None:
+            review["memory_links"] = memory_links
+        if review_items is not None:
+            review["items"] = review_items
     write_ai_diary_meta(date_key, metadata, user_id=user_id)
     return metadata
 
@@ -159,7 +191,8 @@ def get_diary_payload(date_key: str, user_id: str | None = None) -> Dict:
     today = memory_date_from_payload("")
     if date_key >= today and ai_status == "pending":
         ai_status = "not_ready"
-    ai_text = raw_ai_text if ai_status == "pending" and raw_ai_text.strip() else AI_DIARY_PLACEHOLDER
+    visible_ai_statuses = {"pending", "confirmed", "corrected"}
+    ai_text = raw_ai_text if ai_status in visible_ai_statuses and raw_ai_text.strip() else AI_DIARY_PLACEHOLDER
     return {
         "date": date_key,
         "user_id": normalize_user_id(user_id),
@@ -169,6 +202,9 @@ def get_diary_payload(date_key: str, user_id: str | None = None) -> Dict:
         "ai_markdown": ai_text,
         "ai_raw_markdown": raw_ai_text if ai_status == "pending" else "",
         "ai_status": ai_status,
+        "ai_structured": ai_meta.get("structured") if ai_status in visible_ai_statuses else None,
+        "memory_links": ai_meta.get("memory_links", {}),
+        "review_items": ai_meta.get("review_items", []),
         "ai_review_available": ai_status == "pending" and bool(raw_ai_text.strip()),
         "ai_placeholder": AI_DIARY_PLACEHOLDER,
         "user_path": str(paths["user"]),
