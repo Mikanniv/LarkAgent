@@ -1,9 +1,11 @@
+import json
 import re
 import threading
 import time
 from difflib import SequenceMatcher
 from typing import Any, Dict, List
 
+from agent.kimi import call_kimi_chat, kimi_ready
 from agent.replies import agent_payload, decide_memory_update, generate_agent_reply
 from core.config import (
     AI_DIARY_UPDATE_INTERVAL,
@@ -74,7 +76,11 @@ def memory_snapshot_key(user_id: str, date_key: str) -> str:
 
 def normalize_memory_document(document: str) -> str:
     text = (document or "").strip()
-    text = re.sub(r"^(用户表达了陪伴偏好|用户提到重要关系线索|用户当前重要状态或事件)[：:]\s*", "", text)
+    text = re.sub(
+        r"^(用户表达了陪伴偏好|用户提到重要关系线索|用户当前重要状态或事件|用户说|用户提到|用户表示|用户补充)[：:]\s*",
+        "",
+        text,
+    )
     text = re.sub(r"\s+", "", text)
     text = re.sub(r"[，。！？、；：,.!?;:\"'“”‘’（）()【】\\[\\]{}<>《》]", "", text)
     return text.lower()
@@ -233,6 +239,7 @@ def write_memory_from_decision(
     if not decision.get("should_write"):
         return {"written": False, "decision": decision}
     document = (decision.get("document") or "").strip()
+    document = fallback_memory_rewrite(document)
     if not document:
         return {"written": False, "decision": {**decision, "reason": "缺少可写入内容"}}
 
@@ -732,6 +739,86 @@ def review_document_is_writable(document: str) -> bool:
     return "暂不形成明确长期记忆" not in text and "信息不足" not in text
 
 
+def clean_memory_write_text(text: str) -> str:
+    text = (text or "").strip()
+    text = re.sub(r"^[-•\s]+", "", text)
+    text = re.sub(r"^(用户)?(修改|修正|更正)了?AI记[：:，,]?\s*", "", text)
+    text = re.sub(r"^(AI记|云雀)理解错了[：:，,]?\s*", "", text)
+    text = re.sub(r"^(不对|错了|应该改成|应改成|改成)[：:，,]?\s*", "", text)
+    text = re.sub(r"^用户(补充|指出)[：:，,]?\s*", "", text)
+    text = re.sub(r"^用户(说|表示|提到)[：:，,]?\s*", "用户", text)
+    text = re.sub(r"^用户我", "用户", text)
+    if text.startswith("用户") and "用户" in text[2:]:
+        text = text[2:]
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def fallback_memory_rewrite(text: str) -> str:
+    text = clean_memory_write_text(text)
+    if not text:
+        return ""
+    if text.startswith("我"):
+        text = "用户" + text[1:]
+    elif not text.startswith("用户") and "用户" not in text:
+        text = f"用户{text}"
+    return text[:140]
+
+
+def rewrite_memory_document_for_storage(document: str, memory_type: str, action: str) -> str:
+    document = clean_memory_write_text(document)
+    if not document:
+        return ""
+    if action == "delete":
+        return fallback_memory_rewrite(document)
+    if not kimi_ready():
+        return fallback_memory_rewrite(document)
+    system = (
+        "你是云雀长期记忆库的写入整理器。"
+        "请把输入内容改写成一条自然、简洁、第三人称的长期记忆。"
+        "保留原意、否定、时间范围、人物关系和关键限定。"
+        "不要照抄原句，不要写成聊天原话，不要写“用户说/用户提到/用户修改了AI记”。"
+        "不要加入输入之外的新事实。只输出JSON。"
+    )
+    user = (
+        f"记忆类型：{memory_type}\n"
+        f"来源操作：{action}\n"
+        f"待写入内容：{document}\n\n"
+        "请输出：{\"document\":\"改写后的长期记忆\"}"
+    )
+    content, error = call_kimi_chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=220,
+        temperature=0.1,
+    )
+    parsed = {}
+    if content:
+        try:
+            start = content.find("{")
+            end = content.rfind("}")
+            if start >= 0 and end > start:
+                parsed = json.loads(content[start : end + 1])
+        except Exception:
+            parsed = {}
+    rewritten = clean_memory_write_text(str(parsed.get("document") or "").strip())
+    if not rewritten:
+        return fallback_memory_rewrite(document)
+    if not rewritten.startswith("用户") and "用户" not in rewritten:
+        rewritten = f"用户{rewritten}"
+    return rewritten[:140]
+
+
+def rewrite_review_items_for_memory(review_items: List[Dict]) -> List[Dict]:
+    rewritten_items: List[Dict] = []
+    for item in review_items:
+        action = (item.get("action") or "confirm").strip().lower()
+        memory_type = review_memory_type(item.get("type") or "event")
+        source_text = str(item.get("after") if action in {"correct", "append"} else item.get("before") or "").strip()
+        memory_document = rewrite_memory_document_for_storage(source_text, memory_type, action)
+        rewritten_items.append({**item, "memory_document": memory_document})
+    return rewritten_items
+
+
 def evidence_source_and_modalities(evidence: Dict, fallback_modalities: Dict) -> tuple[str, Dict[str, bool]]:
     evidence = evidence or {}
     availability = evidence.get("availability") if isinstance(evidence.get("availability"), dict) else {}
@@ -896,7 +983,8 @@ def process_diary_review_item_locked(
     content_key = normalized_review_content_key(memory_type)
     before = str(item.get("before") or "").strip()
     after = str(item.get("after") or before).strip()
-    document = after if action in {"correct", "append"} else before
+    raw_document = after if action in {"correct", "append"} else before
+    document = str(item.get("memory_document") or raw_document).strip()
     evidence = item.get("evidence") or {}
     source, modalities = evidence_source_and_modalities(evidence, fallback_modalities)
     result = {
@@ -906,6 +994,7 @@ def process_diary_review_item_locked(
         "action": action,
         "before": before,
         "after": after,
+        "memory_document": document,
         "memory_id": "",
         "written": False,
         "skipped": False,
@@ -1151,6 +1240,7 @@ def handle_diary_review(payload: Dict) -> Dict:
     review_items = build_review_items(payload, diary_payload)
     if not review_items:
         return {"ok": False, "error": "missing review items", **get_diary_index_payload(date_key, user_id=user_id)}
+    review_items = rewrite_review_items_for_memory(review_items)
 
     with LONG_MEMORY_LOCK:
         results = [

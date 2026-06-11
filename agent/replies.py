@@ -180,6 +180,13 @@ def valence_is_negative(valence: float) -> bool:
     return valence <= -0.2
 
 
+def compact_memory_phrase(text: str, limit: int = 90) -> str:
+    text = re.sub(r"\s+", " ", (text or "").strip())
+    text = re.sub(r"^(我|本人)", "用户", text)
+    text = re.sub(r"^(今天|刚刚|现在)", r"用户\1", text)
+    return text[:limit]
+
+
 def fallback_memory_decision(user_text: str, emotion: FineGrainedEmotion) -> Dict:
     normalized = (user_text or "").strip()
     compact = re.sub(r"\s+", "", normalized)
@@ -196,7 +203,7 @@ def fallback_memory_decision(user_text: str, emotion: FineGrainedEmotion) -> Dic
             "should_write": True,
             "type": "preference",
             "source": "conversation",
-            "document": f"用户表达了陪伴偏好：{normalized[:90]}",
+            "document": f"用户对云雀的陪伴方式有明确偏好：{compact_memory_phrase(normalized)}",
             "confidence": 0.82,
             "reason": "用户明确表达了回复偏好",
         }
@@ -205,7 +212,7 @@ def fallback_memory_decision(user_text: str, emotion: FineGrainedEmotion) -> Dic
             "should_write": True,
             "type": "relationship",
             "source": "conversation",
-            "document": f"用户提到重要关系线索：{normalized[:90]}",
+            "document": f"用户的关系上下文中有值得后续参考的线索：{compact_memory_phrase(normalized)}",
             "confidence": 0.72,
             "reason": "用户提到关系上下文",
         }
@@ -219,7 +226,7 @@ def fallback_memory_decision(user_text: str, emotion: FineGrainedEmotion) -> Dic
             "should_write": True,
             "type": "event",
             "source": "conversation",
-            "document": f"用户当前重要状态或事件：{normalized[:90]}",
+            "document": f"用户近期有值得后续跟进的状态或事件：{compact_memory_phrase(normalized)}",
             "confidence": 0.68,
             "reason": "输入包含可用于后续陪伴的事件或情绪线索",
         }
@@ -252,9 +259,12 @@ def decide_memory_update(
     system = (
         "你是云雀长期记忆库的写入决策器。"
         "你只判断当前轮次是否值得写入长期记忆，并只输出JSON。"
-        "只有稳定偏好、重要事件、重要关系、重复模式、用户对陪伴方式的明确反馈才写入。"
-        "普通闲聊、一次性寒暄、一次性的情绪表达、低置信度推测不要写入。"
+        "稳定偏好、重要关系、重复模式、用户对陪伴方式的明确反馈应写入。"
+        "如果当前轮次包含对理解用户很有帮助的具体事实、阶段性进展、重要约定、关系变化或后续需要跟进的事情，也可以写入。"
+        "普通闲聊、一次性寒暄、只有情绪但没有原因或背景的表达、低置信度推测不要写入。"
         "例如“我今天有点焦虑，想让你陪我聊聊”只代表当前状态，除非出现具体原因、反复模式或明确要求记住，否则不要写入。"
+        "写入的document必须是自然的第三人称长期记忆句，不要照抄用户原话，"
+        "不要写“用户说/用户提到/用户修改了AI记”这类记录动作。"
     )
     user = (
         f"当前用户输入：{user_text}\n\n"
@@ -265,7 +275,7 @@ def decide_memory_update(
         f"模型原始分数：{raw_scores}\n\n"
         "输出JSON格式："
         "{\"should_write\": true/false, \"type\": \"event|routine|preference|relationship|summary\", "
-        "\"source\": \"conversation|inference\", \"document\": \"一条不超过80字的自然语言记忆\", "
+        "\"source\": \"conversation|inference\", \"document\": \"一条不超过80字、像长期记忆而不是聊天原话的自然语言记忆\", "
         "\"confidence\": 0到1, \"reason\": \"简短原因\"}"
     )
     content, error = call_kimi_chat(
