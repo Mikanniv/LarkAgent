@@ -33,11 +33,24 @@ logs/
 tmp/
 temp/
 *.log
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
 
 # OS files
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# JavaScript / Cloudflare Worker dependencies
+node_modules/
+
+# Flutter generated outputs
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # Raw data: keep extracted pkl features, ignore original labels/media/raw folders
 data/**
@@ -65,10 +78,6 @@ memories/**
 !memories/chroma/
 !memories/chroma/.gitkeep
 
-# Local debug lab data
-debug_diary_lab/*.sqlite3
-debug_diary_lab/*.sqlite3-*
-
 # Models are intentionally kept for private two-device sync.
 models/**/.cache/
 models/**/runs/
@@ -78,3 +87,6 @@ models/_*.pth
 
 # Reports
 reports/*.tmp
+
+# Local experiment outputs and prototypes
+experiment_simulator/

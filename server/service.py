@@ -763,12 +763,12 @@ def linked_memory_locked(
             continue
         old_document = (current.get("documents") or [""])[0]
         if len(memory_ids) == 1:
-            return {"id": memory_id, "document": old_document, "metadata": metadata}
+            return {"id": memory_id, "document": old_document, "metadata": metadata, "match_strategy": "linked_single"}
         old_normalized = normalize_memory_document(old_document)
         for candidate in candidates:
             candidate_normalized = normalize_memory_document(candidate)
             if candidate_normalized and SequenceMatcher(None, old_normalized, candidate_normalized).ratio() >= 0.82:
-                return {"id": memory_id, "document": old_document, "metadata": metadata}
+                return {"id": memory_id, "document": old_document, "metadata": metadata, "match_strategy": "linked_similarity"}
     return None
 
 
@@ -786,11 +786,16 @@ def find_existing_review_memory_locked(
     if before:
         duplicate = find_duplicate_memory_locked(before, user_id=user_id, memory_type=memory_type)
         if duplicate:
+            duplicate["match_strategy"] = "before_duplicate"
             return duplicate
     duplicate = find_duplicate_memory_locked(document, user_id=user_id, memory_type=memory_type)
     if duplicate:
+        duplicate["match_strategy"] = "document_duplicate"
         return duplicate
-    return find_merge_candidate_locked(document, user_id=user_id, memory_type=memory_type)
+    merge_candidate = find_merge_candidate_locked(document, user_id=user_id, memory_type=memory_type)
+    if merge_candidate:
+        merge_candidate["match_strategy"] = "topic_merge_candidate"
+    return merge_candidate
 
 
 def max_importance_for_type_locked(user_id: str, memory_type: str, fallback: float) -> float:
@@ -803,7 +808,7 @@ def max_importance_for_type_locked(user_id: str, memory_type: str, fallback: flo
         float((item.get("metadata") or {}).get("importance_0", (item.get("metadata") or {}).get("importance", fallback)))
         for item in items
     ]
-    return max(values, fallback) if values else fallback
+    return max([*values, fallback]) if values else fallback
 
 
 def update_review_memory_metadata(
@@ -904,6 +909,8 @@ def process_diary_review_item_locked(
         "memory_id": "",
         "written": False,
         "skipped": False,
+        "target_found": False,
+        "write_mode": "",
     }
     if action not in {"confirm", "correct", "delete", "append"}:
         result.update({"skipped": True, "reason": "invalid action"})
@@ -921,7 +928,7 @@ def process_diary_review_item_locked(
     )
     if action == "delete":
         if not existing:
-            result.update({"skipped": True, "reason": "no linked memory to reduce"})
+            result.update({"skipped": True, "reason": "no linked memory to reduce", "write_mode": "missing_target"})
             return result
         memory_id = existing["id"]
         old_metadata = existing.get("metadata") or {}
@@ -935,7 +942,16 @@ def process_diary_review_item_locked(
             confirmation="corrected",
         )
         add_memory_link(memory_links, memory_type, memory_id)
-        result.update({"written": True, "memory_id": memory_id, "metadata": metadata})
+        result.update(
+            {
+                "written": True,
+                "memory_id": memory_id,
+                "metadata": metadata,
+                "target_found": True,
+                "write_mode": "reduced_existing",
+                "match_strategy": existing.get("match_strategy", ""),
+            }
+        )
         return result
 
     if action == "confirm":
@@ -955,7 +971,17 @@ def process_diary_review_item_locked(
                 modalities=modalities,
             )
             add_memory_link(memory_links, memory_type, memory_id)
-            result.update({"written": True, "memory_id": memory_id, "metadata": metadata, "merged": True})
+            result.update(
+                {
+                    "written": True,
+                    "memory_id": memory_id,
+                    "metadata": metadata,
+                    "merged": True,
+                    "target_found": True,
+                    "write_mode": "confirmed_existing",
+                    "match_strategy": existing.get("match_strategy", ""),
+                }
+            )
             return result
         created = create_review_memory(
             document=document,
@@ -970,7 +996,14 @@ def process_diary_review_item_locked(
             confidence=0.9,
         )
         add_memory_link(memory_links, memory_type, created["id"])
-        result.update({"written": True, "memory_id": created["id"], "metadata": created["metadata"]})
+        result.update(
+            {
+                "written": True,
+                "memory_id": created["id"],
+                "metadata": created["metadata"],
+                "write_mode": "created_from_confirm",
+            }
+        )
         return result
 
     confirmation = "corrected"
@@ -991,15 +1024,35 @@ def process_diary_review_item_locked(
             modalities=modalities,
         )
         add_memory_link(memory_links, memory_type, memory_id)
-        result.update({"written": True, "memory_id": memory_id, "metadata": metadata, "merged": True})
+        result.update(
+            {
+                "written": True,
+                "memory_id": memory_id,
+                "metadata": metadata,
+                "merged": True,
+                "target_found": True,
+                "write_mode": "corrected_existing",
+                "match_strategy": existing.get("match_strategy", ""),
+            }
+        )
         return result
 
     duplicate = find_duplicate_memory_locked(document, user_id=user_id, memory_type=memory_type)
     if duplicate:
         memory_id = duplicate["id"]
         add_memory_link(memory_links, memory_type, memory_id)
-        result.update({"written": False, "memory_id": memory_id, "duplicate": True})
+        result.update(
+            {
+                "written": False,
+                "memory_id": memory_id,
+                "duplicate": True,
+                "target_found": action == "correct",
+                "write_mode": "duplicate_noop",
+            }
+        )
         return result
+    if action == "append" and source == "conversation" and not evidence:
+        source = "diary_user"
     created = create_review_memory(
         document=document,
         date_key=date_key,
@@ -1013,7 +1066,21 @@ def process_diary_review_item_locked(
         confidence=0.9,
     )
     add_memory_link(memory_links, memory_type, created["id"])
-    result.update({"written": True, "memory_id": created["id"], "metadata": created["metadata"]})
+    if action == "append":
+        write_mode = "created_from_append"
+    elif action == "correct":
+        write_mode = "created_fallback_from_correct"
+    else:
+        write_mode = f"created_from_{action}"
+    result.update(
+        {
+            "written": True,
+            "memory_id": created["id"],
+            "metadata": created["metadata"],
+            "write_mode": write_mode,
+            "created_fallback": action == "correct",
+        }
+    )
     return result
 
 
