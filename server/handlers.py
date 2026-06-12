@@ -16,6 +16,7 @@ from server.service import (
     handle_diary_refresh,
     handle_diary_review,
     handle_diary_user,
+    handle_diary_user_delete,
     handle_memory_clear,
     handle_memory_decay,
     handle_memory_delete,
@@ -129,6 +130,7 @@ class AppHandler(BaseHTTPRequestHandler):
             "/api/analyze",
             "/api/chat",
             "/api/diary/user",
+            "/api/diary/user/delete",
             "/api/diary/refresh",
             "/api/diary/review",
             "/api/memory/clear",
@@ -159,6 +161,8 @@ class AppHandler(BaseHTTPRequestHandler):
                 response = analyze_and_reply(payload, should_reply=True)
             elif route == "/api/diary/user":
                 response = handle_diary_user(payload)
+            elif route == "/api/diary/user/delete":
+                response = handle_diary_user_delete(payload)
             elif route == "/api/diary/refresh":
                 response = handle_diary_refresh(payload)
             elif route == "/api/diary/review":

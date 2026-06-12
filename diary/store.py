@@ -79,6 +79,22 @@ def write_diary_markdown(date_key: str, kind: str, content: str, user_id: str | 
     write_markdown(diary_paths(date_key, user_id=user_id)[kind], normalized)
 
 
+def delete_diary_markdown(date_key: str, kind: str, user_id: str | None = None) -> int:
+    if r2_store.is_enabled():
+        return r2_store.delete_keys([diary_object_key(date_key, f"{kind}.md", user_id=user_id)])
+    deleted = 0
+    path = diary_paths(date_key, user_id=user_id)[kind]
+    if path.exists():
+        path.unlink()
+        deleted += 1
+    if kind == "user" and normalize_user_id(user_id) == "local_user":
+        legacy_path = legacy_diary_paths(date_key)["user"]
+        if legacy_path.exists():
+            legacy_path.unlink()
+            deleted += 1
+    return deleted
+
+
 def default_ai_diary_meta() -> Dict:
     return {"status": "not_ready"}
 
@@ -269,6 +285,11 @@ def get_diary_index_payload(selected_date: str = "", user_id: str | None = None)
 def save_user_diary(date_key: str, markdown: str, user_id: str | None = None) -> Dict:
     write_diary_markdown(date_key, "user", markdown, user_id=user_id)
     return get_diary_index_payload(date_key, user_id=user_id)
+
+
+def delete_user_diary(date_key: str, user_id: str | None = None) -> Dict:
+    deleted = delete_diary_markdown(date_key, "user", user_id=user_id)
+    return {"ok": True, "deleted": deleted, **get_diary_index_payload(date_key, user_id=user_id)}
 
 
 def delete_diary_data(user_id: str | None = None) -> Dict:

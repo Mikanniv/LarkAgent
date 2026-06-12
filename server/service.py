@@ -17,6 +17,7 @@ from core.config import (
 from core.utils import memory_date_from_payload, normalize_timestamp_to_china
 from diary.generator import refresh_ai_diary_from_snapshot
 from diary.store import (
+    delete_user_diary,
     delete_diary_data,
     get_diary_index_payload,
     get_diary_payload,
@@ -84,6 +85,22 @@ def normalize_memory_document(document: str) -> str:
     text = re.sub(r"\s+", "", text)
     text = re.sub(r"[，。！？、；：,.!?;:\"'“”‘’（）()【】\\[\\]{}<>《》]", "", text)
     return text.lower()
+
+
+def merge_memory_documents(old_document: str, new_document: str) -> str:
+    old_document = (old_document or "").strip()
+    new_document = (new_document or "").strip()
+    if not old_document:
+        return new_document
+    if not new_document:
+        return old_document
+    old_normalized = normalize_memory_document(old_document)
+    new_normalized = normalize_memory_document(new_document)
+    if old_normalized == new_normalized or new_normalized in old_normalized:
+        return old_document
+    if old_normalized in new_normalized:
+        return new_document
+    return f"{old_document}；{new_document}"
 
 
 def memory_topic_tokens(document: str) -> set[str]:
@@ -162,6 +179,140 @@ def find_duplicate_memory_locked(document: str, user_id: str, memory_type: str) 
         if existing == normalized or SequenceMatcher(None, existing, normalized).ratio() >= 0.94:
             return item
     return None
+
+
+def find_semantic_memory_candidates_locked(
+    document: str,
+    user_id: str,
+    memory_type: str,
+    limit: int = 5,
+) -> List[Dict]:
+    if memory_type not in {"event", "relationship", "preference", "routine"}:
+        return []
+    if not document.strip() or long_memory.collection.count() == 0:
+        return []
+    results = long_memory.recall(
+        document,
+        k=limit,
+        user_id=user_id or None,
+        memory_type=memory_type,
+        candidate_pool=max(limit * 4, 12),
+        alpha=1.0,
+        beta=0.0,
+        gamma=0.0,
+    )
+    ids = (results.get("ids") or [[]])[0]
+    documents = (results.get("documents") or [[]])[0]
+    metadatas = (results.get("metadatas") or [[]])[0]
+    similarities = (results.get("semantic_similarities") or [[]])[0]
+    candidates: List[Dict] = []
+    new_topics = memory_topic_tokens(document)
+    for index, memory_id in enumerate(ids):
+        old_document = documents[index] if index < len(documents) else ""
+        if not old_document:
+            continue
+        similarity = float(similarities[index]) if index < len(similarities) else 0.0
+        lexical = SequenceMatcher(None, normalize_memory_document(old_document), normalize_memory_document(document)).ratio()
+        old_topics = memory_topic_tokens(old_document)
+        topic_overlap = bool(new_topics and old_topics and (new_topics & old_topics))
+        if similarity < 0.42 and lexical < 0.42 and not topic_overlap:
+            continue
+        candidates.append(
+            {
+                "id": memory_id,
+                "document": old_document,
+                "metadata": dict((metadatas[index] if index < len(metadatas) else {}) or {}),
+                "semantic_similarity": similarity,
+                "lexical_similarity": lexical,
+                "topic_overlap": sorted(new_topics & old_topics) if topic_overlap else [],
+                "match_strategy": "semantic_candidate",
+            }
+        )
+    candidates.sort(
+        key=lambda item: (
+            bool(item.get("topic_overlap")),
+            float(item.get("semantic_similarity") or 0.0),
+            float(item.get("lexical_similarity") or 0.0),
+        ),
+        reverse=True,
+    )
+    return candidates
+
+
+def decide_memory_semantic_merge(document: str, memory_type: str, candidates: List[Dict]) -> Dict:
+    if not candidates:
+        return {"should_merge": False, "reason": "no candidates"}
+    fallback_candidate = candidates[0]
+    if not kimi_ready():
+        if fallback_candidate.get("topic_overlap") and float(fallback_candidate.get("semantic_similarity") or 0.0) >= 0.46:
+            return {
+                "should_merge": True,
+                "target_id": fallback_candidate["id"],
+                "merged_document": merge_memory_documents(fallback_candidate.get("document", ""), document),
+                "reason": "semantic fallback merge",
+            }
+        return {"should_merge": False, "reason": "kimi unavailable"}
+
+    candidate_lines = "\n".join(
+        f"{index + 1}. id={item['id']}\n旧记忆：{item['document']}\n"
+        f"semantic={item.get('semantic_similarity', 0):.3f}, lexical={item.get('lexical_similarity', 0):.3f}, "
+        f"overlap={item.get('topic_overlap', [])}"
+        for index, item in enumerate(candidates[:5])
+    )
+    system = (
+        "你是长期记忆合并判定器。"
+        "判断新记忆是否与某条旧记忆属于同一用户主题。"
+        "如果两条记忆描述的是同一偏好、同一关系、同一习惯或同一持续事件的补充、限定、修正或更具体版本，应合并。"
+        "如果只是大类相同，但对象、场景、原因或约束条件不同，应不合并。"
+        "合并时保留所有不冲突的事实和否定限定，写成一条自然、简洁的长期记忆。"
+        "只输出JSON。"
+    )
+    user = f"""
+记忆类型：{memory_type}
+新记忆：{document}
+
+候选旧记忆：
+{candidate_lines}
+
+判定标准：
+- 同一主题：新旧记忆可以自然回答同一个“用户在什么对象/场景下有什么偏好或状态”的问题。
+- 可合并：新记忆是在补充旧记忆的原因、例外、限制、时间范围、对象细节或更新状态。
+- 不合并：新旧记忆只是同属一个大类，但分别描述不同对象、不同场景或互不相关的行为。
+- 冲突时：保留更具体、更新、更有证据的一方，并在合并文本中保留必要限定。
+
+请输出：
+{{
+  "should_merge": true,
+  "target_id": "候选旧记忆id，或空字符串",
+  "merged_document": "合并后的长期记忆；不合并则为空",
+  "reason": "一句话说明"
+}}
+""".strip()
+    content, error = call_kimi_chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=500,
+        temperature=0.0,
+    )
+    try:
+        parsed = json.loads(re.sub(r"^```(?:json)?|```$", "", (content or "").strip(), flags=re.MULTILINE).strip())
+    except Exception:
+        parsed = {}
+    target_id = str(parsed.get("target_id") or "").strip()
+    if not parsed.get("should_merge") or not target_id:
+        return {"should_merge": False, "reason": parsed.get("reason") or error or "not same theme"}
+    candidate_ids = {str(item.get("id") or "") for item in candidates}
+    if target_id not in candidate_ids:
+        return {"should_merge": False, "reason": "target not in candidates"}
+    merged_document = str(parsed.get("merged_document") or "").strip()
+    if not review_document_is_writable(merged_document):
+        old_document = next((item.get("document", "") for item in candidates if item.get("id") == target_id), "")
+        merged_document = merge_memory_documents(old_document, document)
+    return {
+        "should_merge": True,
+        "target_id": target_id,
+        "merged_document": merged_document,
+        "reason": str(parsed.get("reason") or "semantic merge"),
+    }
 
 
 def normalize_recall_results(results: Dict) -> list[Dict]:
@@ -272,22 +423,52 @@ def write_memory_from_decision(
                 "document": document,
                 "decision": {**decision, "reason": "已存在相同或高度相似的长期记忆，跳过写入"},
             }
+        candidates: List[Dict] = []
         merge_candidate = find_merge_candidate_locked(document, user_id=user_id, memory_type=memory_type)
         if merge_candidate:
-            memory_id = merge_candidate["id"]
-            old_metadata = merge_candidate.get("metadata") or {}
-            old_importance = float(old_metadata.get("importance_0", old_metadata.get("importance", 0.0)))
-            memory["metadata"]["importance_0"] = max(old_importance, float(memory["metadata"].get("importance_0", 0.0)))
-            memory["metadata"]["importance"] = memory["metadata"]["importance_0"]
-            long_memory.update_memory(memory_id, document=document, metadata_updates=memory["metadata"])
+            merge_candidate["match_strategy"] = merge_candidate.get("match_strategy") or "topic_merge_candidate"
+            candidates.append(merge_candidate)
+        seen_ids = {item.get("id") for item in candidates}
+        for candidate in find_semantic_memory_candidates_locked(document, user_id=user_id, memory_type=memory_type):
+            if candidate.get("id") not in seen_ids:
+                candidates.append(candidate)
+                seen_ids.add(candidate.get("id"))
+
+    merge_decision = decide_memory_semantic_merge(document, memory_type, candidates)
+    if merge_decision.get("should_merge"):
+        memory_id = str(merge_decision.get("target_id") or "")
+        with LONG_MEMORY_LOCK:
+            current = long_memory.collection.get(ids=[memory_id], include=["documents", "metadatas"])
+            if current.get("ids"):
+                old_document = (current.get("documents") or [""])[0]
+                old_metadata = dict((current.get("metadatas") or [{}])[0] or {})
+                old_importance = float(old_metadata.get("importance_0", old_metadata.get("importance", 0.0)))
+                merged_document = str(merge_decision.get("merged_document") or "").strip() or merge_memory_documents(old_document, document)
+                memory["metadata"]["importance_0"] = max(old_importance, float(memory["metadata"].get("importance_0", 0.0)))
+                memory["metadata"]["importance"] = memory["metadata"]["importance_0"]
+                long_memory.update_memory(memory_id, document=merged_document, metadata_updates=memory["metadata"])
+                return {
+                    "written": True,
+                    "merged": True,
+                    "semantic_merged": True,
+                    "id": memory_id,
+                    "old_document": old_document,
+                    "document": merged_document,
+                    "new_document": document,
+                    "metadata": memory["metadata"],
+                    "merge_reason": merge_decision.get("reason", ""),
+                    "decision": {**decision, "reason": "已合并语义相近的长期记忆，保留旧记忆和新记忆中的互补事实"},
+                }
+
+    with LONG_MEMORY_LOCK:
+        duplicate = find_duplicate_memory_locked(document, user_id=user_id, memory_type=memory_type)
+        if duplicate:
             return {
-                "written": True,
-                "merged": True,
-                "id": memory_id,
-                "old_document": merge_candidate.get("document", ""),
+                "written": False,
+                "duplicate": True,
+                "duplicate_id": duplicate.get("id"),
                 "document": document,
-                "metadata": memory["metadata"],
-                "decision": {**decision, "reason": "已合并同主题长期记忆，使用更新且更明确的状态"},
+                "decision": {**decision, "reason": "已存在相同或高度相似的长期记忆，跳过写入"},
             }
         memory_id = long_memory.add_memory(memory)
     return {
@@ -602,12 +783,21 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
 def handle_diary_user(payload: Dict) -> Dict:
     user_id = current_user_id(payload)
     date_key = payload.get("date") or memory_date_from_payload("")
-    response = save_user_diary(date_key, payload.get("markdown", ""), user_id=user_id)
+    markdown = (payload.get("markdown") or "").strip()
+    if not markdown:
+        return {"ok": False, "error": "empty diary", **get_diary_index_payload(date_key, user_id=user_id)}
+    response = save_user_diary(date_key, markdown, user_id=user_id)
     if date_key == memory_date_from_payload(""):
         with MEMORY_LOCK:
             MEMORY_STATE["pending_diary_dates"].add((user_id, date_key))
         mark_pending_ai_diary_date(user_id, date_key)
     return response
+
+
+def handle_diary_user_delete(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
+    date_key = payload.get("date") or memory_date_from_payload("")
+    return delete_user_diary(date_key, user_id=user_id)
 
 
 def handle_chat_history(params: Dict[str, list[str]]) -> Dict:
