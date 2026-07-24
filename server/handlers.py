@@ -13,14 +13,12 @@ from server.service import (
     DEFAULT_MEMORY_USER_ID,
     analyze_and_reply,
     handle_chat_history,
-    handle_diary_refresh,
-    handle_diary_review,
+    handle_ai_diary_v2_query,
+    handle_ai_diary_v2_review,
     handle_diary_user,
     handle_diary_user_delete,
-    handle_memory_clear,
-    handle_memory_decay,
-    handle_memory_delete,
-    handle_memory_query,
+    handle_memory_v2_query,
+    handle_memory_v2_read,
     handle_user_clear,
 )
 
@@ -29,6 +27,25 @@ INTERNAL_SECRET = os.environ.get("YUNQUE_INTERNAL_SECRET", "").strip()
 
 
 class AppHandler(BaseHTTPRequestHandler):
+    def is_local_direct_request(self) -> bool:
+        client_host = self.client_address[0]
+        if client_host not in {"127.0.0.1", "::1"}:
+            return False
+        if any(
+            self.headers.get(name)
+            for name in ("CF-Connecting-IP", "Forwarded", "X-Forwarded-For", "X-Real-IP")
+        ):
+            return False
+        host = self.headers.get("Host", "")
+        host_name = urlparse(f"//{host}").hostname or ""
+        if host_name not in {"127.0.0.1", "localhost", "::1"}:
+            return False
+        origin = self.headers.get("Origin", "")
+        if not origin:
+            return True
+        parsed = urlparse(origin)
+        return parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost"}
+
     @staticmethod
     def is_allowed_origin(origin: str) -> bool:
         if not origin:
@@ -47,7 +64,6 @@ class AppHandler(BaseHTTPRequestHandler):
     def asset_version() -> str:
         candidates = [
             STATIC_DIR / "app.js",
-            STATIC_DIR / "memory.js",
             STATIC_DIR / "styles.css",
         ]
         latest_mtime = 0
@@ -84,9 +100,6 @@ class AppHandler(BaseHTTPRequestHandler):
         if route in {"/", "/index.html"}:
             self.serve_html(STATIC_DIR / "index.html")
             return
-        if route in {"/memory", "/memory.html"}:
-            self.serve_html(STATIC_DIR / "memory.html")
-            return
         if route == "/api/diary":
             user_id = self.api_user_id()
             if user_id is None:
@@ -95,13 +108,21 @@ class AppHandler(BaseHTTPRequestHandler):
             requested_date = (query.get("date") or [""])[0]
             self.send_json(get_diary_index_payload(requested_date, user_id=user_id))
             return
-        if route == "/api/memory":
+        if route == "/api/memory/v2":
             user_id = self.api_user_id()
             if user_id is None:
                 return
             query = parse_qs(parsed.query)
             query["_auth_user_id"] = [user_id]
-            self.send_json(handle_memory_query(query))
+            self.send_json(handle_memory_v2_query(query))
+            return
+        if route == "/api/ai-diary/v2":
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            query["_auth_user_id"] = [user_id]
+            self.send_json(handle_ai_diary_v2_query(query))
             return
         if route == "/api/chat/history":
             user_id = self.api_user_id()
@@ -127,15 +148,11 @@ class AppHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         route = unquote(urlparse(self.path).path)
         if route not in {
-            "/api/analyze",
             "/api/chat",
             "/api/diary/user",
             "/api/diary/user/delete",
-            "/api/diary/refresh",
-            "/api/diary/review",
-            "/api/memory/clear",
-            "/api/memory/delete",
-            "/api/memory/decay",
+            "/api/ai-diary/v2/review",
+            "/api/memory/v2/read",
             "/api/user/clear",
         }:
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
@@ -155,33 +172,25 @@ class AppHandler(BaseHTTPRequestHandler):
         payload["user_id"] = user_id
 
         try:
-            if route == "/api/analyze":
-                response = analyze_and_reply(payload, should_reply=False)
-            elif route == "/api/chat":
+            if route == "/api/chat":
                 response = analyze_and_reply(payload, should_reply=True)
             elif route == "/api/diary/user":
                 response = handle_diary_user(payload)
             elif route == "/api/diary/user/delete":
                 response = handle_diary_user_delete(payload)
-            elif route == "/api/diary/refresh":
-                response = handle_diary_refresh(payload)
-            elif route == "/api/diary/review":
-                response = handle_diary_review(payload)
-            elif route == "/api/memory/clear":
-                response = handle_memory_clear(payload)
-            elif route == "/api/memory/delete":
-                response = handle_memory_delete(payload)
-            elif route == "/api/user/clear":
-                response = handle_user_clear(payload)
+            elif route == "/api/ai-diary/v2/review":
+                response = handle_ai_diary_v2_review(payload)
+            elif route == "/api/memory/v2/read":
+                response = handle_memory_v2_read(payload)
             else:
-                response = handle_memory_decay(payload)
+                response = handle_user_clear(payload)
         except Exception as exc:
             self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
         self.send_json(response)
 
     def api_user_id(self) -> str | None:
-        if INTERNAL_SECRET:
+        if INTERNAL_SECRET and not self.is_local_direct_request():
             received = self.headers.get("X-Yunque-Internal-Secret", "")
             if received != INTERNAL_SECRET:
                 self.send_json({"ok": False, "error": "unauthorized"}, status=HTTPStatus.UNAUTHORIZED)

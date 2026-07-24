@@ -141,6 +141,12 @@ class SelfMMRunner:
             "feature_norm_video": float(output["Feature_v"].norm(dim=-1)[0].cpu().item()),
         }
 
+    @torch.inference_mode()
+    def predict_text(self, text: str) -> Dict[str, float]:
+        audio = torch.zeros((1, AUDIO_SEQ_LEN, AUDIO_DIM), dtype=torch.float32, device=self.device)
+        video = torch.zeros((1, VIDEO_SEQ_LEN, VIDEO_DIM), dtype=torch.float32, device=self.device)
+        return self.predict(text, audio, video)
+
     def metadata(self) -> Dict[str, object]:
         return {
             "name": "SELF_MM_MediaPipe",

@@ -10,7 +10,6 @@ import chromadb
 from core.config import CHROMA_DIR
 
 
-COLLECTION_NAME = "memory"
 EMBEDDING_DIM = 384
 
 
@@ -75,8 +74,3 @@ class LocalHashEmbeddingFunction:
 CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 client = chromadb.PersistentClient(path=str(CHROMA_DIR))
 embedding_function = LocalHashEmbeddingFunction()
-collection = client.get_or_create_collection(
-    name=COLLECTION_NAME,
-    embedding_function=embedding_function,
-    metadata={"hnsw:space": "cosine"},
-)

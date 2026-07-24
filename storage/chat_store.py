@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import threading
 import uuid
+import json
 from typing import Dict, List
 
 from core.config import CHAT_DB_PATH
@@ -45,21 +46,57 @@ def init_chat_store() -> None:
         )
         connection.execute(
             """
-            CREATE TABLE IF NOT EXISTS pending_ai_diary_dates (
-                user_id TEXT NOT NULL,
-                date_key TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, date_key)
-            )
-            """
-        )
-        connection.execute(
-            """
             CREATE TABLE IF NOT EXISTS runtime_state (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS ai_diary_v2_batches (
+                batch_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                date_key TEXT NOT NULL,
+                observation_ids_json TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                reviewed_at TEXT,
+                PRIMARY KEY (user_id, batch_id)
+            )
+            """
+        )
+        batch_columns = connection.execute(
+            "PRAGMA table_info(ai_diary_v2_batches)"
+        ).fetchall()
+        batch_primary_key = [
+            str(row["name"])
+            for row in sorted(batch_columns, key=lambda row: int(row["pk"] or 0))
+            if int(row["pk"] or 0) > 0
+        ]
+        if batch_primary_key != ["user_id", "batch_id"]:
+            # v2 uses user-local display IDs such as diary_YYYYMMDD_001.
+            # Development data is intentionally reset instead of migrated.
+            connection.execute("DROP TABLE ai_diary_v2_batches")
+            connection.execute(
+                """
+                CREATE TABLE ai_diary_v2_batches (
+                    batch_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    date_key TEXT NOT NULL,
+                    observation_ids_json TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    reviewed_at TEXT,
+                    PRIMARY KEY (user_id, batch_id)
+                )
+                """
+            )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_ai_diary_v2_user_time
+            ON ai_diary_v2_batches(user_id, created_at)
             """
         )
 
@@ -167,53 +204,6 @@ def delete_chat_messages(user_id: str) -> int:
         return int(cursor.rowcount or 0)
 
 
-def mark_pending_ai_diary_date(user_id: str, date_key: str) -> None:
-    init_chat_store()
-    with _DB_LOCK, _connect() as connection:
-        connection.execute(
-            """
-            INSERT INTO pending_ai_diary_dates (user_id, date_key, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user_id, date_key)
-            DO UPDATE SET updated_at = excluded.updated_at
-            """,
-            (user_id, date_key, normalize_timestamp_to_china("")),
-        )
-
-
-def clear_pending_ai_diary_date(user_id: str, date_key: str) -> None:
-    init_chat_store()
-    with _DB_LOCK, _connect() as connection:
-        connection.execute(
-            "DELETE FROM pending_ai_diary_dates WHERE user_id = ? AND date_key = ?",
-            (user_id, date_key),
-        )
-
-
-def delete_pending_ai_diary_dates(user_id: str) -> int:
-    init_chat_store()
-    with _DB_LOCK, _connect() as connection:
-        cursor = connection.execute("DELETE FROM pending_ai_diary_dates WHERE user_id = ?", (user_id,))
-        return int(cursor.rowcount or 0)
-
-
-def list_pending_ai_diary_dates(before_date: str = "") -> List[tuple[str, str]]:
-    init_chat_store()
-    clause = "WHERE date_key < ?" if before_date else ""
-    params = (before_date,) if before_date else ()
-    with _DB_LOCK, _connect() as connection:
-        rows = connection.execute(
-            f"""
-            SELECT user_id, date_key
-            FROM pending_ai_diary_dates
-            {clause}
-            ORDER BY date_key ASC, updated_at ASC
-            """,
-            params,
-        ).fetchall()
-    return [(str(row["user_id"]), str(row["date_key"])) for row in rows]
-
-
 def get_runtime_state(key: str, default: str = "") -> str:
     init_chat_store()
     with _DB_LOCK, _connect() as connection:
@@ -236,3 +226,133 @@ def set_runtime_state(key: str, value: str) -> None:
             """,
             (key, value, normalize_timestamp_to_china("")),
         )
+
+
+def create_ai_diary_v2_batch(
+    batch_id: str,
+    user_id: str,
+    date_key: str,
+    observation_ids: List[str],
+    *,
+    created_at: str = "",
+) -> Dict:
+    init_chat_store()
+    timestamp = normalize_timestamp_to_china(created_at)
+    with _DB_LOCK, _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO ai_diary_v2_batches (
+                batch_id, user_id, date_key, observation_ids_json,
+                status, created_at, reviewed_at
+            )
+            VALUES (?, ?, ?, ?, 'pending', ?, NULL)
+            """,
+            (
+                batch_id,
+                user_id,
+                date_key,
+                json.dumps(observation_ids, ensure_ascii=False),
+                timestamp,
+            ),
+        )
+    return {
+        "batch_id": batch_id,
+        "user_id": user_id,
+        "date": date_key,
+        "observation_ids": list(observation_ids),
+        "status": "pending",
+        "created_at": timestamp,
+        "reviewed_at": "",
+    }
+
+
+def _decode_ai_diary_v2_batch(row: sqlite3.Row) -> Dict:
+    try:
+        observation_ids = json.loads(row["observation_ids_json"])
+    except (TypeError, json.JSONDecodeError):
+        observation_ids = []
+    return {
+        "batch_id": str(row["batch_id"]),
+        "user_id": str(row["user_id"]),
+        "date": str(row["date_key"]),
+        "observation_ids": observation_ids if isinstance(observation_ids, list) else [],
+        "status": str(row["status"]),
+        "created_at": str(row["created_at"]),
+        "reviewed_at": str(row["reviewed_at"] or ""),
+    }
+
+
+def list_ai_diary_v2_batches(
+    user_id: str,
+    *,
+    date_key: str = "",
+    limit: int = 100,
+) -> List[Dict]:
+    init_chat_store()
+    safe_limit = max(1, min(int(limit or 100), 500))
+    clause = "AND date_key = ?" if date_key else ""
+    params = (user_id, date_key, safe_limit) if date_key else (user_id, safe_limit)
+    with _DB_LOCK, _connect() as connection:
+        rows = connection.execute(
+            f"""
+            SELECT batch_id, user_id, date_key, observation_ids_json,
+                   status, created_at, reviewed_at
+            FROM ai_diary_v2_batches
+            WHERE user_id = ?
+            {clause}
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            params,
+        ).fetchall()
+    return [_decode_ai_diary_v2_batch(row) for row in rows]
+
+
+def get_ai_diary_v2_batch(user_id: str, batch_id: str) -> Dict | None:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        row = connection.execute(
+            """
+            SELECT batch_id, user_id, date_key, observation_ids_json,
+                   status, created_at, reviewed_at
+            FROM ai_diary_v2_batches
+            WHERE user_id = ? AND batch_id = ?
+            """,
+            (user_id, batch_id),
+        ).fetchone()
+    return _decode_ai_diary_v2_batch(row) if row else None
+
+
+def mark_ai_diary_v2_batch_reviewed(user_id: str, batch_id: str) -> Dict | None:
+    init_chat_store()
+    reviewed_at = normalize_timestamp_to_china("")
+    with _DB_LOCK, _connect() as connection:
+        connection.execute(
+            """
+            UPDATE ai_diary_v2_batches
+            SET status = 'reviewed', reviewed_at = ?
+            WHERE user_id = ? AND batch_id = ?
+            """,
+            (reviewed_at, user_id, batch_id),
+        )
+    return get_ai_diary_v2_batch(user_id, batch_id)
+
+
+def delete_ai_diary_v2_batches(user_id: str) -> int:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        cursor = connection.execute(
+            "DELETE FROM ai_diary_v2_batches WHERE user_id = ?",
+            (user_id,),
+        )
+        return int(cursor.rowcount or 0)
+
+
+def delete_runtime_state_for_user(user_id: str) -> int:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        cursor = connection.execute(
+            "DELETE FROM runtime_state WHERE key LIKE ?",
+            (f"v2:%:{user_id}",),
+        )
+        return int(cursor.rowcount or 0)
