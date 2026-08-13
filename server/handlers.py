@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from core.config import ALLOWED_ORIGINS, FACE_TASK_PATH, STATIC_DIR
+from core.config import ALLOWED_ORIGINS, FACE_TASK_PATH, MAX_AUDIO_BYTES, STATIC_DIR
 from diary.store import get_diary_index_payload
 from server.service import (
     DEFAULT_MEMORY_USER_ID,
@@ -159,6 +159,9 @@ class AppHandler(BaseHTTPRequestHandler):
             return
 
         length = int(self.headers.get("Content-Length", "0"))
+        if length > MAX_AUDIO_BYTES * 2:
+            self.send_json({"error": "Audio payload is too large"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return
         raw = self.rfile.read(length or 0)
         try:
             payload = json.loads(raw.decode("utf-8") or "{}")
@@ -185,7 +188,8 @@ class AppHandler(BaseHTTPRequestHandler):
             else:
                 response = handle_user_clear(payload)
         except Exception as exc:
-            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            status = HTTPStatus.BAD_REQUEST if isinstance(exc, ValueError) else HTTPStatus.INTERNAL_SERVER_ERROR
+            self.send_json({"error": str(exc)}, status=status)
             return
         self.send_json(response)
 

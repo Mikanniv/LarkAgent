@@ -79,6 +79,14 @@ KIMI_API_KEY = os.getenv("KIMI_API") or os.getenv("KIMI_API_KEY", "")
 KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2.5")
 KIMI_API_BASE = os.getenv("KIMI_API_BASE", "https://api.moonshot.cn/v1")
 
+FUNASR_MODEL = os.getenv(
+    "FUNASR_MODEL",
+    "paraformer-zh",
+).strip()
+FUNASR_DEVICE = os.getenv("FUNASR_DEVICE", "cpu").strip() or "cpu"
+FUNASR_MODEL_REVISION = os.getenv("FUNASR_MODEL_REVISION", "").strip()
+MAX_AUDIO_BYTES = int(os.getenv("MAX_AUDIO_BYTES", str(12 * 1024 * 1024)))
+
 R2_ENABLED = os.getenv("R2_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}
 R2_BUCKET = os.getenv("R2_BUCKET", "").strip()
 R2_ENDPOINT = os.getenv("R2_ENDPOINT", "").strip()

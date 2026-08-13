@@ -91,6 +91,10 @@
                       <span>融合得分</span>
                       <strong id="fusionScore">0.000</strong>
                     </div>
+                    <div class="score-card">
+                      <span>单模态 · 语音</span>
+                      <strong id="audioScore">--</strong>
+                    </div>
                   </div>
                 </aside>
               </header>
@@ -99,6 +103,9 @@
 
               <form class="composer" id="chatForm">
                 <textarea id="messageInput" rows="2" placeholder="和云雀说点什么……"></textarea>
+                <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="发送语音">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
+                </button>
                 <button class="send-button" type="submit" aria-label="发送">
                   <svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14" /></svg>
                 </button>

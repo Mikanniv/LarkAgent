@@ -10,6 +10,8 @@
 
 端口、Kimi、R2、模型路径等配置由 `.env` 控制。线上通过 Cloudflare Tunnel 转发到 VM 本机 `127.0.0.1:8001`。
 
+语音聊天使用 FunASR Paraformer 进行中文转写，并由 SELF-MM 音频分支计算情感得分。首次使用前需要安装 `requirements.txt` 中的 FunASR/ModelScope 依赖；默认使用 `paraformer-zh + fsmn-vad + ct-punc`，可通过 `FUNASR_MODEL`、`FUNASR_DEVICE` 配置。
+
 ## 目录
 
 ```text

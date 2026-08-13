@@ -241,7 +241,7 @@ input:focus, textarea:focus {
 .emotion-toggle svg { width: 20px; height: 20px; color: var(--accent-deep); }
 .emotion-toggle .chevron { transition: transform .18s; }
 .emotion-widget:not(.is-collapsed) .chevron { transform: rotate(90deg); }
-.emotion-content { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 0 12px 12px; }
+.emotion-content { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 0 12px 12px; }
 .emotion-widget.is-collapsed { width: 148px; box-shadow: none; }
 .emotion-widget.is-collapsed .emotion-content { display: none; }
 .score-card { display: grid; gap: 5px; padding: 11px; border-radius: 10px; background: var(--surface-soft); }
@@ -285,7 +285,7 @@ input:focus, textarea:focus {
 .typing .bubble { color: var(--muted); letter-spacing: .14em; }
 .composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) 44px 44px;
   gap: 10px;
   margin: 12px 18px 18px;
   padding: 9px;
@@ -307,6 +307,20 @@ input:focus, textarea:focus {
   cursor: pointer;
 }
 .send-button svg { width: 21px; height: 21px; }
+.voice-button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--accent-deep);
+  background: #fff;
+  cursor: pointer;
+}
+.voice-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.voice-button.is-recording { color: #fff; background: #d85f5f; border-color: #d85f5f; animation: recording-pulse 1.2s ease-in-out infinite; }
+@keyframes recording-pulse { 50% { box-shadow: 0 0 0 7px rgba(216,95,95,.13); } }
 
 .diary-surface, .settings-surface { padding: 20px; overflow: auto; }
 .section-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }

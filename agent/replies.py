@@ -97,11 +97,7 @@ def build_agent_prompt(
             "不要重复最近已经说过的句式。优先结合最近对话、长期记忆或当前情绪状态，轻轻承接一句。"
         )
     proactive_reason = raw_scores.get("proactive_reason")
-    context_summary = (
-        f"文本情绪模型参考：text score={float(raw_scores.get('text', 0.0)):.3f}；"
-        f"fusion score={float(raw_scores.get('fusion', 0.0)):.3f}。"
-        "这些分数只用于调整回应语气，不代表确定的情绪标签。"
-    )
+    context_summary = f"用户的情感得分为{float(raw_scores.get('fusion', 0.0)):.3f}。"
     if proactive_reason:
         context_summary += f" 主动回应触发原因：{proactive_reason}。"
     if proactive and recent_assistant_replies:

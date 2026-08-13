@@ -11,6 +11,10 @@ const state = {
   lastInteractionAt: Date.now(),
   proactiveEnabled: true,
   chatPending: false,
+  recording: false,
+  mediaRecorder: null,
+  mediaStream: null,
+  audioChunks: [],
 };
 
 const els = Object.fromEntries(
@@ -21,7 +25,7 @@ const els = Object.fromEntries(
     "backendStatus", "agentStatus", "sidebarChatTab", "sidebarDiaryTab", "sidebarMemoryTab",
     "sidebarSettingsTab", "diaryNewBadge", "memoryNewBadge", "chatView", "diaryView",
     "memoryView", "settingsView", "emotionWidget", "emotionToggle", "textScore",
-    "fusionScore", "chatList", "chatForm", "messageInput", "diaryUserModeTab",
+    "fusionScore", "audioScore", "chatList", "chatForm", "messageInput", "voiceButton", "diaryUserModeTab",
     "diaryAiModeTab", "userDiaryPane", "aiDiaryPane", "userDiaryDate", "userDiary",
     "userDiaryStatus", "diaryDeleteButton", "diarySaveButton", "aiDiaryList",
     "memoryLayers", "memoryItems", "memoryDetail", "proactiveReplyToggle", "clearDataButton",
@@ -57,11 +61,20 @@ function authRequired() {
 }
 
 async function requestJson(path, options = {}) {
-  const response = await fetch(apiUrl(path), {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
+  const { timeoutMs = 30000, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(apiUrl(path), {
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...(fetchOptions.headers || {}) },
+      ...fetchOptions,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
   let payload = {};
   try {
     payload = await response.json();
@@ -232,13 +245,16 @@ async function loadChatHistory() {
 function updateScores(scores = {}) {
   els.textScore.textContent = Number(scores.text || 0).toFixed(3);
   els.fusionScore.textContent = Number(scores.fusion || 0).toFixed(3);
+  els.audioScore.textContent = Number.isFinite(Number(scores.audio))
+    ? Number(scores.audio).toFixed(3)
+    : "--";
 }
 
-async function sendChat(message, { proactive = false } = {}) {
+async function sendChat(message, { proactive = false, audioData = "" } = {}) {
   if (state.chatPending) return;
   state.chatPending = true;
   let typing = null;
-  if (!proactive) {
+  if (!proactive && message) {
     appendMessage("user", message);
   }
   typing = appendMessage("assistant", "···", { typing: true });
@@ -246,15 +262,21 @@ async function sendChat(message, { proactive = false } = {}) {
   try {
     const payload = await requestJson("/api/chat", {
       method: "POST",
+      timeoutMs: audioData ? 120000 : 30000,
       body: JSON.stringify({
         message: proactive ? "" : message,
         proactive,
         proactive_reason: proactive ? "用户一段时间没有继续输入" : "",
+        audio_data: audioData,
         timestamp: chinaTimestamp(),
       }),
     });
     typing.remove();
     updateScores(payload.scores);
+    if (!proactive && audioData) {
+      const transcript = payload.modal_inputs?.asr_text || "[语音消息]";
+      appendMessage("user", `语音：${transcript}`);
+    }
     const reply = payload.agent?.reply || "我在。";
     appendMessage("assistant", reply);
     state.history = payload.chat_history || state.history;
@@ -269,6 +291,61 @@ async function sendChat(message, { proactive = false } = {}) {
     setBackendOnline(false);
   } finally {
     state.chatPending = false;
+  }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("读取录音失败"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function toggleVoiceRecording() {
+  if (state.chatPending) return;
+  if (state.recording) {
+    state.mediaRecorder?.stop();
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+    window.alert("当前浏览器不支持录音，请使用最新版 Chrome、Edge 或 Safari。");
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const preferred = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"]
+      .find((type) => MediaRecorder.isTypeSupported(type));
+    const recorder = new MediaRecorder(stream, preferred ? { mimeType: preferred } : undefined);
+    state.mediaStream = stream;
+    state.mediaRecorder = recorder;
+    state.audioChunks = [];
+    recorder.addEventListener("dataavailable", (event) => {
+      if (event.data.size) state.audioChunks.push(event.data);
+    });
+    recorder.addEventListener("stop", async () => {
+      const blob = new Blob(state.audioChunks, { type: recorder.mimeType || "audio/webm" });
+      stream.getTracks().forEach((track) => track.stop());
+      state.recording = false;
+      state.mediaRecorder = null;
+      state.mediaStream = null;
+      els.voiceButton.classList.remove("is-recording");
+      els.voiceButton.setAttribute("aria-label", "开始录音");
+      els.agentStatus.textContent = "正在识别语音";
+      try {
+        sendChat("", { audioData: await blobToDataUrl(blob) });
+      } catch (error) {
+        window.alert(`录音发送失败：${error.message}`);
+      }
+    }, { once: true });
+    recorder.start();
+    state.recording = true;
+    els.voiceButton.classList.add("is-recording");
+    els.voiceButton.setAttribute("aria-label", "停止并发送录音");
+    els.agentStatus.textContent = "正在录音，点击麦克风发送";
+  } catch (error) {
+    window.alert(`无法使用麦克风：${error.message}`);
   }
 }
 
@@ -652,6 +729,7 @@ els.chatForm.addEventListener("submit", (event) => {
   els.messageInput.dispatchEvent(new Event("input", { bubbles: true }));
   sendChat(message);
 });
+els.voiceButton.addEventListener("click", toggleVoiceRecording);
 els.messageInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
     event.preventDefault();

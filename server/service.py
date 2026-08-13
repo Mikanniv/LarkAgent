@@ -7,7 +7,13 @@ from core.config import CHAT_CONTEXT_LIMIT, CHAT_DISPLAY_LIMIT, SELF_MM_MODEL_PA
 from core.utils import memory_date_from_payload, normalize_timestamp_to_china
 from diary.store import delete_diary_data, delete_user_diary, get_diary_index_payload, save_user_diary
 from emotion.mapping import FineGrainedEmotion
-from emotion.media import resolve_text_input
+from agent.asr import transcribe_audio
+from emotion.media import (
+    build_audio_tensor_from_media,
+    build_video_tensor_from_media,
+    resolve_payload_media_path,
+    resolve_text_input,
+)
 from emotion.models import SelfMMRunner
 from memory import v2 as memory_v2
 from memory.pipeline_v2 import list_ai_diary_batches, record_complete_interaction, review_ai_diary_item
@@ -41,17 +47,40 @@ def get_emotion_runner() -> SelfMMRunner:
 def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
     user_id = current_user_id(payload)
     user_text, text_source = resolve_text_input(payload)
+    audio_path, temporary_audio = resolve_payload_media_path(payload, "audio")
+    asr_result: Dict[str, Any] = {}
+    if audio_path is not None and not user_text:
+        try:
+            asr_result = transcribe_audio(audio_path)
+        except Exception:
+            if temporary_audio:
+                audio_path.unlink(missing_ok=True)
+            raise
+        user_text = str(asr_result.get("text") or "").strip()
+        text_source = "asr"
+    if audio_path is not None and not user_text:
+        raise ValueError("没有从录音中识别出可发送的文字。")
     history = list_context_messages(user_id, limit=CHAT_CONTEXT_LIMIT)
     if not history:
         history = (payload.get("history", []) or [])[-CHAT_CONTEXT_LIMIT:]
     proactive = bool(payload.get("proactive"))
     timestamp = normalize_timestamp_to_china(payload.get("timestamp", ""))
     runner = get_emotion_runner()
-    raw_scores = runner.predict_text(user_text or " ")
-    raw_scores = {
-        "text": float(raw_scores.get("text", 0.0)),
-        "fusion": float(raw_scores.get("fusion", 0.0)),
-    }
+    audio_tensor, audio_info = build_audio_tensor_from_media(audio_path)
+    video_tensor, _ = build_video_tensor_from_media(None)
+    if bool(audio_info.get("available")):
+        predicted = runner.predict(user_text or " ", audio_tensor, video_tensor)
+        raw_scores = {
+            "text": float(predicted.get("text", 0.0)),
+            "audio": float(predicted.get("audio", 0.0)),
+            "fusion": float(predicted.get("fusion", 0.0)),
+        }
+    else:
+        predicted = runner.predict_text(user_text or " ")
+        raw_scores = {
+            "text": float(predicted.get("text", 0.0)),
+            "fusion": float(predicted.get("fusion", 0.0)),
+        }
     if proactive:
         raw_scores["proactive_reason"] = (
             payload.get("proactive_reason") or payload.get("proactiveReason") or "主动回应"
@@ -84,10 +113,10 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
         if user_text and agent_reply and not proactive:
             pipeline_result = record_complete_interaction(user_id, timestamp)
 
-    return {
+    response = {
         "model": {
             "name": runner.metadata().get("name", "SELF-MM"),
-            "modalities": ["text"],
+            "modalities": ["text", "audio"] if audio_info.get("available") else ["text"],
         },
         "scores": raw_scores,
         "agent": agent_payload(agent_reply, agent_source, agent_error),
@@ -100,12 +129,18 @@ def analyze_and_reply(payload: Dict, should_reply: bool = True) -> Dict:
         "modal_inputs": {
             "text_available": bool(user_text),
             "text_source": text_source,
-            "audio_available": False,
+            "asr_text": asr_result.get("text", ""),
+            "asr_model": asr_result.get("model", ""),
+            "audio_available": bool(audio_info.get("available")),
+            "audio": audio_info,
             "video_available": False,
         },
         "chat_history": list_chat_messages(user_id, limit=CHAT_DISPLAY_LIMIT),
         "timestamp": timestamp,
     }
+    if temporary_audio and audio_path is not None:
+        audio_path.unlink(missing_ok=True)
+    return response
 
 
 def handle_diary_user(payload: Dict) -> Dict:
