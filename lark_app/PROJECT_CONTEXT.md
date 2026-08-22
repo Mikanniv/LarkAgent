@@ -17,7 +17,7 @@
 当前系统路线是：
 
 ```text
-文本主导 + 音频/视频情绪增强 + Kimi 回复 + Chroma 长期记忆 + AI记反馈修正
+文本主导 + 音频/视频情绪增强 + 大模型回复 + Chroma 长期记忆 + AI记反馈修正
 ```
 
 ## 2. 整体架构
@@ -37,7 +37,7 @@ Cloudflare Auth Worker
 Python Backend
   |
   |-- SELF-MM MediaPipe 情绪模型
-  |-- Kimi k2.5 回复与记忆写入决策
+  |-- 通用大模型回复与记忆写入决策
   |-- ChromaDB 长期记忆
   |-- SQLite 聊天记录与 worker 状态
   |-- Local/R2 日记与 AI记
@@ -65,7 +65,7 @@ core/utils.py                  时间、工具函数
 emotion/models.py              SELF-MM 模型封装
 emotion/media.py               文本/音频/视频输入解析和特征提取
 emotion/mapping.py             raw scores -> valence/arousal/label
-agent/kimi.py                  Kimi API 调用
+agent/agent.py                 通用 OpenAI 兼容 API 调用
 agent/replies.py               回复 prompt、记忆写入决策
 memory/db.py                   ChromaDB client
 memory/schema.py               长期记忆 schema、召回、衰减
@@ -109,9 +109,9 @@ MEMORY_DIR=memories
 DIARY_DIR=memories/diaries
 CHROMA_DIR=memories/chroma
 CHAT_DB_PATH=memories/chat.sqlite3
-KIMI_API / KIMI_API_KEY
-KIMI_MODEL=kimi-k2.5
-KIMI_API_BASE=https://api.moonshot.cn/v1
+API_KEY=your-api-key
+MODEL=kimi-k2.5
+API_BASE=https://api.moonshot.cn/v1
 AI_DIARY_UPDATE_INTERVAL=180
 DAILY_MEMORY_DECAY_THRESHOLD=0.05
 R2_ENABLED=0/1
@@ -184,8 +184,8 @@ Flutter 注意：
 6. SELF-MM MediaPipe 模型输出 fusion/text/audio/video
 7. emotion/mapping.py 计算 valence/arousal/label/confidence
 8. Chroma 召回 top-3 长期记忆
-9. Kimi k2.5 生成 1-3 句中文陪伴回复
-10. Kimi/规则判断是否写入长期记忆
+9. 配置的大模型生成 1-3 句中文陪伴回复
+10. 大模型/规则判断是否写入长期记忆
 11. SQLite 保存用户消息和云雀回复
 12. 当日日期写入 pending_ai_diary_dates
 13. 返回情绪、回复、记忆、聊天记录、媒体特征
@@ -636,7 +636,7 @@ proactive_reason/proactiveReason
   },
   "agent": {
     "reply": "我在，慢慢说。",
-    "source": "kimi",
+    "source": "api",
     "error": ""
   },
   "memory": {},
@@ -1020,7 +1020,7 @@ MemoryDebugState
 
 - Python 后端可运行。
 - SELF-MM MediaPipe 情绪模型接入。
-- Kimi k2.5 对话模型接入。
+- 通用 OpenAI 兼容对话模型 API 接入。
 - 长期记忆 ChromaDB 接入。
 - 记忆写入决策与重复/合并逻辑。
 - SQLite 聊天记录持久化。

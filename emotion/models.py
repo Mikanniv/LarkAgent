@@ -110,7 +110,7 @@ class SelfMMRunner:
         self.bert_model = BertModel.from_pretrained(
             str(BERT_MODEL_PATH),
             local_files_only=True,
-            use_safetensors=False,
+            use_safetensors=True,
         ).to(self.device)
         checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         state_dict = checkpoint["model"] if isinstance(checkpoint, dict) and "model" in checkpoint else checkpoint

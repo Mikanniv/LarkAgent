@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'lark_http_client.dart';
-import 'voice_file_stub.dart' if (dart.library.io) 'voice_file_io.dart';
 
 void main() {
   runApp(const LarkApp());
@@ -23,6 +22,41 @@ const _apiBase = String.fromEnvironment(
 );
 const _sessionKey = 'yunque_session_cookie';
 const _proactiveEnabledKey = 'proactive_reply_enabled';
+
+Uint8List _wavFromPcm(List<int> pcm) {
+  const sampleRate = 16000;
+  const channels = 1;
+  const bitsPerSample = 16;
+  final dataLength = pcm.length;
+  final result = Uint8List(44 + dataLength);
+  final bytes = ByteData.view(result.buffer);
+  void ascii(int offset, String value) {
+    for (var index = 0; index < value.length; index++) {
+      result[offset + index] = value.codeUnitAt(index);
+    }
+  }
+
+  ascii(0, 'RIFF');
+  bytes.setUint32(4, 36 + dataLength, Endian.little);
+  ascii(8, 'WAVE');
+  ascii(12, 'fmt ');
+  bytes.setUint32(16, 16, Endian.little);
+  bytes.setUint16(20, 1, Endian.little);
+  bytes.setUint16(22, channels, Endian.little);
+  bytes.setUint32(24, sampleRate, Endian.little);
+  bytes.setUint32(
+    28,
+    sampleRate * channels * bitsPerSample ~/ 8,
+    Endian.little,
+  );
+  bytes.setUint16(32, channels * bitsPerSample ~/ 8, Endian.little);
+  bytes.setUint16(34, bitsPerSample, Endian.little);
+  ascii(36, 'data');
+  bytes.setUint32(40, dataLength, Endian.little);
+  result.setRange(44, result.length, pcm);
+  return result;
+}
+
 const _seenAiDiaryBatchesKey = 'seen_ai_diary_v2_batches';
 
 class LarkApp extends StatelessWidget {
@@ -82,7 +116,9 @@ class _SplashGateState extends State<SplashGate> {
   }
 }
 
-enum MainPanel { chat, memory, diary, settings }
+enum MainPanel { chat, memory, diary, trajectory, settings }
+
+enum TrendMode { oneDay, daily, weekly, monthly }
 
 enum MemoryLayer { observation, reflection, strategy }
 
@@ -100,6 +136,8 @@ class _LarkHomePageState extends State<LarkHomePage> {
   final _client = createLarkHttpClient();
   Timer? _proactiveTimer;
   Timer? _diaryRefreshTimer;
+  Timer? _asrSegmentTimer;
+  StreamSubscription<Uint8List>? _voiceStreamSubscription;
 
   String? _sessionCookie;
   LarkUser? _user;
@@ -107,6 +145,7 @@ class _LarkHomePageState extends State<LarkHomePage> {
   bool _backendOnline = false;
   bool _authBusy = false;
   bool _sending = false;
+  int _sendGeneration = 0;
   bool _proactiveSending = false;
   bool _proactiveEnabled = true;
   bool _diaryCalendarVisible = true;
@@ -131,8 +170,24 @@ class _LarkHomePageState extends State<LarkHomePage> {
   Set<String> _seenAiDiaryBatchIds = {};
   bool _emotionExpanded = false;
   bool _recordingVoice = false;
+  bool _asrSegmentSending = false;
+  int _asrSequence = 0;
+  final List<int> _voicePcm = [];
+  final List<int> _pendingAsrPcm = [];
+  final List<String> _asrSegments = [];
+  String _liveTranscript = '';
+  Uint8List? _pendingVoiceWav;
+  List<MediaAttachment> _pendingMedia = [];
+  List<SentMediaInfo> _sentMedia = [];
+  bool _emotionPinned = true;
+  Offset _emotionOffset = Offset.zero;
+  TrendMode _trendMode = TrendMode.oneDay;
+  DateTime _trendAnchor = DateTime.now();
+  EmotionTrendData _trendData = const EmotionTrendData.empty();
+  bool _trendLoading = false;
   EmotionSnapshot _emotion = const EmotionSnapshot(
     textScore: 0,
+    audioScore: 0,
     fusionScore: 0,
   );
 
@@ -167,6 +222,8 @@ class _LarkHomePageState extends State<LarkHomePage> {
   void dispose() {
     _proactiveTimer?.cancel();
     _diaryRefreshTimer?.cancel();
+    _asrSegmentTimer?.cancel();
+    _voiceStreamSubscription?.cancel();
     _messageController.dispose();
     _audioRecorder.dispose();
     _client.close();
@@ -344,6 +401,10 @@ class _LarkHomePageState extends State<LarkHomePage> {
       if (!mounted) return;
       setState(() {
         _backendOnline = response.statusCode < 500;
+        _sentMedia = items
+            .where((message) => !message.fromLark)
+            .expand((message) => message.attachments)
+            .toList();
         _messages = items.isEmpty
             ? [
                 const ChatMessage(
@@ -720,7 +781,8 @@ class _LarkHomePageState extends State<LarkHomePage> {
       _showStatus('还没有登录成功，先登录一下。');
       return;
     }
-    final text = _messageController.text.trim();
+    var text = _messageController.text.trim();
+    if (text.isEmpty && _pendingMedia.isNotEmpty) text = '请结合我发送的媒体回应我。';
     if (text.isEmpty) {
       _showStatus('先输入一句话再发送。');
       return;
@@ -729,6 +791,9 @@ class _LarkHomePageState extends State<LarkHomePage> {
       return;
     }
     final time = _shortTime(DateTime.now());
+    final generation = ++_sendGeneration;
+    final mediaToSend = List<MediaAttachment>.from(_pendingMedia);
+    final voiceToSend = _pendingVoiceWav;
     _lastUserInteractionAt = DateTime.now();
     _scheduleProactiveReply();
     debugPrint('send message start: $text');
@@ -745,29 +810,38 @@ class _LarkHomePageState extends State<LarkHomePage> {
     try {
       final response = await _postChatWithRetry({
         'message': text,
+        if (voiceToSend != null)
+          'audio_data': 'data:audio/wav;base64,${base64Encode(voiceToSend)}',
+        'attachments': mediaToSend.map((item) => item.toJson()).toList(),
         'timestamp': DateTime.now().toIso8601String(),
       }, label: 'chat');
+      if (generation != _sendGeneration) return;
       if (response.statusCode >= 400) {
         throw ApiException(_responseError(response));
       }
       final json = _decodeMap(response.body);
       final agent = json['agent'] as Map<String, dynamic>? ?? {};
       final scores = json['scores'] as Map<String, dynamic>? ?? {};
-      if (!mounted) return;
+      final reply = _nonEmpty(agent['reply']);
+      if (reply == null) throw const ApiException('模型没有返回回复内容');
+      if (!mounted || generation != _sendGeneration) return;
       setState(() {
         _backendOnline = response.statusCode < 500;
         _messages = [
           ..._messages,
-          ChatMessage(
-            fromLark: true,
-            text: _nonEmpty(agent['reply']) ?? '我听见了。你可以再多说一点，我会慢慢跟上。',
-            time: time,
-          ),
+          ChatMessage(fromLark: true, text: reply, time: time),
         ];
         _emotion = EmotionSnapshot(
           textScore: _asDouble(scores['text']),
+          audioScore: _asDouble(scores['audio']),
           fusionScore: _asDouble(scores['fusion']),
         );
+        _sentMedia = [
+          ..._sentMedia,
+          ...mediaToSend.map(SentMediaInfo.fromAttachment),
+        ];
+        _pendingMedia = [];
+        _pendingVoiceWav = null;
       });
       await Future.wait([
         _loadDiary(),
@@ -778,16 +852,10 @@ class _LarkHomePageState extends State<LarkHomePage> {
       debugPrint('send message failed: $error');
       _showStatus('发送失败：$error');
       if (!mounted) return;
-      setState(() {
-        _backendOnline = false;
-        _messages = [
-          ..._messages,
-          ChatMessage(fromLark: true, text: '我现在还连不上后端：$error', time: time),
-        ];
-      });
+      setState(() => _backendOnline = false);
     } finally {
       if (mounted) {
-        setState(() => _sending = false);
+        if (generation == _sendGeneration) setState(() => _sending = false);
         _scheduleProactiveReply();
       }
     }
@@ -807,97 +875,157 @@ class _LarkHomePageState extends State<LarkHomePage> {
       _showStatus('需要麦克风权限才能发送语音。');
       return;
     }
-    final directory = await getTemporaryDirectory();
-    final path =
-        '${directory.path}/yunque_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await _audioRecorder.start(
+    _voicePcm.clear();
+    _pendingAsrPcm.clear();
+    _asrSegments.clear();
+    _asrSequence = 0;
+    _liveTranscript = '';
+    final stream = await _audioRecorder.startStream(
       const RecordConfig(
-        encoder: AudioEncoder.aacLc,
+        encoder: AudioEncoder.pcm16bits,
         sampleRate: 16000,
         numChannels: 1,
-        bitRate: 64000,
       ),
-      path: path,
     );
+    _voiceStreamSubscription = stream.listen((chunk) {
+      _voicePcm.addAll(chunk);
+      _pendingAsrPcm.addAll(chunk);
+    });
+    _asrSegmentTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _flushAsrSegment();
+    });
     if (!mounted) return;
     setState(() => _recordingVoice = true);
-    _showStatus('正在录音，再点一次麦克风即可发送。');
+    _showStatus('正在录音，云雀会边听边识别。');
+  }
+
+  void _stopGeneration() {
+    if (!_sending) return;
+    setState(() {
+      _sendGeneration += 1;
+      _sending = false;
+    });
+    _showStatus('已停止等待 AI 回复。');
   }
 
   Future<void> _stopAndSendVoice() async {
-    final path = await _audioRecorder.stop();
+    _asrSegmentTimer?.cancel();
+    _asrSegmentTimer = null;
+    await _audioRecorder.stop();
+    await _voiceStreamSubscription?.cancel();
+    _voiceStreamSubscription = null;
     if (mounted) setState(() => _recordingVoice = false);
-    if (path == null || path.isEmpty) {
+    while (_asrSegmentSending) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    await _flushAsrSegment(finalSegment: true);
+    if (_voicePcm.isEmpty) {
       _showStatus('没有录到有效语音。');
       return;
     }
+    final transcript = _liveTranscript.trim();
+    if (transcript.isEmpty) {
+      _showStatus('没有识别到有效文字，请重试。');
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _pendingVoiceWav = _wavFromPcm(_voicePcm);
+      _messageController.text = transcript;
+      _messageController.selection = TextSelection.collapsed(
+        offset: transcript.length,
+      );
+    });
+    _showStatus('录音已暂存，发送消息时会交给 SELF-MM 分析。');
+  }
+
+  Future<void> _flushAsrSegment({bool finalSegment = false}) async {
+    if (_asrSegmentSending || _pendingAsrPcm.length < 3200) return;
+    _asrSegmentSending = true;
+    final pcm = List<int>.from(_pendingAsrPcm);
+    _pendingAsrPcm.clear();
+    final sequence = _asrSequence++;
     try {
-      final bytes = await readVoiceFile(path);
-      if (bytes.isEmpty) {
-        _showStatus('没有录到有效语音。');
-        return;
+      final response = await _client
+          .post(
+            Uri.parse('$_apiBase/api/asr/segment'),
+            headers: _headers,
+            body: jsonEncode({
+              'audio_data':
+                  'data:audio/wav;base64,${base64Encode(_wavFromPcm(pcm))}',
+              'segment_id': 'voice-${DateTime.now().millisecondsSinceEpoch}',
+              'sequence': sequence,
+              'final': finalSegment,
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
+      if (response.statusCode >= 400) return;
+      final text = _nonEmpty(_decodeMap(response.body)['text']);
+      if (text == null) return;
+      _asrSegments.add(text);
+      if (mounted) {
+        setState(() {
+          _liveTranscript = _asrSegments.join('');
+          _messageController.text = _liveTranscript;
+          _messageController.selection = TextSelection.collapsed(
+            offset: _liveTranscript.length,
+          );
+        });
       }
-      await _sendVoiceBytes(bytes);
+    } catch (error) {
+      debugPrint('ASR segment $sequence failed: $error');
+      _pendingAsrPcm.insertAll(0, pcm);
     } finally {
-      await deleteVoiceFile(path);
+      _asrSegmentSending = false;
     }
   }
 
-  Future<void> _sendVoiceBytes(List<int> bytes) async {
-    if (!_isLoggedIn) {
-      _showStatus('还没有登录成功，先登录一下。');
-      return;
-    }
-    final time = _shortTime(DateTime.now());
-    _lastUserInteractionAt = DateTime.now();
-    setState(() => _sending = true);
-    try {
-      final response = await _postChatWithRetry(
-        {
-          'audio_data': 'data:audio/mp4;base64,${base64Encode(bytes)}',
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-        label: 'voice chat',
-        timeout: const Duration(seconds: 120),
-        maxAttempts: 1,
+  Future<void> _pickMedia() async {
+    final files = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'gif',
+        'wav',
+        'mp3',
+        'm4a',
+        'aac',
+        'ogg',
+      ],
+    );
+    if (files.isEmpty) return;
+    final remaining = 9 - _pendingMedia.length;
+    final additions = <MediaAttachment>[];
+    for (final file in files.take(remaining)) {
+      if (await file.length() > 10 * 1024 * 1024) continue;
+      final bytes = await file.readAsBytes();
+      if (bytes.length > 10 * 1024 * 1024) continue;
+      additions.add(
+        MediaAttachment(
+          name: file.name,
+          mimeType: _mimeForName(file.name),
+          bytes: bytes,
+        ),
       );
-      if (response.statusCode >= 400) {
-        throw ApiException(_responseError(response));
-      }
-      final json = _decodeMap(response.body);
-      final agent = json['agent'] as Map<String, dynamic>? ?? {};
-      final scores = json['scores'] as Map<String, dynamic>? ?? {};
-      final modalInputs = json['modal_inputs'] as Map<String, dynamic>? ?? {};
-      final transcript = _nonEmpty(modalInputs['asr_text']);
-      if (transcript == null) throw const ApiException('语音识别没有返回文字');
-      if (!mounted) return;
-      setState(() {
-        _backendOnline = true;
-        _messages = [
-          ..._messages,
-          ChatMessage(fromLark: false, text: '语音：$transcript', time: time),
-          ChatMessage(
-            fromLark: true,
-            text: _nonEmpty(agent['reply']) ?? '我听见了。',
-            time: time,
-          ),
-        ];
-        _emotion = EmotionSnapshot(
-          textScore: _asDouble(scores['text']),
-          fusionScore: _asDouble(scores['fusion']),
-        );
-      });
-      await Future.wait([
-        _loadDiary(),
-        _loadMemories(silent: true),
-        _loadAiDiary(),
-      ]);
-    } catch (error) {
-      _showStatus('语音发送失败：$error');
-    } finally {
-      if (mounted) setState(() => _sending = false);
-      _scheduleProactiveReply();
     }
+    if (!mounted) return;
+    setState(() => _pendingMedia = [..._pendingMedia, ...additions]);
+    if (files.length > remaining) _showStatus('每次最多添加 9 个媒体文件。');
+  }
+
+  void _removePendingMedia(MediaAttachment item) {
+    setState(
+      () => _pendingMedia = _pendingMedia
+          .where((entry) => entry != item)
+          .toList(),
+    );
+  }
+
+  void _removePendingVoice() {
+    setState(() => _pendingVoiceWav = null);
   }
 
   void _scheduleProactiveReply() {
@@ -945,6 +1073,7 @@ class _LarkHomePageState extends State<LarkHomePage> {
         ];
         _emotion = EmotionSnapshot(
           textScore: _asDouble(scores['text']),
+          audioScore: _asDouble(scores['audio']),
           fusionScore: _asDouble(scores['fusion']),
         );
       });
@@ -996,6 +1125,109 @@ class _LarkHomePageState extends State<LarkHomePage> {
     setState(() => _panel = panel);
     if (panel == MainPanel.diary) {
       _markAiDiaryViewed();
+    } else if (panel == MainPanel.trajectory) {
+      _loadEmotionTrend();
+    }
+  }
+
+  Future<void> _loadEmotionTrend() async {
+    if (!_isLoggedIn) return;
+    setState(() => _trendLoading = true);
+    try {
+      final uri = Uri.parse('$_apiBase/api/emotion/trends').replace(
+        queryParameters: {
+          'range': _trendMode.apiName,
+          'anchor': _trendMode.anchorValue(_trendAnchor),
+        },
+      );
+      final response = await _client
+          .get(uri, headers: _headers)
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode >= 400) {
+        throw ApiException(_responseError(response));
+      }
+      if (mounted) {
+        setState(
+          () =>
+              _trendData = EmotionTrendData.fromJson(_decodeMap(response.body)),
+        );
+      }
+    } catch (error) {
+      _showStatus('加载情绪轨迹失败：$error');
+    } finally {
+      if (mounted) setState(() => _trendLoading = false);
+    }
+  }
+
+  void _setTrendMode(TrendMode mode) {
+    setState(() => _trendMode = mode);
+    _loadEmotionTrend();
+  }
+
+  Future<void> _pickTrendAnchor() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _trendAnchor,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (selected != null) {
+      setState(() => _trendAnchor = selected);
+      _loadEmotionTrend();
+    }
+  }
+
+  Future<void> _clearDevelopmentData() async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('清空开发数据？'),
+            content: const Text('将清除聊天、日记、情绪轨迹和全部长期记忆，无法撤销。'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('确认清空'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+    try {
+      final response = await _client.post(
+        Uri.parse('$_apiBase/api/user/clear'),
+        headers: _headers,
+        body: jsonEncode({'include_local_user': true}),
+      );
+      if (response.statusCode >= 400) {
+        throw ApiException(_responseError(response));
+      }
+      if (!mounted) return;
+      setState(() {
+        _messages = [];
+        _diaryCards = [];
+        _aiDiaryBatches = [];
+        _memoryLayers = {
+          for (final layer in MemoryLayer.values) layer: <V2MemoryItem>[],
+        };
+        _trendData = const EmotionTrendData.empty();
+        _pendingMedia = [];
+        _pendingVoiceWav = null;
+        _sentMedia = [];
+        _emotion = const EmotionSnapshot(
+          textScore: 0,
+          audioScore: 0,
+          fusionScore: 0,
+        );
+      });
+      _showStatus('开发数据已清空。');
+    } catch (error) {
+      _showStatus('清空失败：$error');
     }
   }
 
@@ -1011,6 +1243,7 @@ class _LarkHomePageState extends State<LarkHomePage> {
       MainPanel.chat => '云雀',
       MainPanel.memory => '记忆',
       MainPanel.diary => '日记',
+      MainPanel.trajectory => '情绪轨迹',
       MainPanel.settings => '设置',
     };
   }
@@ -1026,6 +1259,7 @@ class _LarkHomePageState extends State<LarkHomePage> {
         onOpenChat: () => _openPanel(MainPanel.chat),
         onOpenMemory: () => _openPanel(MainPanel.memory),
         onOpenDiary: () => _openPanel(MainPanel.diary),
+        onOpenTrajectory: () => _openPanel(MainPanel.trajectory),
         onOpenSettings: () => _openPanel(MainPanel.settings),
         memoryNewCount: _memoryUnreadTotal,
         diaryNewCount: _aiDiaryNewCount,
@@ -1084,11 +1318,50 @@ class _LarkHomePageState extends State<LarkHomePage> {
         emotion: _emotion,
         emotionExpanded: _emotionExpanded,
         onEmotionToggle: () {
-          setState(() => _emotionExpanded = !_emotionExpanded);
+          final expanded = !_emotionExpanded;
+          final size = MediaQuery.sizeOf(context);
+          final cardWidth = expanded ? 240.0 : 180.0;
+          final horizontalRoom = (size.width - cardWidth - 12).clamp(
+            0.0,
+            double.infinity,
+          );
+          setState(() {
+            _emotionExpanded = expanded;
+            _emotionOffset = Offset(
+              _emotionOffset.dx.clamp(-horizontalRoom, 0.0),
+              _emotionOffset.dy,
+            );
+          });
         },
         onSend: _sendMessage,
+        onStop: _stopGeneration,
         recordingVoice: _recordingVoice,
         onVoice: _toggleVoiceRecording,
+        pendingMedia: _pendingMedia,
+        pendingVoice: _pendingVoiceWav != null,
+        onAddMedia: _pickMedia,
+        onRemoveMedia: _removePendingMedia,
+        onRemoveVoice: _removePendingVoice,
+        sentMedia: _sentMedia,
+        emotionPinned: _emotionPinned,
+        emotionOffset: _emotionOffset,
+        onEmotionPin: () => setState(() => _emotionPinned = !_emotionPinned),
+        onEmotionDrag: (delta) {
+          if (_emotionPinned) return;
+          final size = MediaQuery.sizeOf(context);
+          final cardWidth = _emotionExpanded ? 240.0 : 180.0;
+          final horizontalRoom = (size.width - cardWidth - 12).clamp(
+            0.0,
+            double.infinity,
+          );
+          final next = _emotionOffset + delta;
+          setState(() {
+            _emotionOffset = Offset(
+              next.dx.clamp(-horizontalRoom, 0.0),
+              next.dy.clamp(0.0, size.height - 240),
+            );
+          });
+        },
         onClearCache: _clearCache,
       ),
       MainPanel.memory => MemoryPage(
@@ -1114,9 +1387,18 @@ class _LarkHomePageState extends State<LarkHomePage> {
             _reviewAiDiaryItem(batch, item, 'confirm'),
         onAiCorrect: _openAiDiaryCorrection,
       ),
+      MainPanel.trajectory => EmotionTrajectoryPage(
+        data: _trendData,
+        loading: _trendLoading,
+        mode: _trendMode,
+        anchor: _trendAnchor,
+        onModeChanged: _setTrendMode,
+        onPickAnchor: _pickTrendAnchor,
+      ),
       MainPanel.settings => SettingsPage(
         proactiveEnabled: _proactiveEnabled,
         onProactiveChanged: _setProactiveEnabled,
+        onClearDevelopmentData: _clearDevelopmentData,
       ),
     };
   }
@@ -1417,6 +1699,7 @@ class LarkDrawer extends StatelessWidget {
     required this.onOpenChat,
     required this.onOpenMemory,
     required this.onOpenDiary,
+    required this.onOpenTrajectory,
     required this.onOpenSettings,
     required this.memoryNewCount,
     required this.diaryNewCount,
@@ -1429,6 +1712,7 @@ class LarkDrawer extends StatelessWidget {
   final VoidCallback onOpenChat;
   final VoidCallback onOpenMemory;
   final VoidCallback onOpenDiary;
+  final VoidCallback onOpenTrajectory;
   final VoidCallback onOpenSettings;
   final int memoryNewCount;
   final int diaryNewCount;
@@ -1493,6 +1777,12 @@ class LarkDrawer extends StatelessWidget {
               title: '日记',
               newCount: diaryNewCount,
               onTap: onOpenDiary,
+            ),
+            DrawerRow(
+              selected: selected == MainPanel.trajectory,
+              icon: Icons.show_chart_rounded,
+              title: '情绪轨迹',
+              onTap: onOpenTrajectory,
             ),
             DrawerRow(
               selected: selected == MainPanel.settings,
@@ -1599,8 +1889,19 @@ class ChatPage extends StatelessWidget {
     required this.emotionExpanded,
     required this.onEmotionToggle,
     required this.onSend,
+    required this.onStop,
     required this.recordingVoice,
     required this.onVoice,
+    required this.pendingMedia,
+    required this.pendingVoice,
+    required this.onAddMedia,
+    required this.onRemoveMedia,
+    required this.onRemoveVoice,
+    required this.sentMedia,
+    required this.emotionPinned,
+    required this.emotionOffset,
+    required this.onEmotionPin,
+    required this.onEmotionDrag,
     required this.onClearCache,
     super.key,
   });
@@ -1613,8 +1914,19 @@ class ChatPage extends StatelessWidget {
   final bool emotionExpanded;
   final VoidCallback onEmotionToggle;
   final VoidCallback onSend;
+  final VoidCallback onStop;
   final bool recordingVoice;
   final VoidCallback onVoice;
+  final List<MediaAttachment> pendingMedia;
+  final bool pendingVoice;
+  final VoidCallback onAddMedia;
+  final ValueChanged<MediaAttachment> onRemoveMedia;
+  final VoidCallback onRemoveVoice;
+  final List<SentMediaInfo> sentMedia;
+  final bool emotionPinned;
+  final Offset emotionOffset;
+  final VoidCallback onEmotionPin;
+  final ValueChanged<Offset> onEmotionDrag;
   final VoidCallback onClearCache;
 
   @override
@@ -1647,8 +1959,14 @@ class ChatPage extends StatelessWidget {
                 controller: messageController,
                 sending: sending,
                 onSend: onSend,
+                onStop: onStop,
                 recordingVoice: recordingVoice,
                 onVoice: onVoice,
+                pendingMedia: pendingMedia,
+                pendingVoice: pendingVoice,
+                onAddMedia: onAddMedia,
+                onRemoveMedia: onRemoveMedia,
+                onRemoveVoice: onRemoveVoice,
                 onClearCache: onClearCache,
               ),
             ],
@@ -1656,13 +1974,131 @@ class ChatPage extends StatelessWidget {
           Positioned(
             top: 10,
             right: 12,
-            child: EmotionMiniPanel(
-              snapshot: emotion,
-              expanded: emotionExpanded,
-              onToggle: onEmotionToggle,
+            child: Transform.translate(
+              offset: emotionOffset,
+              child: GestureDetector(
+                onPanUpdate: (event) => onEmotionDrag(event.delta),
+                child: EmotionMiniPanel(
+                  snapshot: emotion,
+                  expanded: emotionExpanded,
+                  onToggle: onEmotionToggle,
+                  pinned: emotionPinned,
+                  onPin: onEmotionPin,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            left: 12,
+            child: OutlinedButton(
+              onPressed: () => _openSentMediaPage(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.perm_media_outlined, size: 17),
+                  const SizedBox(width: 5),
+                  Text('媒体 ${sentMedia.length}'),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.chevron_right_rounded, size: 18),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openSentMediaPage(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 280),
+        reverseTransitionDuration: const Duration(milliseconds: 220),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            SentMediaPage(items: sentMedia),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final position = Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+          return SlideTransition(
+            position: animation.drive(position),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SentMediaPage extends StatelessWidget {
+  const SentMediaPage({required this.items, super.key});
+
+  final List<SentMediaInfo> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: LarkColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: LarkColors.text,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const Text(
+          '已发送媒体',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: items.isEmpty
+            ? const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.perm_media_outlined,
+                      size: 44,
+                      color: LarkColors.subtle,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      '还没有发送过媒体',
+                      style: TextStyle(color: LarkColors.subtle),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(14),
+                itemCount: items.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    child: ListTile(
+                      leading: Icon(
+                        item.isImage
+                            ? Icons.image_outlined
+                            : Icons.audio_file_outlined,
+                        color: LarkColors.sky,
+                      ),
+                      title: Text(
+                        item.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        '${item.mimeType} · ${item.size ~/ 1024} KB',
+                      ),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -1673,12 +2109,16 @@ class EmotionMiniPanel extends StatelessWidget {
     required this.snapshot,
     required this.expanded,
     required this.onToggle,
+    required this.pinned,
+    required this.onPin,
     super.key,
   });
 
   final EmotionSnapshot snapshot;
   final bool expanded;
   final VoidCallback onToggle;
+  final bool pinned;
+  final VoidCallback onPin;
 
   @override
   Widget build(BuildContext context) {
@@ -1689,7 +2129,7 @@ class EmotionMiniPanel extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        width: expanded ? 220 : 112,
+        width: expanded ? 240 : 180,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(color: LarkColors.line),
@@ -1712,6 +2152,9 @@ class EmotionMiniPanel extends StatelessWidget {
                   const Expanded(
                     child: Text(
                       '情绪画像',
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
                       style: TextStyle(
                         color: LarkColors.text,
                         fontSize: 12,
@@ -1726,12 +2169,24 @@ class EmotionMiniPanel extends StatelessWidget {
                     size: 18,
                     color: LarkColors.subtle,
                   ),
+                  IconButton(
+                    onPressed: onPin,
+                    tooltip: pinned ? '取消固定' : '固定位置',
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(
+                      pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                      size: 17,
+                      color: LarkColors.sky,
+                    ),
+                  ),
                 ],
               ),
             ),
             if (expanded) ...[
               const Divider(height: 16),
               _EmotionScoreRow(label: '文本模态', value: snapshot.textScore),
+              const SizedBox(height: 7),
+              _EmotionScoreRow(label: '音频模态', value: snapshot.audioScore),
               const SizedBox(height: 7),
               _EmotionScoreRow(label: '融合得分', value: snapshot.fusionScore),
             ],
@@ -1966,8 +2421,14 @@ class ChatComposer extends StatelessWidget {
     required this.controller,
     required this.sending,
     required this.onSend,
+    required this.onStop,
     required this.recordingVoice,
     required this.onVoice,
+    required this.pendingMedia,
+    required this.pendingVoice,
+    required this.onAddMedia,
+    required this.onRemoveMedia,
+    required this.onRemoveVoice,
     required this.onClearCache,
     super.key,
   });
@@ -1975,8 +2436,14 @@ class ChatComposer extends StatelessWidget {
   final TextEditingController controller;
   final bool sending;
   final VoidCallback onSend;
+  final VoidCallback onStop;
   final bool recordingVoice;
   final VoidCallback onVoice;
+  final List<MediaAttachment> pendingMedia;
+  final bool pendingVoice;
+  final VoidCallback onAddMedia;
+  final ValueChanged<MediaAttachment> onRemoveMedia;
+  final VoidCallback onRemoveVoice;
   final VoidCallback onClearCache;
 
   @override
@@ -1984,74 +2451,102 @@ class ChatComposer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
       color: LarkColors.background,
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.94),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: LarkColors.line),
-              ),
-              child: Row(
+          if (pendingVoice || pendingMedia.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
-                  IconButton(
-                    tooltip: recordingVoice ? '停止并发送录音' : '发送语音',
-                    onPressed: sending ? null : onVoice,
-                    icon: Icon(
-                      recordingVoice ? Icons.stop_rounded : Icons.mic_rounded,
+                  if (pendingVoice)
+                    InputChip(
+                      label: const Text('录音待发送'),
+                      avatar: const Icon(Icons.mic, size: 16),
+                      onDeleted: onRemoveVoice,
                     ),
-                    color: recordingVoice
-                        ? Colors.redAccent
-                        : LarkColors.subtle,
-                  ),
-                  IconButton(
-                    tooltip: '清理缓存',
-                    onPressed: onClearCache,
-                    icon: const Icon(Icons.cleaning_services_rounded),
-                    color: LarkColors.subtle,
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => onSend(),
-                      decoration: const InputDecoration(
-                        hintText: '和云雀说点什么',
-                        border: InputBorder.none,
+                  ...pendingMedia.map(
+                    (item) => InputChip(
+                      label: Text(item.name, overflow: TextOverflow.ellipsis),
+                      avatar: Icon(
+                        item.isImage
+                            ? Icons.image_outlined
+                            : Icons.audio_file_outlined,
+                        size: 16,
                       ),
+                      onDeleted: () => onRemoveMedia(item),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: FilledButton(
-              onPressed: sending ? null : onSend,
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: LarkColors.sky,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: LarkColors.line),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: recordingVoice ? '停止并发送录音' : '发送语音',
+                        onPressed: sending ? null : onVoice,
+                        icon: Icon(
+                          recordingVoice
+                              ? Icons.stop_rounded
+                              : Icons.mic_rounded,
+                        ),
+                        color: recordingVoice
+                            ? Colors.redAccent
+                            : LarkColors.subtle,
+                      ),
+                      IconButton(
+                        tooltip: '添加图片或音频',
+                        onPressed: sending ? null : onAddMedia,
+                        icon: const Icon(Icons.add_circle_outline_rounded),
+                        color: LarkColors.subtle,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          minLines: 1,
+                          maxLines: 4,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => onSend(),
+                          decoration: const InputDecoration(
+                            hintText: '和云雀说点什么',
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: sending
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.arrow_upward_rounded),
-            ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: FilledButton(
+                  onPressed: sending ? onStop : onSend,
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: LarkColors.sky,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: sending
+                      ? const Icon(Icons.stop_rounded)
+                      : const Icon(Icons.arrow_upward_rounded),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -2063,11 +2558,13 @@ class SettingsPage extends StatelessWidget {
   const SettingsPage({
     required this.proactiveEnabled,
     required this.onProactiveChanged,
+    required this.onClearDevelopmentData,
     super.key,
   });
 
   final bool proactiveEnabled;
   final ValueChanged<bool> onProactiveChanged;
+  final VoidCallback onClearDevelopmentData;
 
   @override
   Widget build(BuildContext context) {
@@ -2098,6 +2595,36 @@ class SettingsPage extends StatelessWidget {
               subtitle: Text(
                 proactiveEnabled ? '云雀会在你安静一会儿后轻轻回应。' : '云雀只会在你发消息后回应。',
                 style: const TextStyle(color: LarkColors.subtle),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: LarkColors.line),
+            ),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(
+                '清空开发数据',
+                style: TextStyle(
+                  color: LarkColors.text,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              subtitle: const Text(
+                '清除聊天、日记、情绪轨迹和全部长期记忆。',
+                style: TextStyle(color: LarkColors.subtle),
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: onClearDevelopmentData,
+                style: FilledButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                ),
+                child: const Text('清空'),
               ),
             ),
           ),
@@ -3211,6 +3738,224 @@ class _AiDiaryCorrectionSheetState extends State<AiDiaryCorrectionSheet> {
   }
 }
 
+class EmotionTrajectoryPage extends StatelessWidget {
+  const EmotionTrajectoryPage({
+    required this.data,
+    required this.loading,
+    required this.mode,
+    required this.anchor,
+    required this.onModeChanged,
+    required this.onPickAnchor,
+    super.key,
+  });
+  final EmotionTrendData data;
+  final bool loading;
+  final TrendMode mode;
+  final DateTime anchor;
+  final ValueChanged<TrendMode> onModeChanged;
+  final VoidCallback onPickAnchor;
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            ...TrendMode.values.map(
+              (v) => ChoiceChip(
+                label: Text(v.label),
+                selected: v == mode,
+                onSelected: (_) => onModeChanged(v),
+              ),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.calendar_today_outlined, size: 17),
+              label: Text(mode.anchorLabel(anchor)),
+              onPressed: onPickAnchor,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 2.2,
+          children: [
+            _TrendStat('平均融合得分', data.average.toStringAsFixed(3)),
+            _TrendStat(
+              '本期变化',
+              '${data.change > 0 ? '+' : ''}${data.change.toStringAsFixed(3)}',
+            ),
+            _TrendStat('记录次数', '${data.rawCount}'),
+            _TrendStat('含音频记录', '${data.audioCount}'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 280,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: LarkColors.line),
+          ),
+          child: loading
+              ? const Center(child: CircularProgressIndicator())
+              : data.points.isEmpty
+              ? const Center(child: Text('当前时间范围内暂无情绪记录'))
+              : CustomPaint(
+                  painter: EmotionTrendPainter(data.points),
+                  child: const SizedBox.expand(),
+                ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          '显著波动',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: LarkColors.text,
+          ),
+        ),
+        ...data.changes.map(
+          (v) => Card(
+            child: ListTile(
+              leading: Icon(
+                v.delta >= 0 ? Icons.trending_up : Icons.trending_down,
+                color: v.delta >= 0 ? Colors.green : Colors.redAccent,
+              ),
+              title: Text(
+                '${v.delta >= 0 ? '上升' : '下降'} ${v.delta.abs().toStringAsFixed(3)}',
+              ),
+              subtitle: Text(v.label),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          '关联记忆',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: LarkColors.text,
+          ),
+        ),
+        ...data.memories.map(
+          (v) => Card(
+            child: ListTile(
+              title: Text(v.description),
+              subtitle: Text(
+                '${v.topics.map(_topicLabel).join(' · ')} · ${v.layer}',
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrendStat extends StatelessWidget {
+  const _TrendStat(this.label, this.value);
+  final String label, value;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: LarkColors.line),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: LarkColors.subtle, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: LarkColors.text,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class EmotionTrendPainter extends CustomPainter {
+  EmotionTrendPainter(this.points);
+  final List<TrendPoint> points;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final grid = Paint()
+      ..color = LarkColors.line
+      ..strokeWidth = 1;
+    for (var i = 0; i < 5; i++) {
+      final y = i * size.height / 4;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+    }
+    final values = points
+        .expand((v) => [v.text, v.fusion, if (v.audioAvailable) v.audio])
+        .toList();
+    var lo = values.reduce((a, b) => a < b ? a : b);
+    var hi = values.reduce((a, b) => a > b ? a : b);
+    if ((hi - lo).abs() < .2) {
+      hi += .1;
+      lo -= .1;
+    }
+    Offset pos(int i, double v) => Offset(
+      points.length == 1
+          ? size.width / 2
+          : i * size.width / (points.length - 1),
+      size.height - (v - lo) / (hi - lo) * size.height,
+    );
+    void line(
+      double Function(TrendPoint) pick,
+      Color color,
+      bool Function(TrendPoint) include,
+    ) {
+      final path = Path();
+      var began = false;
+      for (var i = 0; i < points.length; i++) {
+        if (!include(points[i])) continue;
+        final p = pos(i, pick(points[i]));
+        if (!began) {
+          path.moveTo(p.dx, p.dy);
+          began = true;
+        } else {
+          path.lineTo(p.dx, p.dy);
+        }
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color
+          ..strokeWidth = 2.5
+          ..style = PaintingStyle.stroke,
+      );
+    }
+
+    line((v) => v.text, const Color(0xFF7CABC7), (_) => true);
+    line((v) => v.audio, const Color(0xFFD89570), (v) => v.audioAvailable);
+    line((v) => v.fusion, const Color(0xFF3D7D9B), (_) => true);
+  }
+
+  @override
+  bool shouldRepaint(covariant EmotionTrendPainter oldDelegate) =>
+      oldDelegate.points != points;
+}
+
 class EmotionPage extends StatelessWidget {
   const EmotionPage({required this.snapshot, super.key});
 
@@ -3410,6 +4155,186 @@ class EmotionHintCard extends StatelessWidget {
   }
 }
 
+class MediaAttachment {
+  const MediaAttachment({
+    required this.name,
+    required this.mimeType,
+    required this.bytes,
+  });
+  final String name, mimeType;
+  final Uint8List bytes;
+  bool get isImage => mimeType.startsWith('image/');
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'type': mimeType,
+    'size': bytes.length,
+    'data': 'data:$mimeType;base64,${base64Encode(bytes)}',
+  };
+}
+
+class SentMediaInfo {
+  const SentMediaInfo({
+    required this.name,
+    required this.mimeType,
+    required this.size,
+  });
+
+  factory SentMediaInfo.fromAttachment(MediaAttachment attachment) {
+    return SentMediaInfo(
+      name: attachment.name,
+      mimeType: attachment.mimeType,
+      size: attachment.bytes.length,
+    );
+  }
+
+  factory SentMediaInfo.fromJson(Map<String, dynamic> json) {
+    return SentMediaInfo(
+      name: json['name']?.toString() ?? '未命名文件',
+      mimeType:
+          json['type']?.toString() ??
+          json['mime_type']?.toString() ??
+          'application/octet-stream',
+      size: _asInt(json['size']),
+    );
+  }
+
+  final String name;
+  final String mimeType;
+  final int size;
+  bool get isImage => mimeType.startsWith('image/');
+}
+
+String _mimeForName(String name) {
+  final ext = name.split('.').last.toLowerCase();
+  return switch (ext) {
+    'jpg' || 'jpeg' => 'image/jpeg',
+    'png' => 'image/png',
+    'webp' => 'image/webp',
+    'gif' => 'image/gif',
+    'wav' => 'audio/wav',
+    'mp3' => 'audio/mpeg',
+    'm4a' => 'audio/mp4',
+    'aac' => 'audio/aac',
+    'ogg' => 'audio/ogg',
+    _ => 'application/octet-stream',
+  };
+}
+
+extension TrendModeX on TrendMode {
+  String get apiName => switch (this) {
+    TrendMode.oneDay => 'one_day',
+    TrendMode.daily => 'daily',
+    TrendMode.weekly => 'weekly',
+    TrendMode.monthly => 'monthly',
+  };
+  String get label => switch (this) {
+    TrendMode.oneDay => '一天',
+    TrendMode.daily => '日趋势',
+    TrendMode.weekly => '周趋势',
+    TrendMode.monthly => '月趋势',
+  };
+  String anchorValue(DateTime d) => switch (this) {
+    TrendMode.oneDay => _dateKey(d),
+    TrendMode.daily =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}',
+    _ => d.year.toString(),
+  };
+  String anchorLabel(DateTime d) => switch (this) {
+    TrendMode.oneDay => _dateKey(d),
+    TrendMode.daily => '${d.year}年${d.month}月',
+    _ => '${d.year}年',
+  };
+}
+
+class TrendPoint {
+  const TrendPoint({
+    required this.text,
+    required this.audio,
+    required this.fusion,
+    required this.audioAvailable,
+    required this.label,
+  });
+  factory TrendPoint.fromJson(Map<String, dynamic> j) => TrendPoint(
+    text: _asDouble(j['text']),
+    audio: _asDouble(j['audio']),
+    fusion: _asDouble(j['fusion']),
+    audioAvailable: j['audio_available'] == true,
+    label: j['period_label']?.toString() ?? '',
+  );
+  final double text, audio, fusion;
+  final bool audioAvailable;
+  final String label;
+}
+
+class TrendChange {
+  const TrendChange(this.delta, this.label);
+  final double delta;
+  final String label;
+}
+
+class TrendMemory {
+  const TrendMemory(this.description, this.layer, this.topics);
+  final String description, layer;
+  final List<String> topics;
+}
+
+class EmotionTrendData {
+  const EmotionTrendData({
+    required this.points,
+    required this.memories,
+    required this.average,
+    required this.change,
+    required this.rawCount,
+    required this.audioCount,
+  });
+  const EmotionTrendData.empty()
+    : points = const [],
+      memories = const [],
+      average = 0,
+      change = 0,
+      rawCount = 0,
+      audioCount = 0;
+  factory EmotionTrendData.fromJson(Map<String, dynamic> j) {
+    final s = (j['summary'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final records = (j['records'] as List?) ?? const [];
+    final memoryItems = (j['memories'] as List?) ?? const [];
+    return EmotionTrendData(
+      points: records
+          .whereType<Map<String, dynamic>>()
+          .map(TrendPoint.fromJson)
+          .toList(),
+      memories: memoryItems
+          .whereType<Map<String, dynamic>>()
+          .map(
+            (v) => TrendMemory(
+              v['description']?.toString() ?? '',
+              v['layer']?.toString() ?? '',
+              _stringList(v['topics']),
+            ),
+          )
+          .toList(),
+      average: _asDouble(s['average']),
+      change: _asDouble(s['change']),
+      rawCount: _asInt(s['raw_count']),
+      audioCount: _asInt(s['audio_count']),
+    );
+  }
+  final List<TrendPoint> points;
+  final List<TrendMemory> memories;
+  final double average, change;
+  final int rawCount, audioCount;
+  List<TrendChange> get changes {
+    final result = <TrendChange>[];
+    for (var i = 1; i < points.length; i++) {
+      result.add(
+        TrendChange(points[i].fusion - points[i - 1].fusion, points[i].label),
+      );
+    }
+    result.sort((a, b) => b.delta.abs().compareTo(a.delta.abs()));
+    return result.take(4).toList();
+  }
+}
+
 class LarkUser {
   const LarkUser({required this.id, required this.username});
 
@@ -3429,6 +4354,7 @@ class ChatMessage {
     required this.fromLark,
     required this.text,
     required this.time,
+    this.attachments = const [],
   });
 
   factory ChatMessage.fromHistory(Map<String, dynamic> json) {
@@ -3437,12 +4363,17 @@ class ChatMessage {
       fromLark: role != 'user',
       text: json['content']?.toString() ?? '',
       time: _timeFromIso(json['created_at']?.toString()),
+      attachments: (json['attachments'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(SentMediaInfo.fromJson)
+          .toList(),
     );
   }
 
   final bool fromLark;
   final String text;
   final String time;
+  final List<SentMediaInfo> attachments;
 }
 
 class DiaryCardData {
@@ -3462,9 +4393,14 @@ class DiaryCardData {
 }
 
 class EmotionSnapshot {
-  const EmotionSnapshot({required this.textScore, required this.fusionScore});
+  const EmotionSnapshot({
+    required this.textScore,
+    this.audioScore = 0,
+    required this.fusionScore,
+  });
 
   final double textScore;
+  final double audioScore;
   final double fusionScore;
 
   // Compatibility getters for the retired full-page emotion widget.

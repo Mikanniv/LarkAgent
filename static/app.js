@@ -11,10 +11,15 @@ const state = {
   lastInteractionAt: Date.now(),
   proactiveEnabled: true,
   chatPending: false,
+  chatAbortController: null,
   recording: false,
   mediaRecorder: null,
   mediaStream: null,
   audioChunks: [],
+  pendingFiles: [], sentMedia: [], pendingVoiceAudio: "",
+  emotionPinned: true, emotionPosition: null,
+  trajectory: { range: "one_day", anchor: "", records: [], memories: [], strategies: [], summary: {} },
+  trajectoryTopic: "all",
 };
 
 const els = Object.fromEntries(
@@ -22,20 +27,22 @@ const els = Object.fromEntries(
     "introScreen", "enterAppButton", "authToggleButton", "authForm", "authUsername",
     "authPassword", "authLoginButton", "authRegisterButton", "authStatus", "appShell",
     "appSidebar", "sidebarToggle", "mobileSidebarToggle", "sidebarScrim", "activeViewTitle",
-    "backendStatus", "agentStatus", "sidebarChatTab", "sidebarDiaryTab", "sidebarMemoryTab",
-    "sidebarSettingsTab", "diaryNewBadge", "memoryNewBadge", "chatView", "diaryView",
-    "memoryView", "settingsView", "emotionWidget", "emotionToggle", "textScore",
-    "fusionScore", "audioScore", "chatList", "chatForm", "messageInput", "voiceButton", "diaryUserModeTab",
+    "backendStatus", "agentStatus", "sidebarChatTab", "sidebarDiaryTab", "sidebarMemoryTab", "sidebarTrajectoryTab",
+    "sidebarSettingsTab", "diaryNewBadge", "memoryNewBadge", "chatView", "diaryView", "trajectoryView",
+    "memoryView", "settingsView", "emotionWidget", "emotionToggle", "emotionPin", "emotionDragHandle", "textScore",
+    "fusionScore", "audioScore", "chatList", "chatForm", "messageInput", "voiceButton", "sendButton", "diaryUserModeTab",
     "diaryAiModeTab", "userDiaryPane", "aiDiaryPane", "userDiaryDate", "userDiary",
     "userDiaryStatus", "diaryDeleteButton", "diarySaveButton", "aiDiaryList",
     "memoryLayers", "memoryItems", "memoryDetail", "proactiveReplyToggle", "clearDataButton",
     "revisionModal", "revisionInput", "revisionCancel", "revisionSubmit",
+    "attachmentInput", "attachmentButton", "pendingAttachments", "sentMediaToggle", "sentMediaPanel", "sentMediaList", "sentMediaCount", "sentMediaClose", "dropOverlay",
+    "trajectoryAnchor", "trajectoryAverage", "trajectoryChange", "trajectoryRecordCount", "trajectoryAudioCount", "trajectoryPeriodLabel", "trajectoryChart", "trajectoryChanges", "trajectoryStrategies", "trajectoryTopicFilters", "trajectoryMemoryList",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
 const CHINA_TIME_ZONE = "Asia/Shanghai";
 const API_BASE = resolveApiBase();
-const VIEW_TITLES = { chat: "聊天", diary: "日记", memory: "长期记忆", settings: "设置" };
+const VIEW_TITLES = { chat: "聊天", diary: "日记", memory: "长期记忆", trajectory: "情绪轨迹", settings: "设置" };
 const LAYER_LABELS = { observation: "观察", reflection: "反思", strategy: "策略" };
 const TOPIC_LABELS = { event: "事件", preference: "偏好", routine: "习惯", relationship: "关系" };
 const REVIEW_LABELS = { pending: "待审查", confirmed: "已确认", revised: "已修改", deleted: "已删除" };
@@ -61,8 +68,10 @@ function authRequired() {
 }
 
 async function requestJson(path, options = {}) {
-  const { timeoutMs = 30000, ...fetchOptions } = options;
+  const { timeoutMs = 30000, signal: externalSignal, ...fetchOptions } = options;
   const controller = new AbortController();
+  const relayAbort = () => controller.abort(externalSignal?.reason);
+  if (externalSignal?.aborted) relayAbort(); else externalSignal?.addEventListener("abort", relayAbort, { once: true });
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   let response;
   try {
@@ -74,6 +83,7 @@ async function requestJson(path, options = {}) {
     });
   } finally {
     window.clearTimeout(timeout);
+    externalSignal?.removeEventListener("abort", relayAbort);
   }
   let payload = {};
   try {
@@ -81,7 +91,7 @@ async function requestJson(path, options = {}) {
   } catch {
     payload = {};
   }
-  if (!response.ok) throw new Error(payload.error || `请求失败（${response.status}）`);
+  if (!response.ok) { const error = new Error(payload.error || `请求失败（${response.status}）`); error.status = response.status; throw error; }
   return payload;
 }
 
@@ -122,6 +132,7 @@ function setView(view) {
     chat: [els.sidebarChatTab, els.chatView],
     diary: [els.sidebarDiaryTab, els.diaryView],
     memory: [els.sidebarMemoryTab, els.memoryView],
+    trajectory: [els.sidebarTrajectoryTab, els.trajectoryView],
     settings: [els.sidebarSettingsTab, els.settingsView],
   };
   Object.entries(map).forEach(([key, [tab, panel]]) => {
@@ -132,6 +143,15 @@ function setView(view) {
   els.appShell.classList.remove("is-mobile-menu-open");
   if (view === "memory") fetchMemories();
   if (view === "diary") fetchAiDiary();
+  if (view === "trajectory") fetchTrajectory();
+}
+
+function setChatPending(pending, activity = "生成") {
+  state.chatPending = pending;
+  els.sendButton.classList.toggle("is-stop", pending);
+  els.sendButton.setAttribute("aria-label", pending ? `停止${activity}` : "发送");
+  els.sendButton.title = pending ? `停止${activity}` : "发送";
+  els.sendButton.innerHTML = pending ? '<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"></rect></svg>' : '<svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14"></path></svg>';
 }
 
 function setSidebarCollapsed(value) {
@@ -235,6 +255,7 @@ async function loadChatHistory() {
     const payload = await requestJson("/api/chat/history?limit=20");
     state.history = payload.items || [];
     renderChatHistory();
+    rebuildSentMedia();
     setBackendOnline(true);
   } catch {
     setBackendOnline(false);
@@ -250,9 +271,9 @@ function updateScores(scores = {}) {
     : "--";
 }
 
-async function sendChat(message, { proactive = false, audioData = "" } = {}) {
+async function sendChat(message, { proactive = false } = {}) {
   if (state.chatPending) return;
-  state.chatPending = true;
+  const abortController = new AbortController(); state.chatAbortController = abortController; setChatPending(true);
   let typing = null;
   if (!proactive && message) {
     appendMessage("user", message);
@@ -260,38 +281,83 @@ async function sendChat(message, { proactive = false, audioData = "" } = {}) {
   typing = appendMessage("assistant", "···", { typing: true });
   els.agentStatus.textContent = "云雀正在思考";
   try {
+    const attachments = proactive ? [] : [...state.pendingFiles];
+    const voiceAudio = proactive ? "" : state.pendingVoiceAudio;
     const payload = await requestJson("/api/chat", {
       method: "POST",
-      timeoutMs: audioData ? 120000 : 30000,
+      timeoutMs: voiceAudio ? 120000 : 30000, signal: abortController.signal,
       body: JSON.stringify({
         message: proactive ? "" : message,
         proactive,
         proactive_reason: proactive ? "用户一段时间没有继续输入" : "",
-        audio_data: audioData,
+        audio_data: voiceAudio, attachments,
         timestamp: chinaTimestamp(),
       }),
     });
     typing.remove();
     updateScores(payload.scores);
-    if (!proactive && audioData) {
-      const transcript = payload.modal_inputs?.asr_text || "[语音消息]";
-      appendMessage("user", `语音：${transcript}`);
-    }
-    const reply = payload.agent?.reply || "我在。";
+    const reply = payload.agent?.reply;
+    if (!reply) throw new Error("模型没有返回回复内容");
     appendMessage("assistant", reply);
     state.history = payload.chat_history || state.history;
-    els.agentStatus.textContent = "文本陪伴模式";
+    state.pendingFiles = []; state.pendingVoiceAudio = ""; renderPendingFiles(); rebuildSentMedia();
+    els.agentStatus.textContent = payload.modal_inputs?.audio_available ? "文本与音频陪伴模式" : "文本陪伴模式";
     setBackendOnline(true);
     state.lastInteractionAt = Date.now();
     await Promise.allSettled([fetchMemories(), fetchAiDiary()]);
   } catch (error) {
     typing?.remove();
-    appendMessage("assistant", `暂时没有连接上后端：${error.message}`);
-    els.agentStatus.textContent = "连接失败";
-    setBackendOnline(false);
+    if (abortController.signal.aborted) { els.agentStatus.textContent = "已停止生成"; return; }
+    window.alert(error.message); els.agentStatus.textContent = Number(error.status || 0) >= 500 ? "模型调用失败" : "连接失败";
+    setBackendOnline(Number(error.status || 0) >= 500);
   } finally {
-    state.chatPending = false;
+    if (state.chatAbortController === abortController) state.chatAbortController = null; setChatPending(false);
   }
+}
+
+function renderPendingFiles() {
+  els.pendingAttachments.textContent = "";
+  els.pendingAttachments.hidden = !state.pendingFiles.length && !state.pendingVoiceAudio;
+  const entries = state.pendingVoiceAudio ? [{ name: "录音已暂存 · 发送时分析情绪", voice: true }, ...state.pendingFiles] : state.pendingFiles;
+  entries.forEach((item) => {
+    const chip = document.createElement("span"); chip.className = "pending-file";
+    const name = document.createElement("span"); name.textContent = item.name;
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "×";
+    remove.onclick = () => { if (item.voice) state.pendingVoiceAudio = ""; else state.pendingFiles = state.pendingFiles.filter((entry) => entry !== item); renderPendingFiles(); };
+    chip.append(name, remove); els.pendingAttachments.append(chip);
+  });
+}
+
+async function addFiles(fileList) {
+  const files = [...fileList].filter((file) => file.type.startsWith("image/") || file.type.startsWith("audio/"));
+  const available = 9 - state.pendingFiles.length;
+  if (files.length > available) window.alert("每次最多选择 9 个文件。");
+  const additions = [];
+  for (const file of files.slice(0, available)) {
+    if (file.size > 10 * 1024 * 1024) { window.alert(`${file.name} 超过 10 MB`); continue; }
+    additions.push({ name: file.name, type: file.type, size: file.size, data: await blobToDataUrl(file) });
+  }
+  state.pendingFiles.push(...additions); renderPendingFiles();
+}
+
+function rebuildSentMedia() {
+  state.sentMedia = state.history.flatMap((item) => item.role === "user" ? (item.attachments || []) : []);
+  els.sentMediaCount.textContent = String(state.sentMedia.length); els.sentMediaList.textContent = "";
+  if (!state.sentMedia.length) { els.sentMediaList.innerHTML = '<span class="empty-note">还没有发送过媒体</span>'; return; }
+  state.sentMedia.forEach((item) => { const node = document.createElement("article"); node.className = "sent-media-item"; node.textContent = `${item.name} · ${item.type} · ${Math.ceil(Number(item.size || 0) / 1024)} KB`; els.sentMediaList.append(node); });
+}
+
+async function analyzeVoiceInput(audioData) {
+  if (state.chatPending) return;
+  const controller = new AbortController(); state.chatAbortController = controller; setChatPending(true, "识别");
+  els.agentStatus.textContent = "正在识别语音";
+  try {
+    const payload = await requestJson("/api/audio/input", { method: "POST", timeoutMs: 120000, signal: controller.signal, body: JSON.stringify({ audio_data: audioData, timestamp: chinaTimestamp() }) });
+    const transcript = String(payload.transcript || "").trim(); if (!transcript) throw new Error("没有识别到语音文字");
+    const existing = els.messageInput.value.trim(); els.messageInput.value = existing ? `${existing} ${transcript}` : transcript;
+    state.pendingVoiceAudio = audioData; renderPendingFiles(); els.messageInput.focus(); els.agentStatus.textContent = "语音识别完成 · 录音等待发送"; setBackendOnline(true);
+  } catch (error) { if (!controller.signal.aborted) window.alert(`语音识别失败：${error.message}`); }
+  finally { if (state.chatAbortController === controller) state.chatAbortController = null; setChatPending(false); }
 }
 
 function blobToDataUrl(blob) {
@@ -334,7 +400,7 @@ async function toggleVoiceRecording() {
       els.voiceButton.setAttribute("aria-label", "开始录音");
       els.agentStatus.textContent = "正在识别语音";
       try {
-        sendChat("", { audioData: await blobToDataUrl(blob) });
+        await analyzeVoiceInput(await blobToDataUrl(blob));
       } catch (error) {
         window.alert(`录音发送失败：${error.message}`);
       }
@@ -342,8 +408,8 @@ async function toggleVoiceRecording() {
     recorder.start();
     state.recording = true;
     els.voiceButton.classList.add("is-recording");
-    els.voiceButton.setAttribute("aria-label", "停止并发送录音");
-    els.agentStatus.textContent = "正在录音，点击麦克风发送";
+    els.voiceButton.setAttribute("aria-label", "停止并识别录音");
+    els.agentStatus.textContent = "正在录音，点击麦克风结束识别";
   } catch (error) {
     window.alert(`无法使用麦克风：${error.message}`);
   }
@@ -357,6 +423,57 @@ function layerIcon(layer) {
   };
   return `<svg viewBox="0 0 24 24">${paths[layer]}</svg>`;
 }
+
+function updateEmotionPinState() {
+  els.emotionWidget.classList.toggle("is-pinned", state.emotionPinned);
+  els.emotionPin.classList.toggle("is-active", state.emotionPinned);
+  els.emotionPin.setAttribute("aria-pressed", String(state.emotionPinned));
+  const label = state.emotionPinned ? "取消固定，可拖动卡片" : "固定当前位置";
+  els.emotionPin.setAttribute("aria-label", label);
+  els.emotionPin.title = label;
+}
+
+function clampEmotionWidgetPosition(persist = false) {
+  if (els.emotionWidget.hidden || !els.emotionWidget.style.left) return;
+  const panel = els.emotionWidget.closest(".chat-panel");
+  const maxLeft = Math.max(0, panel.clientWidth - els.emotionWidget.offsetWidth);
+  const maxTop = Math.max(0, panel.clientHeight - els.emotionWidget.offsetHeight);
+  const left = Math.max(0, Math.min(parseFloat(els.emotionWidget.style.left) || 0, maxLeft));
+  const top = Math.max(0, Math.min(parseFloat(els.emotionWidget.style.top) || 0, maxTop));
+  els.emotionWidget.style.left = `${left}px`;
+  els.emotionWidget.style.top = `${top}px`;
+  state.emotionPosition = { left, top };
+  if (persist) localStorage.setItem("yunque.web.emotion.position.v1", JSON.stringify(state.emotionPosition));
+}
+
+function showEmotionWidget(visible) {
+  els.emotionWidget.hidden = !visible;
+  els.emotionToggle.setAttribute("aria-expanded", String(visible));
+  if (visible) requestAnimationFrame(() => clampEmotionWidgetPosition(true));
+}
+function initializeEmotionDragging() {
+  let drag = null;
+  els.emotionDragHandle.addEventListener("pointerdown", (event) => { if (state.emotionPinned || event.target.closest("button")) return; const panel = els.emotionWidget.closest(".chat-panel").getBoundingClientRect(); const card = els.emotionWidget.getBoundingClientRect(); drag = { panel, x: event.clientX - card.left, y: event.clientY - card.top }; els.emotionDragHandle.setPointerCapture(event.pointerId); });
+  els.emotionDragHandle.addEventListener("pointermove", (event) => { if (!drag) return; const left = Math.max(0, Math.min(event.clientX - drag.panel.left - drag.x, drag.panel.width - els.emotionWidget.offsetWidth)); const top = Math.max(0, Math.min(event.clientY - drag.panel.top - drag.y, drag.panel.height - els.emotionWidget.offsetHeight)); els.emotionWidget.style.left = `${left}px`; els.emotionWidget.style.top = `${top}px`; els.emotionWidget.style.right = "auto"; state.emotionPosition = { left, top }; });
+  els.emotionDragHandle.addEventListener("pointerup", () => { drag = null; localStorage.setItem("yunque.web.emotion.position.v1", JSON.stringify(state.emotionPosition)); });
+  els.emotionPin.onclick = () => { state.emotionPinned = !state.emotionPinned; updateEmotionPinState(); localStorage.setItem("yunque.web.emotion.pinned.v1", state.emotionPinned ? "1" : "0"); };
+  window.addEventListener("resize", () => clampEmotionWidgetPosition(true));
+}
+
+function configureTrajectoryAnchor(reset = false) { const mode = state.trajectory.range; const label = els.trajectoryAnchor.closest("label").querySelector("span"); const today = chinaDateKey(); if (mode === "one_day") { els.trajectoryAnchor.type = "date"; if (reset || !els.trajectoryAnchor.value) els.trajectoryAnchor.value = today; label.textContent = "选择日期"; } else if (mode === "daily") { els.trajectoryAnchor.type = "month"; if (reset || !/^\d{4}-\d{2}$/.test(els.trajectoryAnchor.value)) els.trajectoryAnchor.value = today.slice(0,7); label.textContent = "选择月份"; } else { els.trajectoryAnchor.type = "number"; if (reset || !/^\d{4}$/.test(els.trajectoryAnchor.value)) els.trajectoryAnchor.value = today.slice(0,4); label.textContent = "选择年份"; } }
+function trendLabel() { return { one_day:"当天原始记录", daily:"每日 24h 平均值", weekly:"每周 7 天平均值", monthly:"每个自然月平均值" }[state.trajectory.range]; }
+function trendTime(item) { return item.period_label || new Date(item.created_at).toLocaleTimeString("zh-CN", { hour12:false }); }
+function renderTrajectory() {
+  const data = state.trajectory, summary = data.summary || {}, records = data.records || [];
+  els.trajectoryAverage.textContent = Number(summary.average || 0).toFixed(3); els.trajectoryChange.textContent = `${Number(summary.change || 0) > 0 ? "+" : ""}${Number(summary.change || 0).toFixed(3)}`; els.trajectoryRecordCount.textContent = String(summary.raw_count || 0); els.trajectoryAudioCount.textContent = String(summary.audio_count || 0); els.trajectoryPeriodLabel.textContent = trendLabel();
+  if (!records.length) els.trajectoryChart.innerHTML = '<div class="trajectory-empty"><strong>还没有情绪记录</strong><span>完成一次对话后会显示在这里。</span></div>';
+  else { const w=760,h=280,p={l:42,r:18,t:18,b:34}, pw=w-p.l-p.r,ph=h-p.t-p.b, vals=records.flatMap(x=>[x.text,x.fusion,...(x.audio_available?[x.audio]:[])]),lo=Math.min(0,...vals)-.15,hi=Math.max(0,...vals)+.15,x=i=>p.l+(records.length===1?pw/2:i*pw/(records.length-1)),y=v=>p.t+(hi-v)*ph/(hi-lo),path=(k,ok=()=>true)=>records.map((v,i)=>ok(v)?`${i?"L":"M"}${x(i)},${y(v[k])}`:"").filter(Boolean).join(" ").replace(/^L/,"M"),grid=[0,1,2,3,4].map(i=>{const yy=p.t+i*ph/4;return `<line class="chart-grid" x1="${p.l}" y1="${yy}" x2="${w-p.r}" y2="${yy}"/>`}).join(""),labels=[0,Math.floor((records.length-1)/2),records.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>`<text class="chart-axis-label" x="${x(i)}" y="${h-8}" text-anchor="middle">${trendTime(records[i])}</text>`).join(""); els.trajectoryChart.innerHTML=`<svg viewBox="0 0 ${w} ${h}">${grid}<path class="chart-line is-text" d="${path("text")}"/><path class="chart-line is-audio" d="${path("audio",v=>v.audio_available)}"/><path class="chart-line is-fusion" d="${path("fusion")}"/>${records.map((v,i)=>`<circle class="chart-point" cx="${x(i)}" cy="${y(v.fusion)}" r="4"><title>${trendTime(v)} ${v.fusion.toFixed(3)}</title></circle>`).join("")}${labels}</svg>`; }
+  els.trajectoryChanges.textContent=""; records.slice(1).map((v,i)=>({v,d:v.fusion-records[i].fusion})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,4).forEach(({v,d})=>{const n=document.createElement("article");n.className=`trajectory-change-item ${d>=0?"is-up":"is-down"}`;n.innerHTML=`<strong>${d>=0?"上升":"下降"} ${Math.abs(d).toFixed(3)}</strong><span>${trendTime(v)}</span>`;els.trajectoryChanges.append(n)}); if(!els.trajectoryChanges.children.length)els.trajectoryChanges.innerHTML='<span class="empty-note">至少需要两次记录</span>';
+  els.trajectoryStrategies.textContent="";(data.strategies||[]).slice(0,3).forEach(v=>{const n=document.createElement("article");n.className="trajectory-strategy-item";const a=document.createElement("strong"),b=document.createElement("span");a.textContent=v.scene||"陪伴策略";b.textContent=v.description;n.append(a,b);els.trajectoryStrategies.append(n)});if(!els.trajectoryStrategies.children.length)els.trajectoryStrategies.innerHTML='<span class="empty-note">暂无已生成策略</span>';
+  renderTrajectoryMemories();
+}
+function renderTrajectoryMemories(){els.trajectoryMemoryList.textContent="";(state.trajectory.memories||[]).filter(v=>state.trajectoryTopic==="all"||(v.topics||[]).includes(state.trajectoryTopic)).forEach(v=>{const n=document.createElement("article");n.className="trajectory-memory-item";const tags=(v.topics||[]).map(t=>`<span class="trajectory-topic">${TOPIC_LABELS[t]||t}</span>`).join("");n.innerHTML=`<div>${tags}<span class="trajectory-layer">${v.layer==="reflection"?"反思":"观察"}</span></div>`;const p=document.createElement("p"),s=document.createElement("small");p.textContent=v.description;s.textContent=`${new Date(v.created_at).toLocaleString("zh-CN")} · 重要度 ${Number(v.importance).toFixed(1)}`;n.append(p,s);els.trajectoryMemoryList.append(n)});if(!els.trajectoryMemoryList.children.length)els.trajectoryMemoryList.innerHTML='<span class="empty-note">当前范围内暂无关联记忆</span>'}
+async function fetchTrajectory(){try{state.trajectory=await requestJson(`/api/emotion/trends?range=${state.trajectory.range}&anchor=${encodeURIComponent(els.trajectoryAnchor.value)}`);renderTrajectory();setBackendOnline(true)}catch{state.trajectory={range:state.trajectory.range,records:[],memories:[],strategies:[],summary:{}};renderTrajectory()}}
 
 function updateNewBadges() {
   const unread = state.memories.unread || {};
@@ -690,7 +807,14 @@ async function clearDevelopmentData() {
     state.memories = { layers: { observation: [], reflection: [], strategy: [] }, unread: { total: 0 } };
     state.aiDiaryBatches = [];
     state.selectedMemoryId = "";
+    state.pendingFiles = [];
+    state.pendingVoiceAudio = null;
+    state.sentMedia = [];
+    state.trajectory.data = null;
     renderChatHistory();
+    renderPendingFiles();
+    rebuildSentMedia();
+    renderTrajectory();
     renderMemoryBrowser();
     renderAiDiary();
     els.userDiary.value = "";
@@ -711,20 +835,26 @@ els.authForm.addEventListener("submit", (event) => {
 });
 els.authRegisterButton.addEventListener("click", () => submitAuth("register"));
 
-[els.sidebarChatTab, els.sidebarDiaryTab, els.sidebarMemoryTab, els.sidebarSettingsTab]
+[els.sidebarChatTab, els.sidebarDiaryTab, els.sidebarMemoryTab, els.sidebarTrajectoryTab, els.sidebarSettingsTab]
   .forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
 els.sidebarToggle.addEventListener("click", () => setSidebarCollapsed(!state.sidebarCollapsed));
 els.mobileSidebarToggle.addEventListener("click", () => els.appShell.classList.add("is-mobile-menu-open"));
 els.sidebarScrim.addEventListener("click", () => els.appShell.classList.remove("is-mobile-menu-open"));
 els.emotionToggle.addEventListener("click", () => {
-  const collapsed = els.emotionWidget.classList.toggle("is-collapsed");
-  els.emotionToggle.setAttribute("aria-expanded", String(!collapsed));
-  els.emotionToggle.title = collapsed ? "展开情绪画像" : "收起情绪画像";
+  showEmotionWidget(els.emotionWidget.hidden);
 });
+els.sentMediaToggle.onclick=()=>{const open=els.sentMediaPanel.hidden;els.sentMediaPanel.hidden=!open;els.sentMediaToggle.setAttribute("aria-expanded",String(open));els.chatView.classList.toggle("has-media-sidebar",open);requestAnimationFrame(()=>clampEmotionWidgetPosition(true))};
+els.sentMediaClose.onclick=()=>{els.sentMediaPanel.hidden=true;els.sentMediaToggle.setAttribute("aria-expanded","false");els.chatView.classList.remove("has-media-sidebar");requestAnimationFrame(()=>clampEmotionWidgetPosition(true))};
+els.attachmentButton.onclick=()=>els.attachmentInput.click(); els.attachmentInput.onchange=async()=>{await addFiles(els.attachmentInput.files||[]);els.attachmentInput.value=""};
+let dragDepth=0;const chatPanel=els.chatForm.closest(".chat-panel"); chatPanel.ondragenter=e=>{e.preventDefault();dragDepth++;chatPanel.classList.add("is-dragging")};chatPanel.ondragover=e=>e.preventDefault();chatPanel.ondragleave=()=>{if(--dragDepth<=0){dragDepth=0;chatPanel.classList.remove("is-dragging")}};chatPanel.ondrop=async e=>{e.preventDefault();dragDepth=0;chatPanel.classList.remove("is-dragging");await addFiles(e.dataTransfer?.files||[])};
+document.querySelectorAll(".trajectory-range button").forEach(button=>button.onclick=()=>{document.querySelectorAll(".trajectory-range button").forEach(v=>v.classList.toggle("is-active",v===button));state.trajectory.range=button.dataset.range||"one_day";configureTrajectoryAnchor(true);fetchTrajectory()});
+els.trajectoryAnchor.onchange=fetchTrajectory;els.trajectoryTopicFilters.querySelectorAll("button").forEach(button=>button.onclick=()=>{els.trajectoryTopicFilters.querySelectorAll("button").forEach(v=>v.classList.toggle("is-active",v===button));state.trajectoryTopic=button.dataset.topic||"all";renderTrajectoryMemories()});
 els.chatForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const message = els.messageInput.value.trim();
-  if (!message || state.chatPending) return;
+  if(state.chatPending){state.chatAbortController?.abort("user_cancelled");return}
+  let message = els.messageInput.value.trim();
+  if(!message&&state.pendingFiles.length)message="请结合我发送的媒体回应我。";
+  if (!message) return;
   els.messageInput.value = "";
   els.messageInput.dispatchEvent(new Event("input", { bubbles: true }));
   sendChat(message);
@@ -769,9 +899,12 @@ setInterval(() => {
 
 async function initialize() {
   els.userDiaryDate.value = chinaDateKey();
+  configureTrajectoryAnchor(true);
   try {
     state.sidebarCollapsed = localStorage.getItem("yunque.web.sidebar.collapsed.v2") === "1";
     state.proactiveEnabled = localStorage.getItem("yunque.web.proactive.v2") !== "0";
+    state.emotionPinned = localStorage.getItem("yunque.web.emotion.pinned.v1") !== "0";
+    state.emotionPosition = JSON.parse(localStorage.getItem("yunque.web.emotion.position.v1")||"null");
   } catch {
     state.sidebarCollapsed = false;
     state.proactiveEnabled = true;
@@ -781,6 +914,8 @@ async function initialize() {
   renderChatHistory();
   renderMemoryBrowser();
   renderAiDiary();
+  renderPendingFiles(); rebuildSentMedia(); renderTrajectory(); initializeEmotionDragging();
+  updateEmotionPinState(); if(state.emotionPosition){els.emotionWidget.style.left=`${state.emotionPosition.left}px`;els.emotionWidget.style.top=`${state.emotionPosition.top}px`;els.emotionWidget.style.right="auto"}
   await checkAuth();
 }
 

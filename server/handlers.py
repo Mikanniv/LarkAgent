@@ -13,10 +13,13 @@ from server.service import (
     DEFAULT_MEMORY_USER_ID,
     analyze_and_reply,
     handle_chat_history,
+    handle_audio_input,
+    handle_asr_segment,
     handle_ai_diary_v2_query,
     handle_ai_diary_v2_review,
     handle_diary_user,
     handle_diary_user_delete,
+    handle_emotion_trend_query,
     handle_memory_v2_query,
     handle_memory_v2_read,
     handle_user_clear,
@@ -116,6 +119,14 @@ class AppHandler(BaseHTTPRequestHandler):
             query["_auth_user_id"] = [user_id]
             self.send_json(handle_memory_v2_query(query))
             return
+        if route == "/api/emotion/trends":
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            query["_auth_user_id"] = [user_id]
+            self.send_json(handle_emotion_trend_query(query))
+            return
         if route == "/api/ai-diary/v2":
             user_id = self.api_user_id()
             if user_id is None:
@@ -149,6 +160,8 @@ class AppHandler(BaseHTTPRequestHandler):
         route = unquote(urlparse(self.path).path)
         if route not in {
             "/api/chat",
+            "/api/asr/segment",
+            "/api/audio/input",
             "/api/diary/user",
             "/api/diary/user/delete",
             "/api/ai-diary/v2/review",
@@ -159,8 +172,9 @@ class AppHandler(BaseHTTPRequestHandler):
             return
 
         length = int(self.headers.get("Content-Length", "0"))
-        if length > MAX_AUDIO_BYTES * 2:
-            self.send_json({"error": "Audio payload is too large"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+        max_request_bytes = max(MAX_AUDIO_BYTES * 2, 40 * 1024 * 1024)
+        if length > max_request_bytes:
+            self.send_json({"error": "Request payload is too large"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
             return
         raw = self.rfile.read(length or 0)
         try:
@@ -177,6 +191,10 @@ class AppHandler(BaseHTTPRequestHandler):
         try:
             if route == "/api/chat":
                 response = analyze_and_reply(payload, should_reply=True)
+            elif route == "/api/asr/segment":
+                response = handle_asr_segment(payload)
+            elif route == "/api/audio/input":
+                response = handle_audio_input(payload)
             elif route == "/api/diary/user":
                 response = handle_diary_user(payload)
             elif route == "/api/diary/user/delete":

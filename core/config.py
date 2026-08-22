@@ -75,9 +75,11 @@ ALLOWED_ORIGINS = [
     for item in os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8001,http://localhost:8001").split(",")
     if item.strip()
 ]
-KIMI_API_KEY = os.getenv("KIMI_API") or os.getenv("KIMI_API_KEY", "")
-KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2.5")
-KIMI_API_BASE = os.getenv("KIMI_API_BASE", "https://api.moonshot.cn/v1")
+API_KEY = os.getenv("API_KEY", "")
+MODEL = os.getenv("MODEL", "kimi-k2.5")
+API_BASE = os.getenv("API_BASE", "https://api.moonshot.cn/v1")
+API_IMAGE_INPUT = os.getenv("API_IMAGE_INPUT", "1").strip().lower() in {"1", "true", "yes", "on"}
+API_AUDIO_INPUT = os.getenv("API_AUDIO_INPUT", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 FUNASR_MODEL = os.getenv(
     "FUNASR_MODEL",
@@ -85,6 +87,8 @@ FUNASR_MODEL = os.getenv(
 ).strip()
 FUNASR_DEVICE = os.getenv("FUNASR_DEVICE", "cpu").strip() or "cpu"
 FUNASR_MODEL_REVISION = os.getenv("FUNASR_MODEL_REVISION", "").strip()
+FUNASR_VAD_MODEL = os.getenv("FUNASR_VAD_MODEL", "fsmn-vad").strip() or "fsmn-vad"
+FUNASR_PUNC_MODEL = os.getenv("FUNASR_PUNC_MODEL", "ct-punc").strip() or "ct-punc"
 MAX_AUDIO_BYTES = int(os.getenv("MAX_AUDIO_BYTES", str(12 * 1024 * 1024)))
 
 R2_ENABLED = os.getenv("R2_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}

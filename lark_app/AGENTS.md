@@ -12,7 +12,7 @@
 - HTTP 路由：`server/handlers.py`
 - 主业务逻辑：`server/service.py`
 - 情绪模型：`emotion/models.py`、`emotion/mapping.py`、`emotion/media.py`
-- 回复与写记忆决策：`agent/replies.py`、`agent/kimi.py`
+- 回复与写记忆决策：`agent/replies.py`、`agent/agent.py`
 - 长期记忆：`memory/schema.py`、`memory/db.py`
 - AI记：`diary/generator.py`、`diary/store.py`
 - SQLite 聊天/运行状态：`storage/chat_store.py`
@@ -21,7 +21,7 @@
 
 ## 架构一句话
 
-Flutter/Web 客户端只负责采集和展示；Cloudflare Worker 负责登录、会话和代理；Python 后端负责情绪推理、Kimi 回复、记忆写入、AI记生成和 Chroma/SQLite/R2 数据操作。
+Flutter/Web 客户端只负责采集和展示；Cloudflare Worker 负责登录、会话和代理；Python 后端负责情绪推理、大模型回复、记忆写入、AI记生成和 Chroma/SQLite/R2 数据操作。
 
 ## 线上调用路径
 
@@ -78,8 +78,8 @@ X-Yunque-Internal-Secret: <shared secret>
 3. SELF-MM MediaPipe 模型输出 `fusion/text/audio/video`。
 4. `emotion/mapping.py` 根据可用模态计算 `valence/arousal/confidence/label`。
 5. 召回 Chroma 长期记忆 top-k=3。
-6. Kimi `kimi-k2.5` 生成回复。
-7. Kimi/规则判断是否写入长期记忆。
+6. 配置的大模型生成回复。
+7. 大模型/规则判断是否写入长期记忆。
 8. 聊天写入 SQLite，日期加入待生成 AI记队列。
 
 ## AI记机制
@@ -109,13 +109,13 @@ X-Yunque-Internal-Secret: <shared secret>
 
 - 做原生移动聊天体验：登录、聊天、情绪展示、日记/AI记、记忆库调试。
 - 手机端优先采集文本；音视频可后续接入录音/短视频并以 base64 上传。
-- 不在 Flutter 端跑 SELF-MM/Chroma/Kimi，全部调用后端 API。
+- 不在 Flutter 端跑 SELF-MM/Chroma/大模型，全部调用后端 API。
 - 需要 cookie/session 管理；若走 Worker，要保存并发送 `yunque_session` cookie。
 
 ## 当前进度
 
 - Web Demo 已有聊天、情绪展示、日记日历、AI记 review、记忆库可视化。
-- 后端已接 Kimi k2.5、SELF-MM MediaPipe、SQLite 聊天、Chroma 长期记忆、R2 日记。
+- 后端已接通用 OpenAI 兼容大模型 API、SELF-MM MediaPipe、SQLite 聊天、Chroma 长期记忆、R2 日记。
 - v1.1 已实现 AI记结构化展示、review 写回长期记忆、每日记忆衰减。
 - 安卓端尚未开始，建议新建 Flutter 项目并按 `PROJECT_CONTEXT.md` 对接 API。
 

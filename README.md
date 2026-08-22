@@ -1,6 +1,6 @@
 # 云雀
 
-云雀是一个多模态长期记忆情感陪伴 demo。后端负责情绪计算、长期记忆、日记和 Kimi 回复；`static/` 是网页版；`lark_app/` 是 Android / Web 预览用的 Flutter 客户端。
+云雀是一个多模态长期记忆情感陪伴 demo。后端负责情绪计算、长期记忆、日记和大模型回复；`static/` 是网页版；`lark_app/` 是 Android / Web 预览用的 Flutter 客户端。
 
 ## 运行后端
 
@@ -8,14 +8,14 @@
 /opt/homebrew/Caskroom/miniforge/base/envs/ai/bin/python app.py
 ```
 
-端口、Kimi、R2、模型路径等配置由 `.env` 控制。线上通过 Cloudflare Tunnel 转发到 VM 本机 `127.0.0.1:8001`。
+端口、通用大模型 API、R2、模型路径等配置由 `.env` 控制。线上通过 Cloudflare Tunnel 转发到 VM 本机 `127.0.0.1:8001`。
 
 语音聊天使用 FunASR Paraformer 进行中文转写，并由 SELF-MM 音频分支计算情感得分。首次使用前需要安装 `requirements.txt` 中的 FunASR/ModelScope 依赖；默认使用 `paraformer-zh + fsmn-vad + ct-punc`，可通过 `FUNASR_MODEL`、`FUNASR_DEVICE` 配置。
 
 ## 目录
 
 ```text
-agent/        Kimi 调用、回复生成、记忆写入判断
+agent/        大模型 API 调用、回复生成、记忆写入判断
 cloudflare/   Worker 登录鉴权和 D1 账号库
 core/         配置和通用工具
 diary/        用户记、AI记、R2/本地日记存储

@@ -51,6 +51,10 @@
             <span>记忆</span>
             <span class="new-badge" id="memoryNewBadge" hidden>NEW</span>
           </button>
+          <button class="nav-item" id="sidebarTrajectoryTab" data-view="trajectory" type="button">
+            <svg viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-4 3 2 5-7 2 2" /></svg>
+            <span>轨迹</span>
+          </button>
           <button class="nav-item" id="sidebarSettingsTab" data-view="settings" type="button">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z" /></svg>
             <span>设置</span>
@@ -76,12 +80,20 @@
                   <strong>云雀</strong>
                   <span id="agentStatus">文本陪伴模式</span>
                 </div>
-                <aside class="emotion-widget is-collapsed" id="emotionWidget">
-                  <button class="emotion-toggle" id="emotionToggle" type="button" aria-expanded="false" title="展开情绪画像">
-                    <svg viewBox="0 0 24 24"><path d="M4 15l4-4 4 3 5-7 3 2" /><path d="M4 19h16" /></svg>
-                    <span>情绪画像</span>
-                    <svg class="chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+                <div class="chat-header-actions">
+                  <button class="header-action" id="sentMediaToggle" type="button" aria-expanded="false">
+                    <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+                    <span>媒体</span><b id="sentMediaCount">0</b>
+                    <svg class="media-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
                   </button>
+                  <button class="header-action" id="emotionToggle" type="button" aria-expanded="false">
+                    <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h3l3-5 4 3 4-8 4 3" /></svg>
+                    <span>情绪画像</span>
+                    <svg class="emotion-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                  </button>
+                </div>
+                <aside class="emotion-widget" id="emotionWidget" hidden>
+                  <header class="emotion-drag-handle" id="emotionDragHandle"><strong>情绪得分</strong><button id="emotionPin" type="button" aria-label="固定当前位置" title="固定当前位置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M5 3h14M7 3v5l-3 5h16l-3-5V3" /></svg></button></header>
                   <div class="emotion-content">
                     <div class="score-card">
                       <span>单模态 · 文本</span>
@@ -102,15 +114,23 @@
               <div class="chat-list" id="chatList"></div>
 
               <form class="composer" id="chatForm">
+                <div class="pending-attachments" id="pendingAttachments" hidden></div>
+                <input id="attachmentInput" type="file" accept="image/*,audio/*" multiple hidden />
                 <textarea id="messageInput" rows="2" placeholder="和云雀说点什么……"></textarea>
-                <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="发送语音">
+                <button class="attachment-button" id="attachmentButton" type="button" aria-label="添加媒体" title="添加图片或音频"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
+                <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="语音输入">
                   <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
                 </button>
-                <button class="send-button" type="submit" aria-label="发送">
+                <button class="send-button" id="sendButton" type="submit" aria-label="发送" title="发送">
                   <svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14" /></svg>
                 </button>
               </form>
+              <div class="drop-overlay" id="dropOverlay"><strong>拖放图片或音频到这里</strong><span>最多 9 个文件</span></div>
             </article>
+            <aside class="sent-media-panel" id="sentMediaPanel" hidden>
+              <header><div><strong>已发送媒体</strong><span>仅显示文件信息</span></div><button id="sentMediaClose" type="button">×</button></header>
+              <div id="sentMediaList" class="sent-media-list"></div>
+            </aside>
           </section>
 
           <section class="app-view" id="diaryView">
@@ -167,6 +187,16 @@
                 <div><strong>清空开发数据</strong><p>清除当前用户的聊天、日记和 v2.0 三层记忆。</p></div>
                 <button class="button button-danger" id="clearDataButton" type="button">清空</button>
               </div>
+            </article>
+          </section>
+          <section class="app-view" id="trajectoryView">
+            <article class="surface trajectory-surface">
+              <header class="trajectory-header"><div><h3>情绪轨迹</h3><p>观察情绪变化与事件、偏好、习惯和关系的联系。</p></div>
+                <div class="trajectory-controls"><div class="trajectory-range"><button class="is-active" data-range="one_day">一天</button><button data-range="daily">日趋势</button><button data-range="weekly">周趋势</button><button data-range="monthly">月趋势</button></div><label class="trajectory-anchor-label"><span>选择日期</span><input id="trajectoryAnchor" type="date" /></label></div>
+              </header>
+              <section class="trajectory-summary"><article><span>平均融合得分</span><strong id="trajectoryAverage">0.000</strong></article><article><span>本期变化</span><strong id="trajectoryChange">0.000</strong></article><article><span>记录次数</span><strong id="trajectoryRecordCount">0</strong></article><article><span>含音频记录</span><strong id="trajectoryAudioCount">0</strong></article></section>
+              <section class="trajectory-main"><article class="trajectory-chart-card"><header><div><strong>多模态情绪变化</strong><span id="trajectoryPeriodLabel">当天原始记录</span></div><div class="trajectory-legend"><span><i class="is-text"></i>文本</span><span><i class="is-audio"></i>音频</span><span><i class="is-fusion"></i>融合</span></div></header><div class="trajectory-chart" id="trajectoryChart"></div></article><aside class="trajectory-insights"><section><header><strong>显著波动</strong><span>相邻记录变化</span></header><div id="trajectoryChanges"></div></section><section><header><strong>近期陪伴策略</strong><span>来自策略记忆</span></header><div id="trajectoryStrategies"></div></section></aside></section>
+              <section class="trajectory-memory-card"><header><div><strong>关联记忆</strong><span>按时间关联观察与反思</span></div><div class="trajectory-topic-filters" id="trajectoryTopicFilters"><button class="is-active" data-topic="all">全部</button><button data-topic="event">事件</button><button data-topic="preference">偏好</button><button data-topic="routine">习惯</button><button data-topic="relationship">关系</button></div></header><div id="trajectoryMemoryList" class="trajectory-memory-list"></div></section>
             </article>
           </section>
         </section>

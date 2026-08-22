@@ -1,31 +1,13 @@
 import re
 from typing import Dict, List, Tuple
 
-from agent.kimi import call_kimi_chat, kimi_ready
-from core.config import KIMI_MODEL
+from agent.agent import call_chat_completion, chat_api_ready
+from core.config import API_AUDIO_INPUT, API_IMAGE_INPUT, MODEL
 from emotion.mapping import FineGrainedEmotion
 
 
 RECENT_DIALOGUE_MESSAGES = 8
 REPLY_MAX_TOKENS = 1000
-
-
-def choose_variant(options: List[str], seed_text: str) -> str:
-    if not options:
-        return ""
-    index = sum(ord(ch) for ch in seed_text) % len(options)
-    return options[index]
-
-
-def is_greeting(text: str) -> bool:
-    normalized = re.sub(r"\s+", "", text.lower())
-    return normalized in {"你好", "你好呀", "嗨", "哈喽", "hello", "hi", "在吗", "早上好", "晚上好"}
-
-
-def is_identity_question(text: str) -> bool:
-    normalized = re.sub(r"\s+", "", text.lower())
-    patterns = ["你是谁", "你是什么", "你是什么模型", "你是啥", "你叫什么", "你叫什么名字"]
-    return any(pattern in normalized for pattern in patterns)
 
 
 def format_memory_context(memories: List[Dict]) -> str:
@@ -76,7 +58,8 @@ def build_agent_prompt(
     memories: List[Dict] | None = None,
     strategies: List[Dict] | None = None,
     proactive: bool = False,
-) -> List[Dict[str, str]]:
+    attachments: List[Dict] | None = None,
+) -> List[Dict]:
     recent_assistant_replies = [
         (item.get("content") or "").strip()
         for item in history[-RECENT_DIALOGUE_MESSAGES:]
@@ -117,12 +100,19 @@ def build_agent_prompt(
         "用户暂时没有继续输入。请基于最近对话、长期记忆和当前状态，主动说一句不打扰的陪伴话。"
         "不要问吃饭、喝水、睡觉这类泛化生活打卡问题。"
     )
-    messages.append({"role": "user", "content": user_text or proactive_user_prompt})
+    final_text = user_text or proactive_user_prompt
+    content_parts: List[Dict] = [{"type": "text", "text": final_text}]
+    for item in attachments or []:
+        mime_type = str(item.get("type") or "").lower()
+        data_url = str(item.get("data") or "")
+        if mime_type.startswith("image/") and API_IMAGE_INPUT and data_url.startswith("data:image/"):
+            content_parts.append({"type": "image_url", "image_url": {"url": data_url}})
+        elif mime_type.startswith("audio/") and API_AUDIO_INPUT and data_url.startswith("data:audio/"):
+            encoded = data_url.split(",", 1)[-1]
+            subtype = mime_type.split("/", 1)[-1].split(";", 1)[0]
+            content_parts.append({"type": "input_audio", "input_audio": {"data": encoded, "format": "wav" if subtype in {"wav", "x-wav", "wave"} else subtype}})
+    messages.append({"role": "user", "content": content_parts if len(content_parts) > 1 else final_text})
     return messages
-
-
-def valence_is_negative(valence: float) -> bool:
-    return valence <= -0.2
 
 
 def reply_looks_bad(text: str, history: List[Dict] | None = None, proactive: bool = False) -> bool:
@@ -155,67 +145,6 @@ def reply_looks_bad(text: str, history: List[Dict] | None = None, proactive: boo
     return False
 
 
-def scripted_agent_reply(user_text: str, emotion: FineGrainedEmotion, proactive: bool = False) -> str:
-    seed = f"{user_text}|{emotion.label}|{emotion.valence:.2f}|{emotion.arousal:.2f}|{proactive}"
-    if proactive:
-        return ""
-    if is_greeting(user_text):
-        return choose_variant(
-            [
-                "你好呀，我在。今天想从哪件事开始聊？",
-                "你好，我在这儿。你现在最想说的是什么？",
-                "你好呀，见到你了。要不要先跟我说说你这会儿的状态？",
-            ],
-            seed,
-        )
-    if is_identity_question(user_text):
-        return choose_variant(
-            [
-                "你可以把我当成云雀，一个陪你说话、陪你整理心情的伙伴。",
-                "我是云雀，会陪你聊聊现在的感受，也会帮你慢慢把思绪理顺。",
-                "我是云雀，主要做的事就是陪你说话，在你需要的时候接住你的情绪。",
-            ],
-            seed,
-        )
-    return ""
-
-
-def fallback_agent_reply(user_text: str, emotion: FineGrainedEmotion, proactive: bool = False) -> str:
-    seed = f"{user_text}|{emotion.label}|{emotion.valence:.2f}|{emotion.arousal:.2f}|{proactive}"
-    if proactive:
-        return choose_variant(
-            [
-                "我在这儿陪你待一会儿。你不用马上回应，先慢慢呼一口气。",
-                "我过来看看你。现在如果有一点想说的，我会认真听。",
-            ],
-            seed,
-        )
-
-    if emotion.label in {"紧张", "愤怒"} or (valence_is_negative(emotion.valence) and emotion.arousal >= 0.55):
-        return choose_variant(
-            [
-                "我听出来你现在有点绷着。先别急着解决全部，我们可以先把最让你难受的那一点说出来。",
-                "这会儿确实不轻松。我在，你可以慢慢说，不用一下子讲完整。",
-            ],
-            seed,
-        )
-    if emotion.label in {"低落"}:
-        return choose_variant(
-            [
-                "你现在的感受值得被认真对待。先不用急着振作，我陪你把最卡住的地方说清楚。",
-                "我在认真听。你可以先说最真实的一句，不用给自己下结论。",
-            ],
-            seed,
-        )
-    return choose_variant(
-        [
-            "我在。你可以先说一小句，不用一开始就讲得很完整。",
-            "我们慢慢聊。你可以从现在最想说的那个点开始。",
-        ],
-        seed,
-    )
-
-
 def generate_agent_reply(
     user_text: str,
     emotion: FineGrainedEmotion,
@@ -224,11 +153,9 @@ def generate_agent_reply(
     memories: List[Dict] | None = None,
     strategies: List[Dict] | None = None,
     proactive: bool = False,
+    attachments: List[Dict] | None = None,
 ) -> Tuple[str, str, str]:
-    scripted = scripted_agent_reply(user_text, emotion, proactive=proactive)
-    if scripted:
-        return scripted, "scripted", ""
-    content, error = call_kimi_chat(
+    content, error = call_chat_completion(
         build_agent_prompt(
             user_text,
             emotion,
@@ -237,20 +164,22 @@ def generate_agent_reply(
             memories=memories,
             strategies=strategies,
             proactive=proactive,
+            attachments=attachments,
         ),
         max_tokens=REPLY_MAX_TOKENS,
         temperature=0.7,
     )
     if content and not reply_looks_bad(content, history=history, proactive=proactive):
-        return content, "kimi", ""
-    return fallback_agent_reply(user_text, emotion, proactive=proactive), "fallback", error or "bad_or_empty_response"
+        return content, "api", ""
+    detail = error or "模型返回了空内容或无效回复"
+    raise RuntimeError(f"模型调用失败：{detail}")
 
 
 def agent_payload(reply: str, source: str, error: str) -> Dict[str, object]:
     return {
         "reply": reply,
         "source": source,
-        "model": KIMI_MODEL,
-        "api_ready": kimi_ready(),
+        "model": MODEL,
+        "api_ready": chat_api_ready(),
         "error": error,
     }

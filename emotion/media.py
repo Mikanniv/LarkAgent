@@ -170,3 +170,12 @@ def summarize_audio_tensor(audio_tensor: torch.Tensor) -> Dict[str, float]:
     arr = audio_tensor.detach().cpu().numpy()[0]
     values = arr.mean(axis=0) if arr.size else np.zeros((AUDIO_DIM,), dtype=np.float32)
     return {name: float(values[index]) for index, name in enumerate(AUDIO_FEATURE_ORDER)}
+
+
+def preload_audio_feature_extractor() -> Dict[str, object]:
+    """Import and exercise LibROSA's inexpensive primitives at startup."""
+    import librosa
+
+    sample = np.zeros(1600, dtype=np.float32)
+    librosa.feature.mfcc(y=sample, sr=16000, n_mfcc=1, n_fft=400, hop_length=160)
+    return {"ready": True, "extractor": "LibROSA", "sample_rate": 16000}

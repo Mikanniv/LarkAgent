@@ -8,11 +8,38 @@ from typing import Any, Dict
 
 import imageio_ffmpeg
 
-from core.config import FUNASR_DEVICE, FUNASR_MODEL, FUNASR_MODEL_REVISION, RUNTIME_MEDIA_DIR
+from core.config import (
+    FUNASR_DEVICE,
+    FUNASR_MODEL,
+    FUNASR_MODEL_REVISION,
+    FUNASR_PUNC_MODEL,
+    FUNASR_VAD_MODEL,
+    RUNTIME_MEDIA_DIR,
+)
 
 
 _MODEL: Any = None
 _MODEL_LOCK = threading.RLock()
+
+_MODELSCOPE_CACHE_NAMES = {
+    "paraformer-zh": "iic--speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+    "fsmn-vad": "iic--speech_fsmn_vad_zh-cn-16k-common-pytorch",
+    "ct-punc": "iic--punc_ct-transformer_cn-en-common-vocab471067-large",
+}
+
+
+def _local_model_or_name(value: str) -> str:
+    """Prefer a complete local ModelScope snapshot and avoid startup network checks."""
+    configured = Path(value).expanduser()
+    if configured.is_dir():
+        return str(configured.resolve())
+    cache_name = _MODELSCOPE_CACHE_NAMES.get(value)
+    if not cache_name:
+        return value
+    snapshot = Path.home() / ".cache" / "modelscope" / "models" / cache_name / "snapshots" / "master"
+    if (snapshot.joinpath("config.yaml").is_file() and snapshot.joinpath("model.pt").is_file()):
+        return str(snapshot)
+    return value
 
 
 def _get_model() -> Any:
@@ -27,9 +54,9 @@ def _get_model() -> Any:
                 "FunASR 尚未安装，请在后端环境中执行 pip install funasr modelscope。"
             ) from exc
         kwargs: Dict[str, Any] = {
-            "model": FUNASR_MODEL,
-            "vad_model": "fsmn-vad",
-            "punc_model": "ct-punc",
+            "model": _local_model_or_name(FUNASR_MODEL),
+            "vad_model": _local_model_or_name(FUNASR_VAD_MODEL),
+            "punc_model": _local_model_or_name(FUNASR_PUNC_MODEL),
             "device": FUNASR_DEVICE,
             "disable_update": True,
         }
@@ -37,6 +64,16 @@ def _get_model() -> Any:
             kwargs["model_revision"] = FUNASR_MODEL_REVISION
         _MODEL = AutoModel(**kwargs)
         return _MODEL
+
+
+def preload_asr_model() -> Dict[str, Any]:
+    """Load FunASR during server startup instead of on the first request."""
+    model = _get_model()
+    return {
+        "ready": model is not None,
+        "model": f"{FUNASR_MODEL}+fsmn-vad+ct-punc",
+        "device": FUNASR_DEVICE,
+    }
 
 
 def _to_wav_16k(audio_path: Path) -> Path:

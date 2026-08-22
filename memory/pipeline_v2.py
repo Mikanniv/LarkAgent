@@ -4,7 +4,7 @@ import json
 import re
 from typing import Any, Dict, Iterable, List
 
-from agent.kimi import call_kimi_chat, kimi_ready
+from agent.agent import call_chat_completion, chat_api_ready
 from core.utils import memory_date_from_payload, normalize_timestamp_to_china
 from memory import v2 as memory_v2
 from storage.chat_store import (
@@ -87,7 +87,7 @@ def generate_observation(user_id: str, timestamp: str = "") -> Dict[str, Any] | 
         return None
     fallback = _fallback_observation(messages)
     parsed: Dict[str, Any] = {}
-    if kimi_ready():
+    if chat_api_ready():
         system = (
             "你是陪伴智能体的观察记忆整理器。"
             "根据最近十个完整交互轮次，只总结用户明确表达或有充分上下文支持的信息。"
@@ -100,7 +100,7 @@ def generate_observation(user_id: str, timestamp: str = "") -> Dict[str, Any] | 
             "输出格式："
             '{"topics":["event"],"description":"","importance":6,"confidence":6}'
         )
-        content, _ = call_kimi_chat(
+        content, _ = call_chat_completion(
             [{"role": "system", "content": system}, {"role": "user", "content": user}],
             max_tokens=500,
             temperature=0.1,
@@ -234,7 +234,7 @@ def _generate_reflection(user_id: str, topic: str, observations: List[Dict[str, 
         for item in memory_v2.list_memories(user_id, layer="reflection")
         if topic in item["topics"]
     ][:MAX_SOURCE_MEMORIES]
-    if kimi_ready():
+    if chat_api_ready():
         system = (
             "你是陪伴智能体的反思记忆生成器。"
             "根据已经由用户审查确认的观察，形成一条更高层但仍有证据支持的用户理解。"
@@ -248,7 +248,7 @@ def _generate_reflection(user_id: str, topic: str, observations: List[Dict[str, 
             f"已有同主题反思：\n{_source_lines(recent_reflections) or '暂无'}\n\n"
             '输出格式：{"description":"","importance":7,"confidence":7}'
         )
-        content, _ = call_kimi_chat(
+        content, _ = call_chat_completion(
             [{"role": "system", "content": system}, {"role": "user", "content": user}],
             max_tokens=500,
             temperature=0.1,
@@ -284,7 +284,7 @@ def _generate_reflection(user_id: str, topic: str, observations: List[Dict[str, 
 
 def _generate_strategy(user_id: str, reflections: List[Dict[str, Any]]) -> Dict[str, Any]:
     parsed: Dict[str, Any] = {}
-    if kimi_ready():
+    if chat_api_ready():
         system = (
             "你是陪伴智能体的互动策略生成器。"
             "根据有来源的用户反思，概括在某种具体陪伴场景下应如何回应用户。"
@@ -295,7 +295,7 @@ def _generate_strategy(user_id: str, reflections: List[Dict[str, Any]]) -> Dict[
             f"反思：\n{_source_lines(reflections)}\n\n"
             '输出格式：{"scene":"","description":"","importance":7,"confidence":7}'
         )
-        content, _ = call_kimi_chat(
+        content, _ = call_chat_completion(
             [{"role": "system", "content": system}, {"role": "user", "content": user}],
             max_tokens=500,
             temperature=0.1,

@@ -44,6 +44,28 @@ def init_chat_store() -> None:
             ON chat_messages(user_id, created_at)
             """
         )
+        chat_columns = {row["name"] for row in connection.execute("PRAGMA table_info(chat_messages)").fetchall()}
+        if "attachments_json" not in chat_columns:
+            connection.execute("ALTER TABLE chat_messages ADD COLUMN attachments_json TEXT NOT NULL DEFAULT '[]'")
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS emotion_records (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                text_score REAL NOT NULL,
+                audio_score REAL NOT NULL,
+                fusion_score REAL NOT NULL,
+                audio_available INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_emotion_records_user_time
+            ON emotion_records(user_id, created_at)
+            """
+        )
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS runtime_state (
@@ -112,6 +134,7 @@ def add_chat_message(
     *,
     created_at: str = "",
     emotion: Dict | None = None,
+    attachments: List[Dict] | None = None,
 ) -> Dict:
     text = (content or "").strip()
     if not text:
@@ -127,15 +150,16 @@ def add_chat_message(
         "emotion_label": emotion.get("label"),
         "valence": emotion.get("valence"),
         "arousal": emotion.get("arousal"),
+        "attachments": attachments or [],
     }
     with _DB_LOCK, _connect() as connection:
         connection.execute(
             """
             INSERT INTO chat_messages (
                 id, user_id, role, content, created_at,
-                emotion_label, valence, arousal
+                emotion_label, valence, arousal, attachments_json
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 message["id"],
@@ -146,6 +170,7 @@ def add_chat_message(
                 message["emotion_label"],
                 message["valence"],
                 message["arousal"],
+                json.dumps(message["attachments"], ensure_ascii=False),
             ),
         )
     return message
@@ -158,7 +183,7 @@ def list_chat_messages(user_id: str, limit: int = 20) -> List[Dict]:
         rows = connection.execute(
             """
             SELECT id, user_id, role, content, created_at,
-                   emotion_label, valence, arousal
+                   emotion_label, valence, arousal, attachments_json
             FROM chat_messages
             WHERE user_id = ?
             ORDER BY created_at DESC, rowid DESC
@@ -166,7 +191,12 @@ def list_chat_messages(user_id: str, limit: int = 20) -> List[Dict]:
             """,
             (user_id, safe_limit),
         ).fetchall()
-    return [dict(row) for row in reversed(rows)]
+    items = []
+    for row in reversed(rows):
+        item = dict(row)
+        item["attachments"] = json.loads(item.pop("attachments_json") or "[]")
+        items.append(item)
+    return items
 
 
 def list_chat_messages_for_date(user_id: str, date_key: str, limit: int = 80) -> List[Dict]:
@@ -178,7 +208,7 @@ def list_chat_messages_for_date(user_id: str, date_key: str, limit: int = 80) ->
         rows = connection.execute(
             """
             SELECT id, user_id, role, content, created_at,
-                   emotion_label, valence, arousal
+                   emotion_label, valence, arousal, attachments_json
             FROM chat_messages
             WHERE user_id = ?
               AND substr(created_at, 1, 19) BETWEEN ? AND ?
@@ -187,7 +217,12 @@ def list_chat_messages_for_date(user_id: str, date_key: str, limit: int = 80) ->
             """,
             (user_id, start, end, safe_limit),
         ).fetchall()
-    return [dict(row) for row in reversed(rows)]
+    items = []
+    for row in reversed(rows):
+        item = dict(row)
+        item["attachments"] = json.loads(item.pop("attachments_json") or "[]")
+        items.append(item)
+    return items
 
 
 def list_context_messages(user_id: str, limit: int = 6) -> List[Dict]:
@@ -201,6 +236,56 @@ def delete_chat_messages(user_id: str) -> int:
     init_chat_store()
     with _DB_LOCK, _connect() as connection:
         cursor = connection.execute("DELETE FROM chat_messages WHERE user_id = ?", (user_id,))
+        return int(cursor.rowcount or 0)
+
+
+def add_emotion_record(user_id: str, scores: Dict, *, audio_available: bool = False, created_at: str = "") -> Dict:
+    init_chat_store()
+    item = {
+        "id": uuid.uuid4().hex,
+        "user_id": user_id,
+        "text": float(scores.get("text", 0.0)),
+        "audio": float(scores.get("audio", 0.0)) if audio_available else 0.0,
+        "fusion": float(scores.get("fusion", 0.0)),
+        "audio_available": bool(audio_available),
+        "created_at": normalize_timestamp_to_china(created_at),
+    }
+    with _DB_LOCK, _connect() as connection:
+        connection.execute(
+            """INSERT INTO emotion_records
+            (id,user_id,text_score,audio_score,fusion_score,audio_available,created_at)
+            VALUES (?,?,?,?,?,?,?)""",
+            (item["id"], user_id, item["text"], item["audio"], item["fusion"], int(audio_available), item["created_at"]),
+        )
+    return item
+
+
+def list_emotion_records(user_id: str, start_at: str, limit: int = 1000, end_at: str = "") -> List[Dict]:
+    init_chat_store()
+    safe_limit = max(1, min(int(limit or 1000), 5000))
+    end_clause = " AND created_at < ?" if end_at else ""
+    parameters: list[object] = [user_id, start_at]
+    if end_at:
+        parameters.append(end_at)
+    parameters.append(safe_limit)
+    with _DB_LOCK, _connect() as connection:
+        rows = connection.execute(
+            f"""SELECT id,user_id,text_score,audio_score,fusion_score,audio_available,created_at
+            FROM emotion_records WHERE user_id = ? AND created_at >= ?{end_clause}
+            ORDER BY created_at ASC,rowid ASC LIMIT ?""",
+            tuple(parameters),
+        ).fetchall()
+    return [{
+        "id": row["id"], "user_id": row["user_id"], "text": float(row["text_score"]),
+        "audio": float(row["audio_score"]), "fusion": float(row["fusion_score"]),
+        "audio_available": bool(row["audio_available"]), "created_at": row["created_at"],
+    } for row in rows]
+
+
+def delete_emotion_records(user_id: str) -> int:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        cursor = connection.execute("DELETE FROM emotion_records WHERE user_id = ?", (user_id,))
         return int(cursor.rowcount or 0)
 
 
