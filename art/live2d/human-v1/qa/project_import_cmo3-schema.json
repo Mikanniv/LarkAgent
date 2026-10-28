@@ -1,0 +1,1413 @@
+{
+  "id": "project_import_cmo3",
+  "description": "Import an authored CMO3 file from an absolute local path. mode=new creates a new project and rejects unsaved changes unless discard_unsaved=true; mode=replace updates matching object IDs and retains absent objects in the current project as one history step. Imported content does not run PSD rig or motion presets. Returns a process-owned job handle.",
+  "kind": "project",
+  "workspace_bound": true,
+  "batchable": false,
+  "job_backed": true,
+  "read_only": false,
+  "idempotent": true,
+  "destructive": false,
+  "request_schema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "minLength": 1
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "new",
+          "replace"
+        ]
+      },
+      "discard_unsaved": {
+        "type": "boolean"
+      },
+      "request_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+      },
+      "project_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1,
+        "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+      },
+      "state": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "path",
+      "mode",
+      "request_id",
+      "project_id",
+      "state"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "ok": {},
+      "operation": {},
+      "data": {},
+      "error": {}
+    },
+    "oneOf": [
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "operation": {
+            "type": "string",
+            "const": "project_import_cmo3"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {},
+              "operation": {},
+              "project_id": {},
+              "input_state": {},
+              "progress": {},
+              "message": {},
+              "created_at": {},
+              "updated_at": {},
+              "status": {},
+              "terminal": {},
+              "error": {},
+              "result": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "project_import_cmo3"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "queued",
+                      "running",
+                      "cancelling"
+                    ]
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": false
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "project_import_cmo3"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "cancelled"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "project_import_cmo3"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "failed"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "error": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {},
+                      "message": {},
+                      "diagnostics": {},
+                      "field": {},
+                      "operation": {},
+                      "edit_index": {},
+                      "edit_operation": {},
+                      "layer_ids": {},
+                      "expected_state": {},
+                      "actual_state": {},
+                      "expected_project": {},
+                      "actual_project": {}
+                    },
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "geometry_unsafe"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "diagnostics": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "safe": {
+                                "type": "boolean"
+                              },
+                              "affectedTargets": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "affectedCoordinates": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "number"
+                                    }
+                                  }
+                                }
+                              },
+                              "violations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "reason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "GEOMETRY_NON_FINITE",
+                                        "GEOMETRY_INVALID_TOPOLOGY",
+                                        "GEOMETRY_NEW_FLIP",
+                                        "GEOMETRY_NEW_DEGENERATE",
+                                        "GEOMETRY_NEW_COLLAPSE",
+                                        "GEOMETRY_SAMPLING_LIMIT"
+                                      ]
+                                    },
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "triangleIds": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 32
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "reason",
+                                    "target",
+                                    "coordinate"
+                                  ]
+                                }
+                              },
+                              "warnings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "reason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "GEOMETRY_NON_FINITE",
+                                        "GEOMETRY_INVALID_TOPOLOGY",
+                                        "GEOMETRY_NEW_FLIP",
+                                        "GEOMETRY_NEW_DEGENERATE",
+                                        "GEOMETRY_NEW_COLLAPSE",
+                                        "GEOMETRY_SAMPLING_LIMIT"
+                                      ]
+                                    },
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "triangleIds": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 32
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "reason",
+                                    "target",
+                                    "coordinate"
+                                  ]
+                                }
+                              },
+                              "scope": {
+                                "type": "string"
+                              },
+                              "coverage": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "mode": {
+                                    "type": "string",
+                                    "enum": [
+                                      "full",
+                                      "scoped"
+                                    ]
+                                  },
+                                  "checkedTargets": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  },
+                                  "totalTargets": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "mode",
+                                  "checkedTargets",
+                                  "totalTargets"
+                                ]
+                              },
+                              "diagnostics": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "removed",
+                                        "invalid_topology",
+                                        "finite"
+                                      ]
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    },
+                                    "pointCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingFlipCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingDegenerateCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingCollapseCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateFlipCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateDegenerateCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateCollapseCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    }
+                                  },
+                                  "required": [
+                                    "target"
+                                  ]
+                                }
+                              },
+                              "newFlipCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newDegenerateCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newInvalidTopologyCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newNonFiniteCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingFlipCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingDegenerateCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingCollapseCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newCollapseCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "safe",
+                              "affectedTargets",
+                              "affectedCoordinates",
+                              "violations",
+                              "warnings",
+                              "scope",
+                              "coverage",
+                              "diagnostics",
+                              "newFlipCount",
+                              "newDegenerateCount",
+                              "newInvalidTopologyCount",
+                              "newNonFiniteCount",
+                              "preexistingFlipCount",
+                              "preexistingDegenerateCount",
+                              "preexistingCollapseCount",
+                              "newCollapseCount"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "diagnostics"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "invalid_request"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "field"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "output_contract"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "operation": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "field",
+                          "operation"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "invalid_edit"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "edit_index": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "edit_operation": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "edit_index",
+                          "edit_operation"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "tile_collides"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "layer_ids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "layer_ids"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "state_conflict"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "expected_state": {
+                            "type": "string"
+                          },
+                          "actual_state": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "expected_state",
+                          "actual_state"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "project_conflict"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "expected_project": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "actual_project": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "expected_project",
+                          "actual_project"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "request_id_reused",
+                              "unsaved_changes",
+                              "workspace_busy",
+                              "permission_denied",
+                              "io_error",
+                              "invalid_argument",
+                              "invalid_state",
+                              "operation_failed"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal",
+                  "error"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "project_import_cmo3"
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "completed"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "result": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "project_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "state": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "history_node_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "revision": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "applied": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "project_id",
+                      "state",
+                      "history_node_id",
+                      "revision",
+                      "applied"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal",
+                  "result"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "data"
+        ]
+      },
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "operation": {
+            "type": "string",
+            "const": "project_import_cmo3"
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {},
+              "message": {},
+              "diagnostics": {},
+              "field": {},
+              "operation": {},
+              "edit_index": {},
+              "edit_operation": {},
+              "layer_ids": {},
+              "expected_state": {},
+              "actual_state": {},
+              "expected_project": {},
+              "actual_project": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "geometry_unsafe"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "diagnostics": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "safe": {
+                        "type": "boolean"
+                      },
+                      "affectedTargets": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "affectedCoordinates": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "violations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "warnings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "coverage": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "full",
+                              "scoped"
+                            ]
+                          },
+                          "checkedTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "checkedTargets",
+                          "totalTargets"
+                        ]
+                      },
+                      "diagnostics": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "removed",
+                                "invalid_topology",
+                                "finite"
+                              ]
+                            },
+                            "detail": {
+                              "type": "string"
+                            },
+                            "pointCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "target"
+                          ]
+                        }
+                      },
+                      "newFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newInvalidTopologyCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newNonFiniteCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "safe",
+                      "affectedTargets",
+                      "affectedCoordinates",
+                      "violations",
+                      "warnings",
+                      "scope",
+                      "coverage",
+                      "diagnostics",
+                      "newFlipCount",
+                      "newDegenerateCount",
+                      "newInvalidTopologyCount",
+                      "newNonFiniteCount",
+                      "preexistingFlipCount",
+                      "preexistingDegenerateCount",
+                      "preexistingCollapseCount",
+                      "newCollapseCount"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "diagnostics"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_request"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "output_contract"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field",
+                  "operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_edit"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "edit_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "edit_operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "edit_index",
+                  "edit_operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "tile_collides"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "layer_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "layer_ids"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "state_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_state": {
+                    "type": "string"
+                  },
+                  "actual_state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_state",
+                  "actual_state"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "project_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "actual_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_project",
+                  "actual_project"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "request_id_reused",
+                      "unsaved_changes",
+                      "workspace_busy",
+                      "permission_denied",
+                      "io_error",
+                      "invalid_argument",
+                      "invalid_state",
+                      "operation_failed"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "error"
+        ]
+      }
+    ],
+    "required": [
+      "ok",
+      "operation"
+    ]
+  },
+  "job_result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "project_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "state": {
+        "type": "string",
+        "minLength": 1
+      },
+      "history_node_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "revision": {
+        "type": "string",
+        "minLength": 1
+      },
+      "applied": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "state",
+      "history_node_id",
+      "revision",
+      "applied"
+    ]
+  }
+}

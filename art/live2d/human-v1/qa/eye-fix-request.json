@@ -1,0 +1,182 @@
+{
+  "summary": "Preview matching iris proportions and thinning the heavier upper lash; no model writes",
+  "edits": [
+    {
+      "operation": "rig_deform",
+      "request": {
+        "changes": [
+          {
+            "target": "mesh:ArtMeshIridesL",
+            "key": {
+              "ParamEyeBallForm": -1
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  0.98,
+                  0.9
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshIridesL",
+            "key": {
+              "ParamEyeBallForm": 0
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  0.98,
+                  0.9
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshIridesL",
+            "key": {
+              "ParamEyeBallForm": 1
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  0.98,
+                  0.9
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshIridesR",
+            "key": {
+              "ParamEyeBallForm": -1
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  1.02,
+                  1.02
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshIridesR",
+            "key": {
+              "ParamEyeBallForm": 0
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  1.02,
+                  1.02
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshIridesR",
+            "key": {
+              "ParamEyeBallForm": 1
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  1.02,
+                  1.02
+                ],
+                "pivot": [
+                  0.5,
+                  0.35
+                ]
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshEyelashR",
+            "key": {
+              "ParamEyeROpen": 0
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  1,
+                  0.62
+                ],
+                "pivot": [
+                  0.5,
+                  0.32
+                ],
+                "selection": {
+                  "rect": [
+                    -0.1,
+                    -0.1,
+                    1.1,
+                    0.54
+                  ],
+                  "feather": 0.1
+                }
+              }
+            ]
+          },
+          {
+            "target": "mesh:ArtMeshEyelashR",
+            "key": {
+              "ParamEyeROpen": 1
+            },
+            "operations": [
+              {
+                "type": "scale",
+                "factors": [
+                  1,
+                  0.62
+                ],
+                "pivot": [
+                  0.5,
+                  0.32
+                ],
+                "selection": {
+                  "rect": [
+                    -0.1,
+                    -0.1,
+                    1.1,
+                    0.54
+                  ],
+                  "feather": 0.1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

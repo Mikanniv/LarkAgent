@@ -1,0 +1,1977 @@
+{
+  "id": "rig_generate",
+  "description": "Generate the rig, or generate it again. A project created empty for Layout is not generated until this runs; afterwards, layers placed since the last generation, classification and tag changes, and replaced images whose geometry should refresh wait for it (workspace_inspect scope=generation lists them). The generators then make the rig from the layers as they are now and merge it onto the user's edits: what the user left follows the new output, the user's keyforms, warps, physics, swings, skeleton and glue stay, existing meshes keep their topology, and what does not carry over cleanly is reported in quality.regeneration. Editing and export are available before generation too. One history edit. Returns a process-owned job handle; use job_wait/job_get for the result.",
+  "kind": "document",
+  "workspace_bound": true,
+  "batchable": true,
+  "job_backed": true,
+  "read_only": false,
+  "idempotent": true,
+  "destructive": false,
+  "request_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "state": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+      },
+      "refresh_geometry": {
+        "type": "array",
+        "maxItems": 1024,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "Generated layers to mesh again from their current pixels (their image was replaced since). Omitted: every layer whose image was replaced; [] keeps all geometry."
+      },
+      "request_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+      },
+      "project_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+      }
+    },
+    "required": [
+      "state",
+      "request_id",
+      "project_id"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "ok": {},
+      "operation": {},
+      "data": {},
+      "error": {}
+    },
+    "oneOf": [
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "operation": {
+            "type": "string",
+            "const": "rig_generate"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {},
+              "operation": {},
+              "project_id": {},
+              "input_state": {},
+              "progress": {},
+              "message": {},
+              "created_at": {},
+              "updated_at": {},
+              "status": {},
+              "terminal": {},
+              "error": {},
+              "result": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "rig_generate"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "queued",
+                      "running",
+                      "cancelling"
+                    ]
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": false
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "rig_generate"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "cancelled"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "rig_generate"
+                    ]
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "failed"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "error": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {},
+                      "message": {},
+                      "diagnostics": {},
+                      "field": {},
+                      "operation": {},
+                      "edit_index": {},
+                      "edit_operation": {},
+                      "layer_ids": {},
+                      "expected_state": {},
+                      "actual_state": {},
+                      "expected_project": {},
+                      "actual_project": {}
+                    },
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "geometry_unsafe"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "diagnostics": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "safe": {
+                                "type": "boolean"
+                              },
+                              "affectedTargets": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "affectedCoordinates": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "number"
+                                    }
+                                  }
+                                }
+                              },
+                              "violations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "reason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "GEOMETRY_NON_FINITE",
+                                        "GEOMETRY_INVALID_TOPOLOGY",
+                                        "GEOMETRY_NEW_FLIP",
+                                        "GEOMETRY_NEW_DEGENERATE",
+                                        "GEOMETRY_NEW_COLLAPSE",
+                                        "GEOMETRY_SAMPLING_LIMIT"
+                                      ]
+                                    },
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "triangleIds": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 32
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "reason",
+                                    "target",
+                                    "coordinate"
+                                  ]
+                                }
+                              },
+                              "warnings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "reason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "GEOMETRY_NON_FINITE",
+                                        "GEOMETRY_INVALID_TOPOLOGY",
+                                        "GEOMETRY_NEW_FLIP",
+                                        "GEOMETRY_NEW_DEGENERATE",
+                                        "GEOMETRY_NEW_COLLAPSE",
+                                        "GEOMETRY_SAMPLING_LIMIT"
+                                      ]
+                                    },
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "triangleIds": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 32
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "reason",
+                                    "target",
+                                    "coordinate"
+                                  ]
+                                }
+                              },
+                              "scope": {
+                                "type": "string"
+                              },
+                              "coverage": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "mode": {
+                                    "type": "string",
+                                    "enum": [
+                                      "full",
+                                      "scoped"
+                                    ]
+                                  },
+                                  "checkedTargets": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  },
+                                  "totalTargets": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "mode",
+                                  "checkedTargets",
+                                  "totalTargets"
+                                ]
+                              },
+                              "diagnostics": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "target": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "coordinate": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "removed",
+                                        "invalid_topology",
+                                        "finite"
+                                      ]
+                                    },
+                                    "detail": {
+                                      "type": "string"
+                                    },
+                                    "pointCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingFlipCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingDegenerateCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "preexistingCollapseCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateFlipCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateDegenerateCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    },
+                                    "candidateCollapseCount": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    }
+                                  },
+                                  "required": [
+                                    "target"
+                                  ]
+                                }
+                              },
+                              "newFlipCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newDegenerateCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newInvalidTopologyCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newNonFiniteCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingFlipCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingDegenerateCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "preexistingCollapseCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "newCollapseCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "safe",
+                              "affectedTargets",
+                              "affectedCoordinates",
+                              "violations",
+                              "warnings",
+                              "scope",
+                              "coverage",
+                              "diagnostics",
+                              "newFlipCount",
+                              "newDegenerateCount",
+                              "newInvalidTopologyCount",
+                              "newNonFiniteCount",
+                              "preexistingFlipCount",
+                              "preexistingDegenerateCount",
+                              "preexistingCollapseCount",
+                              "newCollapseCount"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "diagnostics"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "invalid_request"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "field"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "output_contract"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "operation": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "field",
+                          "operation"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "invalid_edit"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "edit_index": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "edit_operation": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "edit_index",
+                          "edit_operation"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "tile_collides"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "layer_ids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "layer_ids"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "state_conflict"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "expected_state": {
+                            "type": "string"
+                          },
+                          "actual_state": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "expected_state",
+                          "actual_state"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "const": "project_conflict"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "expected_project": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "actual_project": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "expected_project",
+                          "actual_project"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "request_id_reused",
+                              "unsaved_changes",
+                              "workspace_busy",
+                              "permission_denied",
+                              "io_error",
+                              "invalid_argument",
+                              "invalid_state",
+                              "operation_failed"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal",
+                  "error"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "rig_generate"
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "progress": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "completed"
+                  },
+                  "terminal": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "result": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "project_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "state": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "history_node_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "revision": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "applied": {
+                        "type": "boolean"
+                      },
+                      "edit_count": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 128
+                      },
+                      "changed": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "geometry_diagnostics": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "safe": {
+                            "type": "boolean"
+                          },
+                          "affectedTargets": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "affectedCoordinates": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "number"
+                                }
+                              }
+                            }
+                          },
+                          "violations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "reason": {
+                                  "type": "string",
+                                  "enum": [
+                                    "GEOMETRY_NON_FINITE",
+                                    "GEOMETRY_INVALID_TOPOLOGY",
+                                    "GEOMETRY_NEW_FLIP",
+                                    "GEOMETRY_NEW_DEGENERATE",
+                                    "GEOMETRY_NEW_COLLAPSE",
+                                    "GEOMETRY_SAMPLING_LIMIT"
+                                  ]
+                                },
+                                "target": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "coordinate": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "number"
+                                  }
+                                },
+                                "triangleIds": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 32
+                                },
+                                "detail": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "reason",
+                                "target",
+                                "coordinate"
+                              ]
+                            }
+                          },
+                          "warnings": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "reason": {
+                                  "type": "string",
+                                  "enum": [
+                                    "GEOMETRY_NON_FINITE",
+                                    "GEOMETRY_INVALID_TOPOLOGY",
+                                    "GEOMETRY_NEW_FLIP",
+                                    "GEOMETRY_NEW_DEGENERATE",
+                                    "GEOMETRY_NEW_COLLAPSE",
+                                    "GEOMETRY_SAMPLING_LIMIT"
+                                  ]
+                                },
+                                "target": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "coordinate": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "number"
+                                  }
+                                },
+                                "triangleIds": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 32
+                                },
+                                "detail": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "reason",
+                                "target",
+                                "coordinate"
+                              ]
+                            }
+                          },
+                          "scope": {
+                            "type": "string"
+                          },
+                          "coverage": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "full",
+                                  "scoped"
+                                ]
+                              },
+                              "checkedTargets": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "totalTargets": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "mode",
+                              "checkedTargets",
+                              "totalTargets"
+                            ]
+                          },
+                          "diagnostics": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "target": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "coordinate": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "number"
+                                  }
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "removed",
+                                    "invalid_topology",
+                                    "finite"
+                                  ]
+                                },
+                                "detail": {
+                                  "type": "string"
+                                },
+                                "pointCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "preexistingFlipCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "preexistingDegenerateCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "preexistingCollapseCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "candidateFlipCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "candidateDegenerateCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "candidateCollapseCount": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "target"
+                              ]
+                            }
+                          },
+                          "newFlipCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "newDegenerateCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "newInvalidTopologyCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "newNonFiniteCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "preexistingFlipCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "preexistingDegenerateCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "preexistingCollapseCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "newCollapseCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "safe",
+                          "affectedTargets",
+                          "affectedCoordinates",
+                          "violations",
+                          "warnings",
+                          "scope",
+                          "coverage",
+                          "diagnostics",
+                          "newFlipCount",
+                          "newDegenerateCount",
+                          "newInvalidTopologyCount",
+                          "newNonFiniteCount",
+                          "preexistingFlipCount",
+                          "preexistingDegenerateCount",
+                          "preexistingCollapseCount",
+                          "newCollapseCount"
+                        ]
+                      },
+                      "atlas_fit": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "notices": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "project_id",
+                      "state",
+                      "history_node_id",
+                      "revision",
+                      "applied",
+                      "edit_count",
+                      "changed"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "operation",
+                  "input_state",
+                  "progress",
+                  "message",
+                  "created_at",
+                  "updated_at",
+                  "status",
+                  "terminal",
+                  "result"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "data"
+        ]
+      },
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "operation": {
+            "type": "string",
+            "const": "rig_generate"
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {},
+              "message": {},
+              "diagnostics": {},
+              "field": {},
+              "operation": {},
+              "edit_index": {},
+              "edit_operation": {},
+              "layer_ids": {},
+              "expected_state": {},
+              "actual_state": {},
+              "expected_project": {},
+              "actual_project": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "geometry_unsafe"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "diagnostics": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "safe": {
+                        "type": "boolean"
+                      },
+                      "affectedTargets": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "affectedCoordinates": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "violations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "warnings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "coverage": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "full",
+                              "scoped"
+                            ]
+                          },
+                          "checkedTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "checkedTargets",
+                          "totalTargets"
+                        ]
+                      },
+                      "diagnostics": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "removed",
+                                "invalid_topology",
+                                "finite"
+                              ]
+                            },
+                            "detail": {
+                              "type": "string"
+                            },
+                            "pointCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "target"
+                          ]
+                        }
+                      },
+                      "newFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newInvalidTopologyCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newNonFiniteCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "safe",
+                      "affectedTargets",
+                      "affectedCoordinates",
+                      "violations",
+                      "warnings",
+                      "scope",
+                      "coverage",
+                      "diagnostics",
+                      "newFlipCount",
+                      "newDegenerateCount",
+                      "newInvalidTopologyCount",
+                      "newNonFiniteCount",
+                      "preexistingFlipCount",
+                      "preexistingDegenerateCount",
+                      "preexistingCollapseCount",
+                      "newCollapseCount"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "diagnostics"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_request"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "output_contract"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field",
+                  "operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_edit"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "edit_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "edit_operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "edit_index",
+                  "edit_operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "tile_collides"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "layer_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "layer_ids"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "state_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_state": {
+                    "type": "string"
+                  },
+                  "actual_state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_state",
+                  "actual_state"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "project_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "actual_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_project",
+                  "actual_project"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "request_id_reused",
+                      "unsaved_changes",
+                      "workspace_busy",
+                      "permission_denied",
+                      "io_error",
+                      "invalid_argument",
+                      "invalid_state",
+                      "operation_failed"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "error"
+        ]
+      }
+    ],
+    "required": [
+      "ok",
+      "operation"
+    ]
+  },
+  "job_result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "project_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "state": {
+        "type": "string",
+        "minLength": 1
+      },
+      "history_node_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "revision": {
+        "type": "string",
+        "minLength": 1
+      },
+      "applied": {
+        "type": "boolean"
+      },
+      "edit_count": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 128
+      },
+      "changed": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "geometry_diagnostics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "safe": {
+            "type": "boolean"
+          },
+          "affectedTargets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "affectedCoordinates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "GEOMETRY_NON_FINITE",
+                    "GEOMETRY_INVALID_TOPOLOGY",
+                    "GEOMETRY_NEW_FLIP",
+                    "GEOMETRY_NEW_DEGENERATE",
+                    "GEOMETRY_NEW_COLLAPSE",
+                    "GEOMETRY_SAMPLING_LIMIT"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "coordinate": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                },
+                "triangleIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "minItems": 1,
+                  "maxItems": 32
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "reason",
+                "target",
+                "coordinate"
+              ]
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "GEOMETRY_NON_FINITE",
+                    "GEOMETRY_INVALID_TOPOLOGY",
+                    "GEOMETRY_NEW_FLIP",
+                    "GEOMETRY_NEW_DEGENERATE",
+                    "GEOMETRY_NEW_COLLAPSE",
+                    "GEOMETRY_SAMPLING_LIMIT"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "coordinate": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                },
+                "triangleIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "minItems": 1,
+                  "maxItems": 32
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "reason",
+                "target",
+                "coordinate"
+              ]
+            }
+          },
+          "scope": {
+            "type": "string"
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "full",
+                  "scoped"
+                ]
+              },
+              "checkedTargets": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalTargets": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "mode",
+              "checkedTargets",
+              "totalTargets"
+            ]
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "coordinate": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "removed",
+                    "invalid_topology",
+                    "finite"
+                  ]
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "pointCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "preexistingFlipCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "preexistingDegenerateCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "preexistingCollapseCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "candidateFlipCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "candidateDegenerateCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "candidateCollapseCount": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "target"
+              ]
+            }
+          },
+          "newFlipCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "newDegenerateCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "newInvalidTopologyCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "newNonFiniteCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "preexistingFlipCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "preexistingDegenerateCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "preexistingCollapseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "newCollapseCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "safe",
+          "affectedTargets",
+          "affectedCoordinates",
+          "violations",
+          "warnings",
+          "scope",
+          "coverage",
+          "diagnostics",
+          "newFlipCount",
+          "newDegenerateCount",
+          "newInvalidTopologyCount",
+          "newNonFiniteCount",
+          "preexistingFlipCount",
+          "preexistingDegenerateCount",
+          "preexistingCollapseCount",
+          "newCollapseCount"
+        ]
+      },
+      "atlas_fit": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "notices": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "project_id",
+      "state",
+      "history_node_id",
+      "revision",
+      "applied",
+      "edit_count",
+      "changed"
+    ]
+  }
+}

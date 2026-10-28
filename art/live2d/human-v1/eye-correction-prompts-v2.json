@@ -1,0 +1,16 @@
+[
+  {
+    "id": "yunque_clean_sclera_left",
+    "mode": "built-in image_gen edit",
+    "input": "/Users/irises/云雀/art/live2d/human-v1/layers/eye-left-v1.draft.png",
+    "prompt": "Use case: precise-object-edit. Asset: an exact-registration Live2D sclera layer. Edit target: the attached single eye component on a 1024 x 1536 transparent canvas. Remove ALL dark brown/black eyelashes, eyeliner, peach skin, eyelid strokes, glow and shadow outside the white sclera. Keep ONLY the existing white/very pale grey inner eyeball area as a clean opaque painted shape, at precisely its original pixel position, scale, outline, tilt and perspective. Preserve the existing white area; do not expand it into where the eyelashes were removed. Everything outside that white shape must be fully transparent alpha, including the entire large blank canvas. No iris, no pupil, no lashes, no outline, no skin, no new shapes. Preserve the 1024 x 1536 canvas registration.",
+    "output": "/Users/irises/.codex/generated_images/01a15828-584a-7a71-b161-2584c0bca72c/exec-69adb6f7-4556-435a-a5a6-711c922edbb1.png"
+  },
+  {
+    "id": "yunque_clean_sclera_right",
+    "mode": "built-in image_gen edit",
+    "input": "/Users/irises/云雀/art/live2d/human-v1/layers/eye-right-v1.draft.png",
+    "prompt": "Use case: precise-object-edit. Asset: an exact-registration Live2D sclera layer. Edit target: the attached single eye component on a 1024 x 1536 transparent canvas. Remove ALL dark brown/black eyelashes, eyeliner, peach skin, eyelid strokes, glow and shadow outside the white sclera. Keep ONLY the existing white/very pale grey inner eyeball area as a clean opaque painted shape, at precisely its original pixel position, scale, outline, tilt and perspective. Preserve the existing white area; do not expand it into where the eyelashes were removed. Everything outside that white shape must be fully transparent alpha, including the entire large blank canvas. No iris, no pupil, no lashes, no outline, no skin, no new shapes. Preserve the 1024 x 1536 canvas registration.",
+    "output": "/Users/irises/.codex/generated_images/01a15828-584a-7a71-b161-2584c0bca72c/exec-a364b70b-6009-4454-9daf-c2a54c9d801d.png"
+  }
+]

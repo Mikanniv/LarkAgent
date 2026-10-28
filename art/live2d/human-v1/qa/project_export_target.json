@@ -1,0 +1,11 @@
+{
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+  "revision": "revision-03a52cefe98afd38628c4152d4dbfe4619aea528d6dfa108ebb4711b58ff854a",
+  "target": "cmo3",
+  "compiler": "3.5.2",
+  "directory": "/Users/irises/云雀/art/live2d/human-v1/final/source",
+  "files": [
+    "yunque-clean-layout.cmo3"
+  ],
+  "losses": []
+}

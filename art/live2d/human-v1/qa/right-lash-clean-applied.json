@@ -1,0 +1,14 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:13",
+  "history_node_id": "history-3193e76a-d44d-4e59-9eec-0b1c38a841e1",
+  "revision": "revision-34ce6790a948154b8aa19fed53b93ae3323119a8695399cbcea955efb8cc3b37",
+  "applied": true,
+  "layers": [
+    "LashesRight"
+  ],
+  "atlas_fit": 0.83984375,
+  "notices": [
+    "Textures are scaled to 84.0% to fit the atlas budget of 1 page(s) of 2048px."
+  ]
+}

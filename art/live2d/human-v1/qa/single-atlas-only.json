@@ -1,0 +1,13 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:1",
+  "history_node_id": "history-2935512f-df84-4228-8708-b0ba457899ff",
+  "revision": "revision-6cee1b6f4e2dd5d00a9d848e55ccee41ad891bac468b7b55414092137f20eeeb",
+  "applied": true,
+  "edit_count": 2,
+  "changed": [],
+  "atlas_fit": 0.83984375,
+  "notices": [
+    "Textures are scaled to 84.0% to fit the atlas budget of 1 page(s) of 2048px."
+  ]
+}

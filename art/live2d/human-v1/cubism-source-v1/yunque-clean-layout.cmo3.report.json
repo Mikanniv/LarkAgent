@@ -1,0 +1,1 @@
+{"target":"cmo3","compiler":"3.5.2","files":["yunque-clean-layout.cmo3"],"losses":[{"object":"DeformHairBackFollow","feature":"parameter_grid","handling":"approximated","note":"4-axis keyform grid exceeds the target's 3 axes"}]}

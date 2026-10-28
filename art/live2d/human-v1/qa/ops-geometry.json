@@ -1,0 +1,115 @@
+{
+  "items": [
+    {
+      "id": "keyform_apply",
+      "description": "Author key collections atomically.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "canvas_deform_stroke",
+      "description": "Brush, smooth or inflate current meshes or one Warp using the same captured canvas gesture as the UI.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "warp_get_controls",
+      "description": "Read Bezier divisions and editor controls from one committed capture.",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "warp_bezier_divisions",
+      "description": "Persist Bezier edit divisions in 1..16 without changing geometry.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_set_pixel_density",
+      "description": "Set the texture density of 1..128 layers: texture pixels per raster pixel (1/64..16, continuous; null resets to 1).",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "simulation_preview",
+      "description": "Start, stop or restart a calibrated live simulation preview.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "simulation_preview_render",
+      "description": "Render the latest live simulation world vertices at its evaluated pose into a fixed canvas-pixel bounds rectangle.",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "rig_generate",
+      "description": "Generate the rig, or generate it again.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "workspace_preview_edits",
+      "description": "Dry-run 1..128 geometry authoring operations using the same ordered candidate preparation, rebuild and geometry gate as commit.",
+      "kind": "query",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": true,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "author_compile",
+      "description": "Show the member edits an intent operation would commit, compiled against the state its request names, without running them.",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    }
+  ],
+  "total": 10
+}

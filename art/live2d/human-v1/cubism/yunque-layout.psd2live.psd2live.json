@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "model": "yunque-layout.psd2live",
+  "generator": "PSD2Live 3.5.2",
+  "runtimeTarget": "Cubism50",
+  "mocVersion": 5,
+  "cmo3TargetVersionNo": 5000000,
+  "cmo3FileFormatVersion": "500000005",
+  "canvas": {"width":1024,"height":1536},
+  "config": {"atlasSize":2048,"meshSpacing":32,"headTurnStrength":0.55,"bodyStrength":0.0,"meshOnly":false,"generateDeformers":true,"exportMotions":false},
+  "faceRig": {"algorithm":"perspective-parallelogram-nine-pose-v2","angleX":[-45,0,45],"angleY":[-30,0,30],"initialAngleZ":-14.404564,"centerX":511.10535,"centerY":393.5627,"radiusX":260.70236,"radiusY":270.26862},
+  "deformerHierarchy": {"head":"DeformHeadContainer","face":"DeformFaceNinePose","frontHair":["DeformHairFrontFollow","DeformHairFrontPhysics"],"backHair":["DeformHairBackFollow","DeformHairBackPhysics"]},
+  "physics": {"enabled":false,"frontHair":false,"backHair":false,"eyeJelly":false,"groups":[]},
+  "summary": {"layers":15,"drawables":13,"deformers":19,"parameters":20,"atlasPages":6},
+  "layers": [
+    {"source":"Body","type":"preset","tag":"topwear","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshTopwear"},
+  {"source":"Face","type":"preset","tag":"face","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFace"},
+  {"source":"EyeWhiteLeft","type":"preset","tag":"eyewhite","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshEyewhiteL"},
+  {"source":"EyeWhiteRight","type":"preset","tag":"eyewhite","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshEyewhiteR"},
+  {"source":"IrisLeft","type":"preset","tag":"irides","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshIridesL"},
+  {"source":"IrisRight","type":"preset","tag":"irides","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshIridesR"},
+  {"source":"LashesLeft","type":"preset","tag":"eyelash","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshEyelashL"},
+  {"source":"LashesRightMain","type":"preset","tag":"eyelash","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshLayer"},
+  {"source":"Brows","type":"preset","tag":"eyebrow","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshEyebrow"},
+  {"source":"Mouth","type":"preset","tag":"facedetail","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshMouth"},
+  {"source":"FrontHair","type":"preset","tag":"front hair","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFrontHair"},
+  {"source":"Headwear","type":"preset","tag":"headwear","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshHeadwear"},
+  {"source":"hair-back-v2.draft","type":"preset","tag":"back hair","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFrontHair2"},
+  {"source":"LashesRightSpeckA","type":"preset","tag":"eyelash","side":"RIGHT","parameter":"","switchId":0,"drawable":""},
+  {"source":"LashesRightSpeckB","type":"preset","tag":"eyelash","side":"RIGHT","parameter":"","switchId":0,"drawable":""}
+  ],
+  "warnings": ["缺少 mouth/mouth_open/mouth_close：口型参数不会绑定到任何画元。","生成模型：ArtMeshEyelashL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.3605, top=384.8069, right=482.3527, bottom=472.78394)，实际=Bounds(left=385.66553, top=385.732, right=485.66132, bottom=491.7608)","生成模型：ArtMeshIridesR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=560.3716, top=361.81168, right=609.3656, bottom=422.1763)，实际=Bounds(left=558.2286, top=360.06375, right=607.472, bottom=423.42685)","生成模型：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.1209, top=399.96567, right=472.24518, bottom=462.62726)，实际=Bounds(left=416.38882, top=398.04807, right=477.31308, bottom=462.1021)","生成模型：ArtMeshEyewhiteR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=547.6003, top=345.59482, right=641.7438, bottom=426.49)，实际=Bounds(left=543.61383, top=345.49844, right=641.786, bottom=426.3912)","生成模型：ArtMeshEyewhiteL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.61877, top=382.06943, right=483.1282, bottom=460.524)，实际=Bounds(left=385.96814, top=373.76413, right=481.1765, bottom=462.70724)","生成模型：ArtMeshLayer 默认姿态与 PSD 有明显偏差；期望=Bounds(left=545.8213, top=344.5106, right=642.8817, bottom=428.50055)，实际=Bounds(left=542.5266, top=337.10684, right=639.50366, bottom=411.02148)","MOC3 回读：ArtMeshLayer 默认姿态与 PSD 有明显偏差；期望=Bounds(left=545.8213, top=344.5106, right=642.8817, bottom=428.50055)，实际=Bounds(left=542.5253, top=337.1062, right=639.49994, bottom=411.01965)","MOC3 回读：ArtMeshEyewhiteL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.61877, top=382.06943, right=483.1282, bottom=460.524)，实际=Bounds(left=385.96747, top=373.76395, right=481.17648, bottom=462.708)","MOC3 回读：ArtMeshEyewhiteR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=547.6003, top=345.59482, right=641.7438, bottom=426.49)，实际=Bounds(left=543.6133, top=345.4998, right=641.7845, bottom=426.39102)","MOC3 回读：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.1209, top=399.96567, right=472.24518, bottom=462.62726)，实际=Bounds(left=416.38904, top=398.0479, right=477.31177, bottom=462.10312)","MOC3 回读：ArtMeshIridesR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=560.3716, top=361.81168, right=609.3656, bottom=422.1763)，实际=Bounds(left=558.22815, top=360.0647, right=607.4737, bottom=423.42624)","MOC3 回读：ArtMeshEyelashL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.3605, top=384.8069, right=482.3527, bottom=472.78394)，实际=Bounds(left=385.6644, top=385.7308, right=485.6591, bottom=491.76105)","CMO3: Atlas holds up to 2.31x the canvas resolution of 11 layers (hair-back-v2.draft, Brows, EyeWhiteLeft, EyeWhiteRight, Face and 6 more); Cubism Editor rebuilds the atlas from canvas-resolution layers","CMO3 回读：ArtMeshLayer 默认姿态与 PSD 有明显偏差；期望=Bounds(left=545.8213, top=344.5106, right=642.8817, bottom=428.50055)，实际=Bounds(left=542.5253, top=337.1062, right=639.49994, bottom=411.01965)","CMO3 回读：ArtMeshEyewhiteL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.61877, top=382.06943, right=483.1282, bottom=460.524)，实际=Bounds(left=385.96747, top=373.76395, right=481.17648, bottom=462.708)","CMO3 回读：ArtMeshEyewhiteR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=547.6003, top=345.59482, right=641.7438, bottom=426.49)，实际=Bounds(left=543.6133, top=345.4998, right=641.7845, bottom=426.39102)","CMO3 回读：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.1209, top=399.96567, right=472.24518, bottom=462.62726)，实际=Bounds(left=416.38904, top=398.0479, right=477.31177, bottom=462.10312)","CMO3 回读：ArtMeshIridesR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=560.3716, top=361.81168, right=609.3656, bottom=422.1763)，实际=Bounds(left=558.22815, top=360.0647, right=607.4737, bottom=423.42624)","CMO3 回读：ArtMeshEyelashL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=386.3605, top=384.8069, right=482.3527, bottom=472.78394)，实际=Bounds(left=385.6644, top=385.7308, right=485.6591, bottom=491.76105)"]
+}

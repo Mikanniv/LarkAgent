@@ -1,0 +1,77 @@
+{
+  "revisionId": "revision-7c22a0c0a91056aeda3125bc71c7ccb36305fc17722f92786285bf8d9e0f0333",
+  "physicsSimulated": false,
+  "comparison": "poses",
+  "width": 1497,
+  "height": 369,
+  "canvasRect": [
+    330.0,
+    285.06,
+    720.0,
+    554.94
+  ],
+  "commonParameters": {
+    "ParamAngleX": 0.0,
+    "ParamAngleY": 0.0,
+    "ParamAngleZ": 0.0,
+    "ParamBodyAngleX": 0.0,
+    "ParamBodyAngleY": 0.0,
+    "ParamBodyAngleZ": 0.0,
+    "ParamBodyLean": 0.0,
+    "ParamBreath": 0.0,
+    "ParamBrowLY": 0.0,
+    "ParamBrowRY": 0.0,
+    "ParamEyeBallForm": 0.0,
+    "ParamEyeBallX": 0.0,
+    "ParamEyeBallY": 0.0,
+    "ParamHairBack": 0.0,
+    "ParamHairFront": 0.0,
+    "ParamMouthForm": 0.0,
+    "ParamMouthOpenY": 0.0,
+    "ParamProportion": 0.0
+  },
+  "tiles": [
+    {
+      "id": "A",
+      "viewId": "view-24c388ac3e364b64",
+      "imageRect": [
+        0,
+        24,
+        499,
+        345
+      ],
+      "parameters": {
+        "ParamEyeLOpen": 1.0,
+        "ParamEyeROpen": 1.0
+      }
+    },
+    {
+      "id": "B",
+      "viewId": "view-4a2e5fa7029933f2",
+      "imageRect": [
+        499,
+        24,
+        499,
+        345
+      ],
+      "parameters": {
+        "ParamEyeLOpen": 0.5,
+        "ParamEyeROpen": 0.5
+      }
+    },
+    {
+      "id": "C",
+      "viewId": "view-f5ddfb6bb6dccb68",
+      "imageRect": [
+        998,
+        24,
+        499,
+        345
+      ],
+      "parameters": {
+        "ParamEyeLOpen": 0.0,
+        "ParamEyeROpen": 0.0
+      }
+    }
+  ]
+}

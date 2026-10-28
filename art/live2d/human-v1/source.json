@@ -1,0 +1,15 @@
+{
+  "status": "art-preparation-draft",
+  "width": 1024,
+  "height": 1536,
+  "reference": "../../../static/branding/characters/human-seated.png",
+  "output": "yunque-human-artwork-draft.psd",
+  "layers": [
+    {"name": "ReferenceGuide", "file": "../../../static/branding/characters/human-seated.png", "visible": true, "role": "reference"},
+    {"name": "FaceBaseDraft", "file": "layers/face-base-v1.draft.png", "visible": false, "alignment": "pending"},
+    {"name": "BodyDraft", "file": "layers/body-v1.draft.png", "visible": false, "alignment": "pending-review"}
+  ],
+  "missingLayers": ["HairBack", "HairFront", "HairOrnament", "EyeLeft", "IrisLeft", "EyeRight", "IrisRight", "Mouth", "BrowLeft", "BrowRight"],
+  "rigStatus": "not-rigged",
+  "runtimeModelStatus": "not-exported"
+}

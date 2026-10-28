@@ -1,0 +1,24 @@
+{
+  "project_id": "27661f2d-52ce-4365-9e7b-9f332f062996",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:4:2",
+  "history_node_id": "history-abf44cb4-975b-4d33-89f1-ea453d912048",
+  "revision": "revision-24a94b7c565dbcea312236a1d243bd72bbf92c1c303a26263575474dce6fe25e",
+  "applied": true,
+  "layers": [
+    "ArtMeshBackHair",
+    "ArtMeshEyebrow",
+    "ArtMeshEyelashL",
+    "ArtMeshEyelashR",
+    "ArtMeshEyewhiteL",
+    "ArtMeshEyewhiteR",
+    "ArtMeshFace",
+    "ArtMeshFaceDetail",
+    "ArtMeshFrontHair",
+    "ArtMeshHeadwear",
+    "ArtMeshIridesL",
+    "ArtMeshIridesR",
+    "ArtMeshTopwear"
+  ],
+  "atlas_fit": 1.0,
+  "notices": []
+}

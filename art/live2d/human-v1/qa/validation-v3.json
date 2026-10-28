@@ -1,0 +1,110 @@
+{
+  "version": "paired-eyes-v3",
+  "counts": {
+    "art_meshes": 13,
+    "parameters": 20,
+    "warp_deformers": 18,
+    "rotation_deformers": 1
+  },
+  "warp_grids": {
+    "DeformBodyXY": {
+      "col": 9,
+      "row": 9
+    },
+    "DeformBodyLean": {
+      "col": 8,
+      "row": 9
+    },
+    "DeformBodyZBreath": {
+      "col": 4,
+      "row": 6
+    },
+    "DeformHeadContainer": {
+      "col": 4,
+      "row": 5
+    },
+    "DeformFaceNinePose": {
+      "col": 8,
+      "row": 8
+    },
+    "DeformFaceContour": {
+      "col": 8,
+      "row": 9
+    },
+    "DeformEyes": {
+      "col": 4,
+      "row": 3
+    },
+    "DeformEyeShapeL": {
+      "col": 4,
+      "row": 3
+    },
+    "DeformEyeShapeR": {
+      "col": 4,
+      "row": 3
+    },
+    "DeformBrowShapeBoth": {
+      "col": 3,
+      "row": 3
+    },
+    "DeformIrisPreserveL": {
+      "col": 3,
+      "row": 3
+    },
+    "DeformEyeGazeL": {
+      "col": 2,
+      "row": 2
+    },
+    "DeformIrisPreserveR": {
+      "col": 3,
+      "row": 3
+    },
+    "DeformEyeGazeR": {
+      "col": 2,
+      "row": 2
+    },
+    "DeformHairFrontFollow": {
+      "col": 3,
+      "row": 4
+    },
+    "DeformHairFrontPhysics": {
+      "col": 3,
+      "row": 4
+    },
+    "DeformHairBackFollow": {
+      "col": 3,
+      "row": 4
+    },
+    "DeformHairBackPhysics": {
+      "col": 3,
+      "row": 6
+    }
+  },
+  "max_direct_parameter_bindings": 2,
+  "atlas_dimensions": [
+    {
+      "width": 2048,
+      "height": 2048
+    }
+  ],
+  "original_runtime_atlas_preserved_byte_for_byte": true,
+  "atlas_sha256": "21d6c885b323043056afa7829c5a18ab249a9cbfbee970349b77f2aa4f340e6c",
+  "website_matches_export": true,
+  "website_p2lrt_sha256": "1ae54511d6870613d8a39eb87d74c4550dc710973bd221d49fe6c7df1ff784dc",
+  "iris_visible_bounds_at_preview_scale": {
+    "L": {
+      "width_px": 154,
+      "height_px": 177
+    },
+    "R": {
+      "width_px": 154,
+      "height_px": 176
+    }
+  },
+  "official_editor": {
+    "version": "5.3.04 FREE",
+    "v2_open_save": "confirmed by user; no limit warning",
+    "v3_open_save": "not manually rechecked"
+  },
+  "native_source_limitation": "Editable image patches reconstructed from atlas at canvas resolution; original high-resolution layers and v2 project retained. Runtime uses original high-resolution atlas."
+}

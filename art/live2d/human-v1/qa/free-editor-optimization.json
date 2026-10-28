@@ -1,0 +1,2437 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:2:2",
+  "history_node_id": "history-b2f6dd6a-a78a-47ef-bd8a-7d911089cdbb",
+  "revision": "revision-4d907b8f20e77c1a7ff7299dc89b1848f90a4768d755add885c5cb1cd1bf0a01",
+  "applied": true,
+  "edit_count": 15,
+  "changed": [
+    "ParamAngleZ",
+    "ParamEyeBallForm",
+    "ParamBrowLY",
+    "ParamBrowRY",
+    "ParamMouthForm",
+    "ParamMouthOpenY",
+    "ParamBodyAngleX",
+    "ParamBodyAngleY",
+    "ParamBodyAngleZ",
+    "ParamBodyLean",
+    "ParamProportion",
+    "ParamHairFront",
+    "ParamHairBack"
+  ],
+  "geometry_diagnostics": {
+    "safe": true,
+    "affectedTargets": [
+      "mesh:ArtMeshBackHair",
+      "mesh:ArtMeshEyebrow",
+      "mesh:ArtMeshEyelashL",
+      "mesh:ArtMeshEyelashR",
+      "mesh:ArtMeshEyewhiteL",
+      "mesh:ArtMeshEyewhiteR",
+      "mesh:ArtMeshFace",
+      "mesh:ArtMeshFaceDetail",
+      "mesh:ArtMeshFrontHair",
+      "mesh:ArtMeshHeadwear",
+      "mesh:ArtMeshIridesL",
+      "mesh:ArtMeshIridesR",
+      "mesh:ArtMeshTopwear",
+      "rotation:DeformHeadRotation",
+      "warp:DeformBodyLean",
+      "warp:DeformBodyXY",
+      "warp:DeformBodyZBreath",
+      "warp:DeformBrowShapeBoth",
+      "warp:DeformEyeGazeL",
+      "warp:DeformEyeGazeR",
+      "warp:DeformEyeShapeL",
+      "warp:DeformEyeShapeR",
+      "warp:DeformEyes",
+      "warp:DeformFaceContour",
+      "warp:DeformFaceNinePose",
+      "warp:DeformHairBackFollow",
+      "warp:DeformHairBackPhysics",
+      "warp:DeformHairFrontFollow",
+      "warp:DeformHairFrontPhysics",
+      "warp:DeformHeadContainer",
+      "warp:DeformIrisPreserveL",
+      "warp:DeformIrisPreserveR"
+    ],
+    "affectedCoordinates": {
+      "mesh:ArtMeshBackHair": [
+        {}
+      ],
+      "mesh:ArtMeshEyebrow": [
+        {
+          "ParamBrowRY": -1.0
+        },
+        {
+          "ParamBrowRY": 0.0
+        },
+        {
+          "ParamBrowRY": 1.0
+        }
+      ],
+      "mesh:ArtMeshEyelashL": [
+        {
+          "ParamEyeLOpen": 0.0
+        },
+        {
+          "ParamEyeLOpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshEyelashR": [
+        {
+          "ParamEyeROpen": 0.0
+        },
+        {
+          "ParamEyeROpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshEyewhiteL": [
+        {
+          "ParamEyeLOpen": 0.0
+        },
+        {
+          "ParamEyeLOpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshEyewhiteR": [
+        {
+          "ParamEyeROpen": 0.0
+        },
+        {
+          "ParamEyeROpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshFace": [
+        {}
+      ],
+      "mesh:ArtMeshFaceDetail": [
+        {}
+      ],
+      "mesh:ArtMeshFrontHair": [
+        {}
+      ],
+      "mesh:ArtMeshHeadwear": [
+        {}
+      ],
+      "mesh:ArtMeshIridesL": [
+        {
+          "ParamEyeBallForm": -1.0
+        },
+        {
+          "ParamEyeBallForm": 0.0
+        },
+        {
+          "ParamEyeBallForm": 1.0
+        }
+      ],
+      "mesh:ArtMeshIridesR": [
+        {
+          "ParamEyeBallForm": -1.0
+        },
+        {
+          "ParamEyeBallForm": 0.0
+        },
+        {
+          "ParamEyeBallForm": 1.0
+        }
+      ],
+      "mesh:ArtMeshTopwear": [
+        {}
+      ],
+      "rotation:DeformHeadRotation": [
+        {}
+      ],
+      "warp:DeformBodyLean": [
+        {}
+      ],
+      "warp:DeformBodyXY": [
+        {}
+      ],
+      "warp:DeformBodyZBreath": [
+        {
+          "ParamBreath": 0.0
+        },
+        {
+          "ParamBreath": 0.5
+        },
+        {
+          "ParamBreath": 1.0
+        }
+      ],
+      "warp:DeformBrowShapeBoth": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformEyeGazeL": [
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 1.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 1.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 1.0
+        }
+      ],
+      "warp:DeformEyeGazeR": [
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 1.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 1.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": -1.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 0.0
+        },
+        {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 1.0
+        }
+      ],
+      "warp:DeformEyeShapeL": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformEyeShapeR": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformEyes": [
+        {}
+      ],
+      "warp:DeformFaceContour": [
+        {
+          "ParamAngleX": -45.0
+        },
+        {
+          "ParamAngleX": 0.0
+        },
+        {
+          "ParamAngleX": 45.0
+        }
+      ],
+      "warp:DeformFaceNinePose": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformHairBackFollow": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformHairBackPhysics": [
+        {}
+      ],
+      "warp:DeformHairFrontFollow": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformHairFrontPhysics": [
+        {}
+      ],
+      "warp:DeformHeadContainer": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformIrisPreserveL": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ],
+      "warp:DeformIrisPreserveR": [
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        }
+      ]
+    },
+    "newFlipCount": 0,
+    "newDegenerateCount": 0,
+    "newInvalidTopologyCount": 0,
+    "newNonFiniteCount": 0,
+    "preexistingFlipCount": 37,
+    "preexistingDegenerateCount": 0,
+    "preexistingCollapseCount": 18,
+    "newCollapseCount": 0,
+    "violations": [],
+    "warnings": [],
+    "diagnostics": [
+      {
+        "target": "mesh:ArtMeshBackHair",
+        "coordinate": {},
+        "pointCount": 565,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyebrow",
+        "coordinate": {
+          "ParamBrowRY": -1.0
+        },
+        "pointCount": 52,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyebrow",
+        "coordinate": {
+          "ParamBrowRY": 0.0
+        },
+        "pointCount": 52,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyebrow",
+        "coordinate": {
+          "ParamBrowRY": 1.0
+        },
+        "pointCount": 52,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashL",
+        "coordinate": {
+          "ParamEyeLOpen": 0.0
+        },
+        "pointCount": 48,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashL",
+        "coordinate": {
+          "ParamEyeLOpen": 1.0
+        },
+        "pointCount": 48,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 0.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 1.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteL",
+        "coordinate": {
+          "ParamEyeLOpen": 0.0
+        },
+        "pointCount": 47,
+        "preexistingFlipCount": 20,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 11,
+        "candidateFlipCount": 20,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 11
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteL",
+        "coordinate": {
+          "ParamEyeLOpen": 1.0
+        },
+        "pointCount": 47,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteR",
+        "coordinate": {
+          "ParamEyeROpen": 0.0
+        },
+        "pointCount": 42,
+        "preexistingFlipCount": 17,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 7,
+        "candidateFlipCount": 17,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 7
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteR",
+        "coordinate": {
+          "ParamEyeROpen": 1.0
+        },
+        "pointCount": 42,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshFace",
+        "coordinate": {},
+        "pointCount": 262,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshFaceDetail",
+        "coordinate": {},
+        "pointCount": 18,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshFrontHair",
+        "coordinate": {},
+        "pointCount": 756,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshHeadwear",
+        "coordinate": {},
+        "pointCount": 126,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": -1.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": 0.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": 1.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": -1.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": 1.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshTopwear",
+        "coordinate": {},
+        "pointCount": 676,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "coordinate": {},
+        "status": "finite",
+        "pointCount": 2
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "coordinate": {},
+        "pointCount": 117,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "coordinate": {},
+        "pointCount": 195,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "coordinate": {
+          "ParamBreath": 0.0
+        },
+        "pointCount": 35,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "coordinate": {
+          "ParamBreath": 0.5
+        },
+        "pointCount": 35,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "coordinate": {
+          "ParamBreath": 1.0
+        },
+        "pointCount": 35,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformBrowShapeBoth",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeL",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": -1.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 0.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": -1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 0.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeGazeR",
+        "coordinate": {
+          "ParamEyeBallX": 1.0,
+          "ParamEyeBallY": 1.0
+        },
+        "pointCount": 9,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformEyes",
+        "coordinate": {},
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceContour",
+        "coordinate": {
+          "ParamAngleX": -45.0
+        },
+        "pointCount": 153,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceContour",
+        "coordinate": {
+          "ParamAngleX": 0.0
+        },
+        "pointCount": 153,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceContour",
+        "coordinate": {
+          "ParamAngleX": 45.0
+        },
+        "pointCount": 153,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 81,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairBackPhysics",
+        "coordinate": {},
+        "pointCount": 28,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHairFrontPhysics",
+        "coordinate": {},
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 30,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": -45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 0.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": -30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 0.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "coordinate": {
+          "ParamAngleX": 45.0,
+          "ParamAngleY": 30.0
+        },
+        "pointCount": 16,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      }
+    ],
+    "scope": "Affected parent-local native key coordinates only; large Cartesian products are sampled. No parent composition, masks, painted coverage, physics, or aesthetics.",
+    "coverage": {
+      "mode": "full",
+      "checkedTargets": 32,
+      "totalTargets": 32
+    }
+  },
+  "atlas_fit": 0.83984375,
+  "notices": [
+    "Textures are scaled to 84.0% to fit the atlas budget of 1 page(s) of 2048px."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "yunque-desktop",
+  "productName": "云雀桌面",
+  "version": "0.1.0",
+  "private": true,
+  "description": "云雀网页与透明桌宠窗口的本地桌面壳",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check bridge.cjs && node --check preferences.cjs",
+    "test": "node --test test/*.test.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.9.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "viewId": "view-61494ffa638ec820",
+  "revisionId": "revision-d22ef9fb2e7eb39615afdc3e55f284354d4d07a0d4cf63588dae89f878feb57b",
+  "kind": "model-composite-png",
+  "mimeType": "image/png",
+  "pngBytes": 148893,
+  "sha256": "68d4ef03d52c94fd548bc05c247c278d3c4c886fcee11c48aada2561b9e9dc2f",
+  "originalWidth": 1000,
+  "originalHeight": 605,
+  "renderedWidth": 1000,
+  "renderedHeight": 605,
+  "scale": 1.0,
+  "appliedParameters": {
+    "ParamAngleX": 0.0,
+    "ParamAngleY": 0.0,
+    "ParamAngleZ": 0.0,
+    "ParamBodyAngleX": 0.0,
+    "ParamBodyAngleY": 0.0,
+    "ParamBodyAngleZ": 0.0,
+    "ParamBodyLean": 0.0,
+    "ParamBreath": 0.0,
+    "ParamBrowLY": 0.0,
+    "ParamBrowRY": 0.0,
+    "ParamEyeBallForm": 0.0,
+    "ParamEyeBallX": 0.0,
+    "ParamEyeBallY": 0.0,
+    "ParamEyeLOpen": 1.0,
+    "ParamEyeROpen": 1.0,
+    "ParamHairBack": 0.0,
+    "ParamHairFront": 0.0,
+    "ParamMouthForm": 0.0,
+    "ParamMouthOpenY": 0.0,
+    "ParamProportion": 0.0
+  },
+  "outOfRangeParameters": [],
+  "includedLayerIds": [
+    "EyeWhiteLeft",
+    "EyeWhiteRight"
+  ],
+  "annotatedLayerIds": [],
+  "annotatedDeformerIds": [],
+  "annotatedPathIds": [],
+  "annotatedPathWidth": false,
+  "annotatedPathHardness": false,
+  "annotatedPathRadius": false,
+  "pointIndices": false,
+  "objectIds": [
+    "EyeWhiteLeft",
+    "EyeWhiteRight"
+  ],
+  "canvasRect": {
+    "left": 325.0,
+    "top": 300.05,
+    "right": 705.0,
+    "bottom": 529.95
+  },
+  "spatial": {
+    "spatialReferenceId": "view-61494ffa638ec820",
+    "coordinateSpace": "canvas_top_left_y_down",
+    "pixelOrigin": "top_left_edge",
+    "pixelWidth": 1000,
+    "pixelHeight": 605,
+    "pixelAspectRatio": 1,
+    "colorSpace": "sRGB",
+    "alphaMode": "straight",
+    "canvasWidth": 1024.0,
+    "canvasHeight": 1536.0,
+    "canvasUnitsPerPixelX": 0.38,
+    "canvasUnitsPerPixelY": 0.38000005,
+    "requestedViewRect": {
+      "left": 325.0,
+      "top": 300.0,
+      "right": 705.0,
+      "bottom": 530.0,
+      "width": 380.0,
+      "height": 230.0
+    },
+    "viewRect": {
+      "left": 325.0,
+      "top": 300.05,
+      "right": 705.0,
+      "bottom": 529.95,
+      "width": 380.0,
+      "height": 229.90002
+    },
+    "focusLayerIds": [],
+    "pixelToCanvas": [
+      0.38,
+      0,
+      325.0,
+      0,
+      0.38000005,
+      300.05
+    ],
+    "canvasToPixel": [
+      2.631579,
+      0,
+      -855.2632,
+      0,
+      2.6315787,
+      -789.6051
+    ],
+    "placementRule": "map_full_png_to_view_rect_preserve_aspect"
+  }
+}

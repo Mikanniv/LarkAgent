@@ -1,0 +1,11 @@
+PSD2Live independent web player and runtime
+Copyright (c) 2026 PSD2Live contributors
+Licensed under the MIT License; see LICENSE.txt.
+Source: https://github.com/tsunehimatoi/psd2live (version 3.5.2)
+
+The WebAssembly runtime includes adler2 2.0.1, miniz_oxide 0.8.9,
+ruzstd 0.8.3 and twox-hash 2.1.5. Their license notices are retained
+in the licenses directory. Crate checksums were verified against Cargo.lock.
+
+This is an independent player for authored layered mesh rigs.
+It does not include official Live2D Cubism Core or SDK binaries.

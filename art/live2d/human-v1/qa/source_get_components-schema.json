@@ -1,0 +1,628 @@
+{
+  "id": "source_get_components",
+  "description": "Inspect the current splittable mesh islands of a source layer from one captured version. Components are ordered by source Y, then X; use the same order for names, sides and optional piece_ids in source_split_components. Authored or unsplittable layers return can_split=false.",
+  "kind": "query",
+  "workspace_bound": false,
+  "batchable": false,
+  "job_backed": false,
+  "read_only": true,
+  "idempotent": true,
+  "destructive": false,
+  "request_schema": {
+    "type": "object",
+    "properties": {
+      "layer_id": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "layer_id"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "ok": {},
+      "operation": {},
+      "data": {},
+      "error": {}
+    },
+    "oneOf": [
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "operation": {
+            "type": "string",
+            "const": "source_get_components"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "state": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "layer_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "can_split": {
+                "type": "boolean"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "components": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "index": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "canvas_x": {
+                      "type": "number"
+                    },
+                    "canvas_y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "index",
+                    "canvas_x",
+                    "canvas_y"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "project_id",
+              "state",
+              "revision",
+              "layer_id",
+              "can_split",
+              "count",
+              "components"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "data"
+        ]
+      },
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "operation": {
+            "type": "string",
+            "const": "source_get_components"
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {},
+              "message": {},
+              "diagnostics": {},
+              "field": {},
+              "operation": {},
+              "edit_index": {},
+              "edit_operation": {},
+              "layer_ids": {},
+              "expected_state": {},
+              "actual_state": {},
+              "expected_project": {},
+              "actual_project": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "geometry_unsafe"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "diagnostics": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "safe": {
+                        "type": "boolean"
+                      },
+                      "affectedTargets": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "affectedCoordinates": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "violations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "warnings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "coverage": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "full",
+                              "scoped"
+                            ]
+                          },
+                          "checkedTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "checkedTargets",
+                          "totalTargets"
+                        ]
+                      },
+                      "diagnostics": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "removed",
+                                "invalid_topology",
+                                "finite"
+                              ]
+                            },
+                            "detail": {
+                              "type": "string"
+                            },
+                            "pointCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "target"
+                          ]
+                        }
+                      },
+                      "newFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newInvalidTopologyCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newNonFiniteCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "safe",
+                      "affectedTargets",
+                      "affectedCoordinates",
+                      "violations",
+                      "warnings",
+                      "scope",
+                      "coverage",
+                      "diagnostics",
+                      "newFlipCount",
+                      "newDegenerateCount",
+                      "newInvalidTopologyCount",
+                      "newNonFiniteCount",
+                      "preexistingFlipCount",
+                      "preexistingDegenerateCount",
+                      "preexistingCollapseCount",
+                      "newCollapseCount"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "diagnostics"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_request"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "output_contract"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field",
+                  "operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_edit"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "edit_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "edit_operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "edit_index",
+                  "edit_operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "tile_collides"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "layer_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "layer_ids"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "state_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_state": {
+                    "type": "string"
+                  },
+                  "actual_state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_state",
+                  "actual_state"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "project_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "actual_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_project",
+                  "actual_project"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "request_id_reused",
+                      "unsaved_changes",
+                      "workspace_busy",
+                      "permission_denied",
+                      "io_error",
+                      "invalid_argument",
+                      "invalid_state",
+                      "operation_failed"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "error"
+        ]
+      }
+    ],
+    "required": [
+      "ok",
+      "operation"
+    ]
+  }
+}

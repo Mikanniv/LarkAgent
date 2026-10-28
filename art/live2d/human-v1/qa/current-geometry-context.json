@@ -1,0 +1,1939 @@
+[
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "mesh:ArtMeshEyelashR",
+    "name": "LashesRight",
+    "parent": "DeformEyeShapeR",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "draw_order": 90.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "blend_mode": "Normal",
+      "masked_by": [],
+      "invert_mask": false,
+      "culling": false,
+      "selectable": true,
+      "user_data": ""
+    },
+    "forms": 2,
+    "axes": {
+      "ParamEyeROpen": [
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeShapeR",
+        "name": "右眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "mesh:ArtMeshEyelashL",
+    "name": "LashesLeft",
+    "parent": "DeformEyeShapeL",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "draw_order": 80.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "blend_mode": "Normal",
+      "masked_by": [],
+      "invert_mask": false,
+      "culling": false,
+      "selectable": true,
+      "user_data": ""
+    },
+    "forms": 2,
+    "axes": {
+      "ParamEyeLOpen": [
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeShapeL",
+        "name": "左眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "mesh:ArtMeshIridesR",
+    "name": "IrisRight",
+    "parent": "DeformEyeGazeR",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "draw_order": 70.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "blend_mode": "Normal",
+      "masked_by": [
+        "ArtMeshEyewhiteR"
+      ],
+      "invert_mask": false,
+      "culling": false,
+      "selectable": true,
+      "user_data": ""
+    },
+    "forms": 3,
+    "axes": {
+      "ParamEyeBallForm": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeGazeR",
+        "name": "右视线",
+        "parameters": [
+          "ParamEyeBallX",
+          "ParamEyeBallY"
+        ]
+      },
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "name": "右瞳孔二维保持",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "name": "右眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "mesh:ArtMeshIridesL",
+    "name": "IrisLeft",
+    "parent": "DeformEyeGazeL",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "draw_order": 60.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "blend_mode": "Normal",
+      "masked_by": [
+        "ArtMeshEyewhiteL"
+      ],
+      "invert_mask": false,
+      "culling": false,
+      "selectable": true,
+      "user_data": ""
+    },
+    "forms": 3,
+    "axes": {
+      "ParamEyeBallForm": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeGazeL",
+        "name": "左视线",
+        "parameters": [
+          "ParamEyeBallX",
+          "ParamEyeBallY"
+        ]
+      },
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "name": "左瞳孔二维保持",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "name": "左眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformBodyXY",
+    "name": "身体 XY",
+    "visible": true,
+    "part": "PartBody",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamBodyAngleX": [
+        -10.0,
+        0.0,
+        10.0
+      ],
+      "ParamBodyAngleY": [
+        -10.0,
+        0.0,
+        10.0
+      ]
+    },
+    "channels": [],
+    "inherited": []
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformBodyLean",
+    "name": "身体前后倾与大小变",
+    "parent": "DeformBodyXY",
+    "visible": true,
+    "part": "PartBody",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamBodyLean": [
+        -10.0,
+        0.0,
+        10.0
+      ],
+      "ParamProportion": [
+        -10.0,
+        0.0,
+        10.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformBodyZBreath",
+    "name": "身体 Z / 呼吸",
+    "parent": "DeformBodyLean",
+    "visible": true,
+    "part": "PartBody",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamBodyAngleZ": [
+        -10.0,
+        0.0,
+        10.0
+      ],
+      "ParamBreath": [
+        0.0,
+        0.5,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformHeadContainer",
+    "name": "头部容器",
+    "parent": "DeformHeadRotation",
+    "visible": true,
+    "part": "PartHead",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformFaceNinePose",
+    "name": "面部弯曲变形器",
+    "parent": "DeformHeadContainer",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformFaceContour",
+    "name": "脸变形器",
+    "parent": "DeformFaceNinePose",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 3,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformEyes",
+    "name": "双眼",
+    "parent": "DeformFaceNinePose",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 1,
+    "axes": {},
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformEyeShapeL",
+    "name": "左眼变形器",
+    "parent": "DeformEyes",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformEyeShapeR",
+    "name": "右眼变形器",
+    "parent": "DeformEyes",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformBrowShapeBoth",
+    "name": "眉变形器",
+    "parent": "DeformFaceNinePose",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformIrisPreserveL",
+    "name": "左瞳孔二维保持",
+    "parent": "DeformEyeShapeL",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeShapeL",
+        "name": "左眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformEyeGazeL",
+    "name": "左视线",
+    "parent": "DeformIrisPreserveL",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamEyeBallX": [
+        -1.0,
+        0.0,
+        1.0
+      ],
+      "ParamEyeBallY": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformIrisPreserveL",
+        "name": "左瞳孔二维保持",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyeShapeL",
+        "name": "左眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformIrisPreserveR",
+    "name": "右瞳孔二维保持",
+    "parent": "DeformEyeShapeR",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformEyeShapeR",
+        "name": "右眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformEyeGazeR",
+    "name": "右视线",
+    "parent": "DeformIrisPreserveR",
+    "visible": true,
+    "part": "PartFace",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamEyeBallX": [
+        -1.0,
+        0.0,
+        1.0
+      ],
+      "ParamEyeBallY": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformIrisPreserveR",
+        "name": "右瞳孔二维保持",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyeShapeR",
+        "name": "右眼变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformEyes",
+        "name": "双眼",
+        "parameters": []
+      },
+      {
+        "target": "warp:DeformFaceNinePose",
+        "name": "面部弯曲变形器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformHairFrontFollow",
+    "name": "前发头部跟随",
+    "parent": "DeformHeadContainer",
+    "visible": true,
+    "part": "PartHairFront",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformHairFrontPhysics",
+    "name": "前发物理摆动",
+    "parent": "DeformHairFrontFollow",
+    "visible": true,
+    "part": "PartHairFront",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 3,
+    "axes": {
+      "ParamHairFront": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformHairFrontFollow",
+        "name": "前发头部跟随",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformHairBackFollow",
+    "name": "后发头部跟随",
+    "parent": "DeformHeadContainer",
+    "visible": true,
+    "part": "PartHairBack",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 9,
+    "axes": {
+      "ParamAngleX": [
+        -45.0,
+        0.0,
+        45.0
+      ],
+      "ParamAngleY": [
+        -30.0,
+        0.0,
+        30.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  },
+  {
+    "scope": "object",
+    "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+    "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+    "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+    "target": "warp:DeformHairBackPhysics",
+    "name": "后发物理摆动",
+    "parent": "DeformHairBackFollow",
+    "visible": true,
+    "part": "PartHairBack",
+    "static": {
+      "opacity": 1.0,
+      "multiply_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "screen_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quad": true,
+      "selectable": true
+    },
+    "forms": 3,
+    "axes": {
+      "ParamHairBack": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "channels": [],
+    "inherited": [
+      {
+        "target": "warp:DeformHairBackFollow",
+        "name": "后发头部跟随",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "warp:DeformHeadContainer",
+        "name": "头部容器",
+        "parameters": [
+          "ParamAngleX",
+          "ParamAngleY"
+        ]
+      },
+      {
+        "target": "rotation:DeformHeadRotation",
+        "name": "头部 Z 旋转",
+        "parameters": [
+          "ParamAngleZ"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyZBreath",
+        "name": "身体 Z / 呼吸",
+        "parameters": [
+          "ParamBodyAngleZ",
+          "ParamBreath"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyLean",
+        "name": "身体前后倾与大小变",
+        "parameters": [
+          "ParamBodyLean",
+          "ParamProportion"
+        ]
+      },
+      {
+        "target": "warp:DeformBodyXY",
+        "name": "身体 XY",
+        "parameters": [
+          "ParamBodyAngleX",
+          "ParamBodyAngleY"
+        ]
+      }
+    ]
+  }
+]

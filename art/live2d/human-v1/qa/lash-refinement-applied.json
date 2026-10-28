@@ -1,0 +1,69 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:5",
+  "history_node_id": "history-a8d8e4b4-a727-4ef9-a5c8-355a715a0f01",
+  "revision": "revision-d22ef9fb2e7eb39615afdc3e55f284354d4d07a0d4cf63588dae89f878feb57b",
+  "applied": true,
+  "edit_count": 1,
+  "changed": [],
+  "geometry_diagnostics": {
+    "safe": true,
+    "affectedTargets": [
+      "mesh:ArtMeshEyelashR"
+    ],
+    "affectedCoordinates": {
+      "mesh:ArtMeshEyelashR": [
+        {
+          "ParamEyeROpen": 0.0
+        },
+        {
+          "ParamEyeROpen": 1.0
+        }
+      ]
+    },
+    "newFlipCount": 0,
+    "newDegenerateCount": 0,
+    "newInvalidTopologyCount": 0,
+    "newNonFiniteCount": 0,
+    "preexistingFlipCount": 0,
+    "preexistingDegenerateCount": 0,
+    "preexistingCollapseCount": 0,
+    "newCollapseCount": 0,
+    "violations": [],
+    "warnings": [],
+    "diagnostics": [
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 0.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 1.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      }
+    ],
+    "scope": "Affected parent-local native key coordinates only; large Cartesian products are sampled. No parent composition, masks, painted coverage, physics, or aesthetics. Targets compared: only those the committed commands address, their deformer descendants, glue partners and generator-owned targets; the other targets were not compared.",
+    "coverage": {
+      "mode": "scoped",
+      "checkedTargets": 1,
+      "totalTargets": 32
+    }
+  }
+}

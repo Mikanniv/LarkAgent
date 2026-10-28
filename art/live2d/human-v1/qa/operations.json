@@ -1,0 +1,270 @@
+{
+  "items": [
+    {
+      "id": "layer_import_images",
+      "description": "Import 1..128 PNG, lossless WebP, TIFF or BMP files as editable layers.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_transform",
+      "description": "Move, scale or rotate a layer as a whole - imported or from the PSD, at the root or under any deformer, bound or not.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_mesh_rebuild",
+      "description": "Rebuild a layer's meshes from its pixels as they are now, at its mesh settings: after painting or replacing pixels beyond the mesh, or to apply changed density.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_mesh_structure",
+      "description": "Rebuild the inside of one mesh along the structure drawn into its texture: creases, shading boundaries and pattern lines become rows of vertices with edges along them, and by default no vertex lies anywhere else: triangles span from line to",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_mesh_structure_preview",
+      "description": "What layer_mesh_structure would build on one mesh, from one captured version, without changing anything: the lines found (kind FOLD, SHADE or PATTERN; followed tells whether the mesh follows it, banded whether it straddles it), in source pi",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "rig_update_generation",
+      "description": "Regenerate the rig with this build's generators.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "workspace_inspect",
+      "description": "Read project context, find objects/layers/parameters, or inspect one kind:id's direct axes, channels and parent (also its organizational part and the static fields rig_edit_structure writes: opacity, colors, draw order, blend mode, clipping",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_get_components",
+      "description": "Inspect the current splittable mesh islands of a source layer from one captured version.",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_classify",
+      "description": "Classify an existing source layer using the same fields as the UI Layers table.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "settings_update",
+      "description": "Update the project generation/export configuration used by the UI.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "layer_mesh_update",
+      "description": "Set or reset a source layer's adaptive mesh settings using the same ranges as the UI layer mesh dialog.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_set",
+      "description": "Set authored preview parameter values and locks, or reset them, against the captured committed pose.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_reset",
+      "description": "Set authored preview parameter values and locks, or reset them, against the captured committed pose.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_pose",
+      "description": "Author parameter values or an FK/IK bone target and optionally record automatic timeline keys atomically.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_playback",
+      "description": "Tracking mode accepts smooth (default false) for delayed head/body following with body Y; the algorithm is independent of clip selection.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_physics",
+      "description": "Step the process-owned preview pendulums for dt seconds (0..1, default 1/60), on authored values or the supplied transient pose.",
+      "kind": "session",
+      "workspace_bound": true,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "preview_playback_get",
+      "description": "Read the current process playback frame, clock and tracking state.",
+      "kind": "query",
+      "workspace_bound": false,
+      "batchable": false,
+      "job_backed": false,
+      "read_only": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_brush",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_pencil",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_eraser",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_bucket",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_shape",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "source_paint_clear",
+      "description": "Commit one source-image paint gesture in canvas pixels with the shared raster engine.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": true,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "id": "rig_deform",
+      "description": "Edit whole ArtMesh/Warp surfaces at exact keys, atomically across changes.",
+      "kind": "document",
+      "workspace_bound": true,
+      "batchable": true,
+      "job_backed": false,
+      "read_only": false,
+      "idempotent": true,
+      "destructive": false
+    }
+  ],
+  "total": 237,
+  "next": 24
+}

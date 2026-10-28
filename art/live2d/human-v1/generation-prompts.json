@@ -1,0 +1,82 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "status": "authored-layered-model-v1; browser-verified; official-editor-review-pending",
+  "reference": "static/branding/characters/human-seated.png",
+  "outputs": [
+    {
+      "part": "face-base-v2",
+      "file": "layers/face-base-v2.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. Input image 1 is the exact FULL-CANVAS POSITION REFERENCE for the user's Live2D character. Input image 2 is the EDIT TARGET, an isolated skin head layer whose head is currently much too large and too low. Correct ONLY its size and placement to fit the face of image 1. Output exactly the same 1024 x 1536 portrait canvas as image 1. The complete skin head should occupy only about 35% of canvas width and 23% of canvas height, in the UPPER THIRD, with its center approximately (530,350), right ear approximately (680,420), and chin approximately (550,520). Most of the lower two thirds must be EMPTY TRANSPARENCY. The head must remain in image 1's original tilted orientation, with the original small rounded jaw and soft skin rendering, complete forehead/scalp/ears behind missing hair. Keep all facial features absent: no eyes, eyebrows, mouth, hair, neck, body or clothes. This is a small precisely aligned face-base source layer, NOT a centered portrait. Do not zoom or crop; do not enlarge the head to fill the canvas. Truly transparent background, no glow, shadow, text or UI."
+    },
+    {
+      "part": "hair-back-v1",
+      "file": "layers/hair-back-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. Input image is the exact edit target. Make a Live2D BACK HAIR SOURCE LAYER for this exact blue-haired character. Keep the original portrait canvas, original head scale, tilt and original upper-canvas placement. The back hair silhouette occupies roughly x=200..820, y=120..570 on the original 1024x1536 canvas. Extract the rear blue bob hair mass and rear neck-level curls, preserving their exact painted contours, colors and style. Complete the blue hair surface behind the face and front bangs, so this rear-hair sheet is continuous behind a separately moving face. Remove the front bangs covering the forehead, the tall single top cowlick, and the feather ornament; those belong to separate foreground layers. Remove ALL face/skin/ears/eyes/mouth, body, neck, clothes and legs. The output contains ONLY one complete rear hair mass at its original size and placement in the upper part of the full portrait canvas. Lower two thirds empty. Do not zoom, crop, recenter, redesign, add text, add a head-shaped skin area, or add backdrop/shadow. True transparent background."
+    },
+    {
+      "part": "hair-front-v1",
+      "file": "layers/hair-front-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. Input image is the exact edit target. Make a Live2D FRONT HAIR SOURCE LAYER for this exact character, preserving every visible blue front-hair detail: crown, tall curved cowlick, the layered bangs over her forehead, and the front side wisps that overlap her face. Preserve the original blue shading, delicate outlines, asymmetry, head tilt and hairstyle. Remove rear hair lying behind face/ears/neck (separate back-hair layer), the feather ornament, all skin, eyes, ears, mouth, neck, clothing/body/legs. Reconstruct small hidden blue portions of foreground hair strands only. This foreground sheet must leave the face and eye regions transparent. Keep the original 1024x1536 portrait canvas and original head scale and upper-canvas position (full visible hair envelope about x=175..825, y=12..570). Most of lower two thirds is empty transparency. Do NOT recenter, zoom, crop or turn this into a wig portrait. No skin or facial features; only the original foreground blue hair. True transparent background, no glow, shadow, text or UI."
+    },
+    {
+      "part": "eye-left-v1",
+      "file": "layers/eye-left-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. The input is the EXACT edit target for a Live2D source part, not a style reference. Preserve the reference's original painted anime style, shapes, color and head tilt. Keep a 1024x1536 portrait canvas with the part at its ORIGINAL UPPER-CANVAS COORDINATES and original tiny size; do not crop, zoom or center the part. Every other pixel area must be truly transparent. No face, skin patch, blue hair, other eye, clothes, background, glow, shadow, labels or UI. Extract ONLY the eye on the VIEWER'S LEFT (approximately x=390..485,y=385..470): its original dark upper lashes/upper lid, lower contour, and complete white sclera. Remove its gold iris/pupil and fill that region with white sclera so a separately animated iris can be overlaid. Complete the tiny white area concealed behind the original iris, preserving the exact eyelid silhouette and tilt. Only this one white eye opening with its original dark lashes; no iris or pupil. Lower two thirds empty transparency."
+    },
+    {
+      "part": "iris-left-v1",
+      "file": "layers/iris-left-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. The input is the EXACT edit target for a Live2D source part, not a style reference. Preserve the reference's original painted anime style, shapes, color and head tilt. Keep a 1024x1536 portrait canvas with the part at its ORIGINAL UPPER-CANVAS COORDINATES and original tiny size; do not crop, zoom or center the part. Every other pixel area must be truly transparent. No face, skin patch, blue hair, other eye, clothes, background, glow, shadow, labels or UI. Extract ONLY the GOLD IRIS AND DARK PUPIL with their original highlights from the eye on the VIEWER'S LEFT. Complete the small iris portion hidden under the upper eyelid so it is a whole softly elliptical iris. It stays approximately centered (445,430), roughly 50px wide and 60px tall, with the original tilt. No sclera, eyelash, eyelid, eyebrow, skin or other eye. Only one complete golden iris with its dark pupil and original white highlights; the rest of the entire full portrait canvas is empty transparency."
+    },
+    {
+      "part": "eye-right-v1",
+      "file": "layers/eye-right-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. The input is the EXACT edit target for a Live2D source part, not a style reference. Preserve the reference's original painted anime style, shapes, color and head tilt. Keep a 1024x1536 portrait canvas with the part at its ORIGINAL UPPER-CANVAS COORDINATES and original tiny size; do not crop, zoom or center the part. Every other pixel area must be truly transparent. No face, skin patch, blue hair, other eye, clothes, background, glow, shadow, labels or UI. Extract ONLY the eye on the VIEWER'S RIGHT (approximately x=547..640,y=345..430): its original dark upper lashes/upper lid, lower contour, and complete white sclera. Remove its gold iris/pupil and fill that region with white sclera so a separately animated iris can be overlaid. Complete the tiny white area concealed behind the original iris, preserving the exact eyelid silhouette and tilt. Only this one white eye opening with its original dark lashes; no iris or pupil. Lower two thirds empty transparency."
+    },
+    {
+      "part": "iris-right-v1",
+      "file": "layers/iris-right-v1.draft.png",
+      "prompt": "Use case: identity-preserve / precise-object-edit. The input is the EXACT edit target for a Live2D source part, not a style reference. Preserve the reference's original painted anime style, shapes, color and head tilt. Keep a 1024x1536 portrait canvas with the part at its ORIGINAL UPPER-CANVAS COORDINATES and original tiny size; do not crop, zoom or center the part. Every other pixel area must be truly transparent. No face, skin patch, blue hair, other eye, clothes, background, glow, shadow, labels or UI. Extract ONLY the GOLD IRIS AND DARK PUPIL with their original highlights from the eye on the VIEWER'S RIGHT. Complete the small iris portion hidden under the upper eyelid so it is a whole softly elliptical iris. It stays approximately centered (585,392), roughly 50px wide and 60px tall, with the original tilt. No sclera, eyelash, eyelid, eyebrow, skin or other eye. Only one complete golden iris with its dark pupil and original white highlights; the rest of the entire full portrait canvas is empty transparency."
+    },
+    {
+      "part": "mouth-v1",
+      "file": "layers/mouth-v1.draft.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the EDIT TARGET, the approved original Yunque seated illustration. Extract ONLY her original tiny closed smiling mouth line as a separate Live2D source layer. Keep exactly its shape, warm brown line color, thickness, original tilted facial expression. No skin patch. All other image pixels must be completely transparent (alpha 0). No halo, glow, shadow, matte or background. Keep the full 1024x1536 original canvas; mouth stays in the original position about x510..552 y465..479, extremely tiny within the canvas. Do not crop, enlarge, zoom, recenter, redraw a generic mouth, or include any part of the rest of the character. Output a real transparent RGBA layer."
+    },
+    {
+      "part": "ornament-v1",
+      "file": "layers/ornament-v1.draft.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the EDIT TARGET, the approved original Yunque seated illustration. Extract ONLY the complete dark blue and cream feather hair ornament and cream flower at her viewer-right temple as an isolated Live2D source layer. Preserve the original shape, outlines, colors, shading and tilt exactly; fill in the small ornament edges concealed by strands of hair so the ornament is complete. Remove all blue hair, face, neck and body. True transparent RGBA background alpha 0, NO halo, glow, backdrop, matte, light haze or cast shadow. Keep full original 1024x1536 canvas and original size/position: feather ornament occupies x625..790 y132..390 and flower center approximately x697 y328. Lower two thirds entirely transparent. No crop, zoom, enlarge or recenter."
+    },
+    {
+      "part": "lashes-left-v1",
+      "file": "layers/lashes-left-v1.draft.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the edit target. Extract ONLY the original viewer-left eye's dark brown upper eyelash stroke including small lash tips and lower thin lid line. Preserve the exact original painting and original tilt, NOT a generic replacement eye. The inner eye area, sclera, iris and all skin must be transparent. Output a delicate empty eyelash/lid outline only. Full original 1024x1536 canvas, at its original tiny location x390..485,y385..470. Every other pixel alpha 0. Do not zoom, crop, recenter, enlarge, add glow, matte, background or cast shadow."
+    },
+    {
+      "part": "lashes-right-v1",
+      "file": "layers/lashes-right-v1.draft.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the edit target. Extract ONLY the original viewer-right eye's dark brown upper eyelash stroke including small lash tips and lower thin lid line. Preserve the exact original painting and original tilt, NOT a generic replacement eye. The inner eye area, sclera, iris and all skin must be transparent. Output a delicate empty eyelash/lid outline only. Full original 1024x1536 canvas, at its original tiny location x547..640,y345..430. Every other pixel alpha 0. Do not zoom, crop, recenter, enlarge, add glow, matte, background or cast shadow."
+    },
+    {
+      "part": "brows-v1",
+      "file": "layers/brows-v1.draft.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the edit target. Extract only the two thin soft blue eyebrow lines of this exact character, complete the left eyebrow part hidden behind her bangs. Preserve the original eyebrow delicate color, line weight and original facial tilt. Viewer-right eyebrow lies approximately x547..617,y300..322 and viewer-left x395..458,y330..352. Output exactly two isolated small eyebrow strokes, NO eyes, lashes, hair, skin patch or any other artwork. Full original 1024x1536 canvas, same original tiny positions, not a centered portrait or zoomed diagram. All other pixels fully transparent alpha 0. No background, glow, shadow, labels or UI."
+    },
+    {
+      "part": "hair-back-v2",
+      "file": "layers/hair-back-v2.draft.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is the original character reference, image 2 is the EDIT TARGET: the existing isolated rear blue hair layer. Keep image 2's exact full 1024x1536 canvas, its silhouette, painted outer curls, original placement and size unchanged. Change ONLY the huge central empty face-shaped opening in image 2: fill that entire opening with a CONTINUOUS opaque blue painted rear hair surface, matching the surrounding blue bob shading. This is the back-of-head sheet BEHIND a separately moving skin/face layer, so there must be NO face-shaped hole and no internal transparent openings in the center. Preserve all outer transparent background exactly, no skin, no eyes, no mouth, no feather ornament, no body. No glow, matte, shadow or backdrop. Output the same rear hair silhouette with solid blue hair inside it, on genuine transparent RGBA background."
+    }
+  ],
+  "initialDrafts": [
+    {
+      "file": "layers/body-v1.draft.png",
+      "editIntent": "Remove original head, hair and accessory; preserve seated body pose, clothing and full canvas; reconstruct covered neck. Exact initial prompt was not retained in the current task record."
+    },
+    {
+      "file": "layers/face-base-v1.draft.png",
+      "editIntent": "Complete skin head without features, hair or body. Superseded by face-base-v2."
+    }
+  ]
+}

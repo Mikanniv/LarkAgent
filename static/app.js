@@ -1,6 +1,7 @@
 const state = {
   authUser: null,
-  activeView: "chat",
+  backendOnline: false,
+  activeView: "home",
   history: [],
   memories: { layers: { observation: [], reflection: [], strategy: [] }, unread: { total: 0 } },
   selectedLayer: "observation",
@@ -42,7 +43,7 @@ const els = Object.fromEntries(
 
 const CHINA_TIME_ZONE = "Asia/Shanghai";
 const API_BASE = resolveApiBase();
-const VIEW_TITLES = { chat: "聊天", diary: "日记", memory: "长期记忆", trajectory: "情绪轨迹", settings: "设置" };
+const VIEW_TITLES = { home: "主界面", chat: "聊天", diary: "日记", memory: "长期记忆", trajectory: "情绪轨迹", settings: "设置" };
 const LAYER_LABELS = { observation: "观察", reflection: "反思", strategy: "策略" };
 const TOPIC_LABELS = { event: "事件", preference: "偏好", routine: "习惯", relationship: "关系" };
 const REVIEW_LABELS = { pending: "待审查", confirmed: "已确认", revised: "已修改", deleted: "已删除" };
@@ -53,6 +54,7 @@ const USER_ICON = `
   </svg>`;
 
 function resolveApiBase() {
+  if (window.yunqueDesktop?.apiBase) return window.yunqueDesktop.apiBase;
   const host = window.location.hostname;
   if (["127.0.0.1", "localhost", "0.0.0.0", "::1", ""].includes(host)) return "";
   return document.querySelector('meta[name="app-api-base"]')?.content?.trim().replace(/\/$/, "") || "";
@@ -122,12 +124,17 @@ function chinaTimestamp() {
 }
 
 function setBackendOnline(online) {
+  state.backendOnline = Boolean(online);
   els.backendStatus.classList.toggle("is-online", online);
   els.backendStatus.lastChild.textContent = online ? "在线" : "离线";
 }
 
 function setView(view) {
+  if (!Object.hasOwn(VIEW_TITLES, view)) return;
   state.activeView = view;
+  els.appShell.dataset.view = view;
+  document.getElementById("homeView").classList.toggle("is-active", view === "home");
+  document.getElementById("homeBackButton").hidden = view === "home";
   const map = {
     chat: [els.sidebarChatTab, els.chatView],
     diary: [els.sidebarDiaryTab, els.diaryView],
@@ -144,6 +151,7 @@ function setView(view) {
   if (view === "memory") fetchMemories();
   if (view === "diary") fetchAiDiary();
   if (view === "trajectory") fetchTrajectory();
+  window.dispatchEvent(new CustomEvent("yunque:view", { detail: view }));
 }
 
 function setChatPending(pending, activity = "生成") {
@@ -184,7 +192,7 @@ async function checkAuth() {
     state.authUser = null;
   }
   els.authToggleButton.textContent = state.authUser ? `已登录：${state.authUser.username}` : "登录 / 注册";
-  els.enterAppButton.disabled = !state.authUser;
+  els.enterAppButton.disabled = false;
   els.authStatus.textContent = state.authUser ? "登录成功。" : "请先登录或注册。";
 }
 
@@ -891,7 +899,7 @@ els.revisionSubmit.addEventListener("click", async () => {
 
 setInterval(() => {
   const idleMs = Date.now() - state.lastInteractionAt;
-  if (state.proactiveEnabled && idleMs >= 2 * 60 * 1000 && !state.chatPending && state.activeView === "chat") {
+  if (state.proactiveEnabled && state.authUser && state.backendOnline && !document.hidden && idleMs >= 2 * 60 * 1000 && !state.chatPending && state.activeView === "chat") {
     sendChat("", { proactive: true });
     state.lastInteractionAt = Date.now();
   }
@@ -917,6 +925,8 @@ async function initialize() {
   renderPendingFiles(); rebuildSentMedia(); renderTrajectory(); initializeEmotionDragging();
   updateEmotionPinState(); if(state.emotionPosition){els.emotionWidget.style.left=`${state.emotionPosition.left}px`;els.emotionWidget.style.top=`${state.emotionPosition.top}px`;els.emotionWidget.style.right="auto"}
   await checkAuth();
+  setView("home");
+  showApp();
 }
 
 initialize();

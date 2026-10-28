@@ -1,0 +1,40 @@
+{
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:15",
+  "revision": "revision-4ab2578e221f6183dc4816c2626d50957887c6c807d9e6669de2bfda091ccfa8",
+  "files": [
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.moc3",
+      "bytes": 135872
+    },
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.cdi3.json",
+      "bytes": 3714
+    },
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.2048/texture_00.png",
+      "bytes": 3065645
+    },
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.model3.json",
+      "bytes": 422
+    },
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.cmo3",
+      "bytes": 7121755
+    },
+    {
+      "path": "/Users/irises/云雀/art/live2d/human-v1/final-v2/cubism/yunque-clean-layout.psd2live.json",
+      "bytes": 4370
+    }
+  ],
+  "warnings": [
+    "缺少 mouth/mouth_open/mouth_close：口型参数不会绑定到任何画元。",
+    "生成模型：ArtMeshEyelashR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=541.52325, top=340.73523, right=644.0613, bottom=432.9073)，实际=Bounds(left=542.6718, top=351.7083, right=644.0613, bottom=432.90735)",
+    "生成模型：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.12088, top=399.9656, right=472.24518, bottom=462.62723)，实际=Bounds(left=421.53156, top=402.1538, right=471.28064, bottom=458.672)",
+    "MOC3 回读：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.12088, top=399.9656, right=472.24518, bottom=462.62723)，实际=Bounds(left=421.53015, top=402.15375, right=471.27988, bottom=458.6731)",
+    "MOC3 回读：ArtMeshEyelashR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=541.52325, top=340.73523, right=644.0613, bottom=432.9073)，实际=Bounds(left=542.67365, top=351.7077, right=644.06067, bottom=432.9071)",
+    "CMO3: Atlas holds up to 3.32x the canvas resolution of 10 layers (BackHair, Brows, EyeWhiteLeft, EyeWhiteRight, Face and 5 more); Cubism Editor rebuilds the atlas from canvas-resolution layers",
+    "CMO3 回读：ArtMeshIridesL 默认姿态与 PSD 有明显偏差；期望=Bounds(left=421.12088, top=399.9656, right=472.24518, bottom=462.62723)，实际=Bounds(left=421.53015, top=402.15375, right=471.27988, bottom=458.6731)",
+    "CMO3 回读：ArtMeshEyelashR 默认姿态与 PSD 有明显偏差；期望=Bounds(left=541.52325, top=340.73523, right=644.0613, bottom=432.9073)，实际=Bounds(left=542.67365, top=351.7077, right=644.06067, bottom=432.9071)"
+  ]
+}

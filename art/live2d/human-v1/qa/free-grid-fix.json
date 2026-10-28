@@ -1,0 +1,13 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:3",
+  "history_node_id": "history-2349cfe4-88a3-4482-80a8-a722e6468b66",
+  "revision": "revision-aea69f818baa830e8701e197e62b269b76c83bcd042da71d242df6ac02228e09",
+  "applied": true,
+  "edit_count": 3,
+  "changed": [
+    "warp:DeformBodyXY",
+    "warp:DeformBodyLean",
+    "warp:DeformFaceContour"
+  ]
+}

@@ -1,0 +1,217 @@
+{
+  "scope": "objects",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+  "items": [
+    {
+      "name": "Headwear",
+      "parentId": "DeformHeadContainer",
+      "layerId": "Headwear",
+      "target": "mesh:ArtMeshHeadwear"
+    },
+    {
+      "name": "FrontHair",
+      "parentId": "DeformHairFrontPhysics",
+      "layerId": "FrontHair",
+      "target": "mesh:ArtMeshFrontHair"
+    },
+    {
+      "name": "Mouth",
+      "parentId": "DeformFaceNinePose",
+      "layerId": "Mouth",
+      "target": "mesh:ArtMeshFaceDetail"
+    },
+    {
+      "name": "Brows",
+      "parentId": "DeformBrowShapeBoth",
+      "layerId": "Brows",
+      "target": "mesh:ArtMeshEyebrow"
+    },
+    {
+      "name": "LashesRight",
+      "parentId": "DeformEyeShapeR",
+      "layerId": "LashesRight",
+      "target": "mesh:ArtMeshEyelashR"
+    },
+    {
+      "name": "LashesLeft",
+      "parentId": "DeformEyeShapeL",
+      "layerId": "LashesLeft",
+      "target": "mesh:ArtMeshEyelashL"
+    },
+    {
+      "name": "IrisRight",
+      "parentId": "DeformEyeGazeR",
+      "layerId": "IrisRight",
+      "target": "mesh:ArtMeshIridesR"
+    },
+    {
+      "name": "IrisLeft",
+      "parentId": "DeformEyeGazeL",
+      "layerId": "IrisLeft",
+      "target": "mesh:ArtMeshIridesL"
+    },
+    {
+      "name": "EyeWhiteRight",
+      "parentId": "DeformEyeShapeR",
+      "layerId": "EyeWhiteRight",
+      "target": "mesh:ArtMeshEyewhiteR"
+    },
+    {
+      "name": "EyeWhiteLeft",
+      "parentId": "DeformEyeShapeL",
+      "layerId": "EyeWhiteLeft",
+      "target": "mesh:ArtMeshEyewhiteL"
+    },
+    {
+      "name": "Face",
+      "parentId": "DeformFaceContour",
+      "layerId": "Face",
+      "target": "mesh:ArtMeshFace"
+    },
+    {
+      "name": "Body",
+      "parentId": "DeformBodyZBreath",
+      "layerId": "Body",
+      "target": "mesh:ArtMeshTopwear"
+    },
+    {
+      "name": "BackHair",
+      "parentId": "DeformHairBackPhysics",
+      "layerId": "BackHair",
+      "target": "mesh:ArtMeshBackHair"
+    },
+    {
+      "name": "身体 XY",
+      "parentId": null,
+      "target": "warp:DeformBodyXY"
+    },
+    {
+      "name": "身体前后倾与大小变",
+      "parentId": "DeformBodyXY",
+      "target": "warp:DeformBodyLean"
+    },
+    {
+      "name": "身体 Z / 呼吸",
+      "parentId": "DeformBodyLean",
+      "target": "warp:DeformBodyZBreath"
+    },
+    {
+      "name": "头部 Z 旋转",
+      "parentId": "DeformBodyZBreath",
+      "target": "rotation:DeformHeadRotation"
+    },
+    {
+      "name": "头部容器",
+      "parentId": "DeformHeadRotation",
+      "target": "warp:DeformHeadContainer"
+    },
+    {
+      "name": "面部弯曲变形器",
+      "parentId": "DeformHeadContainer",
+      "target": "warp:DeformFaceNinePose"
+    },
+    {
+      "name": "脸变形器",
+      "parentId": "DeformFaceNinePose",
+      "target": "warp:DeformFaceContour"
+    },
+    {
+      "name": "双眼",
+      "parentId": "DeformFaceNinePose",
+      "target": "warp:DeformEyes"
+    },
+    {
+      "name": "左眼变形器",
+      "parentId": "DeformEyes",
+      "target": "warp:DeformEyeShapeL"
+    },
+    {
+      "name": "右眼变形器",
+      "parentId": "DeformEyes",
+      "target": "warp:DeformEyeShapeR"
+    },
+    {
+      "name": "眉变形器",
+      "parentId": "DeformFaceNinePose",
+      "target": "warp:DeformBrowShapeBoth"
+    },
+    {
+      "name": "左瞳孔二维保持",
+      "parentId": "DeformEyeShapeL",
+      "target": "warp:DeformIrisPreserveL"
+    },
+    {
+      "name": "左视线",
+      "parentId": "DeformIrisPreserveL",
+      "target": "warp:DeformEyeGazeL"
+    },
+    {
+      "name": "右瞳孔二维保持",
+      "parentId": "DeformEyeShapeR",
+      "target": "warp:DeformIrisPreserveR"
+    },
+    {
+      "name": "右视线",
+      "parentId": "DeformIrisPreserveR",
+      "target": "warp:DeformEyeGazeR"
+    },
+    {
+      "name": "前发头部跟随",
+      "parentId": "DeformHeadContainer",
+      "target": "warp:DeformHairFrontFollow"
+    },
+    {
+      "name": "前发物理摆动",
+      "parentId": "DeformHairFrontFollow",
+      "target": "warp:DeformHairFrontPhysics"
+    },
+    {
+      "name": "后发头部跟随",
+      "parentId": "DeformHeadContainer",
+      "target": "warp:DeformHairBackFollow"
+    },
+    {
+      "name": "后发物理摆动",
+      "parentId": "DeformHairBackFollow",
+      "target": "warp:DeformHairBackPhysics"
+    },
+    {
+      "name": "头部",
+      "parentId": null,
+      "target": "part:PartHead"
+    },
+    {
+      "name": "后发",
+      "parentId": "PartHead",
+      "target": "part:PartHairBack"
+    },
+    {
+      "name": "面部",
+      "parentId": "PartHead",
+      "target": "part:PartFace"
+    },
+    {
+      "name": "前发",
+      "parentId": "PartHead",
+      "target": "part:PartHairFront"
+    },
+    {
+      "name": "头部附件",
+      "parentId": "PartHead",
+      "target": "part:PartHeadAccessories"
+    },
+    {
+      "name": "附加物",
+      "parentId": null,
+      "target": "part:PartExtra"
+    },
+    {
+      "name": "身体",
+      "parentId": null,
+      "target": "part:PartBody"
+    }
+  ],
+  "total": 39
+}

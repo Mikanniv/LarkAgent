@@ -1,0 +1,149 @@
+{
+  "scope": "parameters",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:2:1",
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "history_node_id": "history-30a2fe09-6230-4adc-9e78-8a8ba49f170d",
+  "items": [
+    {
+      "id": "ParamAngleX",
+      "name": "角度 X",
+      "min": -45.0,
+      "max": 45.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamAngleY",
+      "name": "角度 Y",
+      "min": -30.0,
+      "max": 30.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamAngleZ",
+      "name": "角度 Z",
+      "min": -30.0,
+      "max": 30.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamEyeLOpen",
+      "name": "左眼开合",
+      "min": 0.0,
+      "max": 1.0,
+      "default": 1.0
+    },
+    {
+      "id": "ParamEyeROpen",
+      "name": "右眼开合",
+      "min": 0.0,
+      "max": 1.0,
+      "default": 1.0
+    },
+    {
+      "id": "ParamEyeBallX",
+      "name": "眼球 X",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamEyeBallY",
+      "name": "眼球 Y",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamEyeBallForm",
+      "name": "果冻眼",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBrowLY",
+      "name": "左眉 Y",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBrowRY",
+      "name": "右眉 Y",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamMouthForm",
+      "name": "嘴型",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamMouthOpenY",
+      "name": "嘴巴开合",
+      "min": 0.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBodyAngleX",
+      "name": "身体角度 X",
+      "min": -10.0,
+      "max": 10.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBodyAngleY",
+      "name": "身体角度 Y",
+      "min": -10.0,
+      "max": 10.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBodyAngleZ",
+      "name": "身体角度 Z",
+      "min": -10.0,
+      "max": 10.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBodyLean",
+      "name": "身体前后倾",
+      "min": -10.0,
+      "max": 10.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamProportion",
+      "name": "大小变（头身比）",
+      "min": -10.0,
+      "max": 10.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamBreath",
+      "name": "呼吸",
+      "min": 0.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamHairFront",
+      "name": "前发摆动",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    },
+    {
+      "id": "ParamHairBack",
+      "name": "后发摆动",
+      "min": -1.0,
+      "max": 1.0,
+      "default": 0.0
+    }
+  ],
+  "total": 20
+}

@@ -1,0 +1,20 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "yunque-symmetric.moc3",
+		"Textures": [
+			"yunque-symmetric.2048/texture_00.png"
+		],
+		"DisplayInfo": "yunque-symmetric.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		}
+	]
+}

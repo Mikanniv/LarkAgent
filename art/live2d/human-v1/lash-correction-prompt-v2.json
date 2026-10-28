@@ -1,0 +1,6 @@
+{
+  "mode": "built-in image_gen edit",
+  "input": "qa/lash-right-source-0.png",
+  "prompt": "Use case: precise-object-edit. Edit target: this isolated brown upper eyelash on a wide 1536 x 751 transparent canvas. Keep the main curved upper lash, its tiny upper spikes, highlights, exact position, scale and tilt unchanged. Shorten only the overly long DOWNWARD tail at the right end: erase the tail below canvas y=650, and make its new end above that line a small naturally tapered point instead of a blunt cut. Also remove the disconnected faint parallel fragments immediately to the left of the main lash; preserve the main left tip itself. All erased pixels must become fully transparent. No new eye, no eyeball, no iris, no face, no skin, no background, no glow. Preserve the original wide-canvas registration and all untouched pixels.",
+  "output": "layers/lashes-right-clean-v2.png"
+}

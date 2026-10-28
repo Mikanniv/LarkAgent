@@ -1,0 +1,103 @@
+{
+  "warps": [
+    {
+      "name": "身体 XY",
+      "columns": 9,
+      "rows": 9
+    },
+    {
+      "name": "身体前后倾与大小变",
+      "columns": 8,
+      "rows": 9
+    },
+    {
+      "name": "身体 Z / 呼吸",
+      "columns": 4,
+      "rows": 6
+    },
+    {
+      "name": "头部容器",
+      "columns": 4,
+      "rows": 5
+    },
+    {
+      "name": "面部弯曲变形器",
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "name": "脸变形器",
+      "columns": 8,
+      "rows": 9
+    },
+    {
+      "name": "双眼",
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "name": "左眼变形器",
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "name": "右眼变形器",
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "name": "眉变形器",
+      "columns": 3,
+      "rows": 3
+    },
+    {
+      "name": "左瞳孔二维保持",
+      "columns": 3,
+      "rows": 3
+    },
+    {
+      "name": "左视线",
+      "columns": 2,
+      "rows": 2
+    },
+    {
+      "name": "右瞳孔二维保持",
+      "columns": 3,
+      "rows": 3
+    },
+    {
+      "name": "右视线",
+      "columns": 2,
+      "rows": 2
+    },
+    {
+      "name": "前发头部跟随",
+      "columns": 3,
+      "rows": 4
+    },
+    {
+      "name": "前发物理摆动",
+      "columns": 3,
+      "rows": 4
+    },
+    {
+      "name": "后发头部跟随",
+      "columns": 3,
+      "rows": 4
+    },
+    {
+      "name": "后发物理摆动",
+      "columns": 3,
+      "rows": 6
+    }
+  ],
+  "all_warp_divisions_within_free": true,
+  "texture_pages": 1,
+  "texture_size": [
+    2048,
+    2048
+  ],
+  "web_sha256": "1d95135ad15a890a03dbeb09c8210acf37beba241b9851beabb1e30b6474a900",
+  "official_editor_open_save": "pending",
+  "source_report_losses": []
+}

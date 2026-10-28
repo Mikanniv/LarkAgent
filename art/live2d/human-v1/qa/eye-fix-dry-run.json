@@ -1,0 +1,173 @@
+{
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:2",
+  "history_node_id": "history-031e76ee-0183-4baa-b25b-306e55ef726a",
+  "revision": "revision-03a52cefe98afd38628c4152d4dbfe4619aea528d6dfa108ebb4711b58ff854a",
+  "candidate_revision": "revision-122f3529bc4c474349c48f4e759139be2651a4b0ba1dcf5ab0235aba8077f2c9",
+  "dry_run": true,
+  "would_change": true,
+  "would_commit": true,
+  "changed": [],
+  "diagnostics": {
+    "safe": true,
+    "affectedTargets": [
+      "mesh:ArtMeshEyelashR",
+      "mesh:ArtMeshIridesL",
+      "mesh:ArtMeshIridesR"
+    ],
+    "affectedCoordinates": {
+      "mesh:ArtMeshEyelashR": [
+        {
+          "ParamEyeROpen": 0.0
+        },
+        {
+          "ParamEyeROpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshIridesL": [
+        {
+          "ParamEyeBallForm": -1.0
+        },
+        {
+          "ParamEyeBallForm": 0.0
+        },
+        {
+          "ParamEyeBallForm": 1.0
+        }
+      ],
+      "mesh:ArtMeshIridesR": [
+        {
+          "ParamEyeBallForm": -1.0
+        },
+        {
+          "ParamEyeBallForm": 0.0
+        },
+        {
+          "ParamEyeBallForm": 1.0
+        }
+      ]
+    },
+    "newFlipCount": 0,
+    "newDegenerateCount": 0,
+    "newInvalidTopologyCount": 0,
+    "newNonFiniteCount": 0,
+    "preexistingFlipCount": 0,
+    "preexistingDegenerateCount": 0,
+    "preexistingCollapseCount": 0,
+    "newCollapseCount": 0,
+    "violations": [],
+    "warnings": [],
+    "diagnostics": [
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 0.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyelashR",
+        "coordinate": {
+          "ParamEyeROpen": 1.0
+        },
+        "pointCount": 94,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": -1.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": 0.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesL",
+        "coordinate": {
+          "ParamEyeBallForm": 1.0
+        },
+        "pointCount": 22,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": -1.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": 0.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshIridesR",
+        "coordinate": {
+          "ParamEyeBallForm": 1.0
+        },
+        "pointCount": 20,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      }
+    ],
+    "scope": "Affected parent-local native key coordinates only; large Cartesian products are sampled. No parent composition, masks, painted coverage, physics, or aesthetics. Targets compared: only those the committed commands address, their deformer descendants, glue partners and generator-owned targets; the other targets were not compared.",
+    "coverage": {
+      "mode": "scoped",
+      "checkedTargets": 3,
+      "totalTargets": 32
+    }
+  }
+}

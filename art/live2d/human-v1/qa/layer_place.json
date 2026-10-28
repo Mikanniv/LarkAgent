@@ -1,0 +1,13 @@
+{
+  "project_id": "2e4e90b8-50ea-4b05-8a3f-de89070852b5",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:1:10",
+  "history_node_id": "history-a3775966-f8b4-4566-a545-743a51f17666",
+  "revision": "revision-7e6ae34e3117c084a631c3483cc9ed6c197b184e99d11f2a823ab167e55d3dc4",
+  "applied": true,
+  "edit_count": 1,
+  "changed": [
+    "BackHairFilled",
+    "mesh:ArtMeshFrontHair2",
+    "layer:BackHairFilled"
+  ]
+}

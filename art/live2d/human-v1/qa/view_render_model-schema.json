@@ -1,0 +1,1124 @@
+{
+  "id": "view_render_model",
+  "description": "Evaluate a rig pose, composite selected layers into one PNG, and render only an explicit canvas rectangle or a focused object region. Returns reversible pixel-to-canvas placement metadata. To read coordinates off the reference image for drawing, render a canvas_rect with include_layer_ids [], reference {mode: under, opacity: 1} and grid; outline_material_ids lays drawings over it.",
+  "kind": "query",
+  "workspace_bound": false,
+  "batchable": false,
+  "job_backed": false,
+  "read_only": true,
+  "idempotent": true,
+  "destructive": false,
+  "request_schema": {
+    "type": "object",
+    "properties": {
+      "annotate_deformer_ids": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "string"
+        },
+        "description": "Warp IDs: posed lattice, name and stable ID; [] is a clean image"
+      },
+      "annotate_path_ids": {
+        "type": "array",
+        "maxItems": 32,
+        "items": {
+          "type": "string"
+        },
+        "description": "Deform Path IDs to overlay on the mesh (e.g. ['path_1'] or ['*'] for all paths, or ['L2']/['L3']); [] is a clean image"
+      },
+      "annotate_path_width": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to draw influence width boundaries (outer falloff dashed circle) around deform path control points"
+      },
+      "annotate_path_hardness": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to draw hardness boundaries (inner core solid circle) around deform path control points"
+      },
+      "annotate_path_radius": {
+        "type": "boolean",
+        "default": false,
+        "description": "Legacy alias for enabling both annotate_path_width and annotate_path_hardness"
+      },
+      "point_indices": {
+        "type": "boolean",
+        "default": false
+      },
+      "reference": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Draw the reference image (layout_set_reference) with the model: over it, under it, or difference - black where they match, with referenceDifference the mean difference 0..1 over pixels either covers; opacity overrides the reference's own (over and under)",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "over",
+              "under",
+              "difference"
+            ]
+          },
+          "opacity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "density": {
+        "type": "boolean",
+        "default": false,
+        "description": "Texture density heatmap: tint each layer by its texture pixels per canvas unit - blue at 1/4 or less, green at 1, orange at 4 or more - and list them in texelDensity"
+      },
+      "parameters": {
+        "type": "object",
+        "description": "Cubism parameter ID to value, for example {ParamAngleX: 10.0}. Omitted parameters render at their defaults, not at the authored pose; read workspace_inspect scope=preview and pass its values to start from it. Rendering never changes the authored pose.",
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "include_layer_ids": {
+        "type": "array",
+        "description": "Exact layer IDs to composite. Omit to follow the active canvas's local visibility, so layers the user hid, layers under a hidden deformer and layers outside a solo are missing; pass IDs for a result independent of the canvas. [] renders no model layers.",
+        "items": {
+          "type": "string"
+        }
+      },
+      "annotate_layer_ids": {
+        "type": "array",
+        "description": "Layer IDs to label and outline at their deformed positions",
+        "items": {
+          "type": "string"
+        }
+      },
+      "viewport": {
+        "type": "object",
+        "description": "Required camera: {mode:canvas_rect,left,top,width,height} or {mode:focus_layers,layer_ids,object_scale,aspect_ratio}",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "canvas_rect",
+              "focus_layers"
+            ]
+          },
+          "left": {
+            "type": "number"
+          },
+          "top": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "object_scale": {
+            "type": "number"
+          },
+          "aspect_ratio": {
+            "type": "number"
+          },
+          "layer_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "background": {
+        "type": "string",
+        "enum": [
+          "transparent",
+          "checkerboard"
+        ],
+        "default": "transparent"
+      },
+      "target_long_edge": {
+        "type": "integer",
+        "minimum": 128,
+        "maximum": 4096,
+        "default": 1024,
+        "description": "Requested PNG long edge in pixels; independent of canvas units"
+      },
+      "max_bytes": {
+        "type": "integer",
+        "minimum": 65536,
+        "maximum": 16777216,
+        "default": 4194304
+      },
+      "grid": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "Draw grid lines every so many canvas units, labelled with canvas coordinates along the top and left; a step too fine for the view is coarsened (x2, x5, x10...) and gridStep says the step drawn"
+      },
+      "outline_material_ids": {
+        "type": "array",
+        "maxItems": 24,
+        "items": {
+          "type": "string"
+        },
+        "description": "Material items with a place on this canvas (drawings from material_draw, crops) whose opaque edge is traced over the view where they sit, each in its own colour with its id; compares a drawing's shape with the reference without placing it"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "viewport"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "ok": {},
+      "operation": {},
+      "data": {},
+      "error": {}
+    },
+    "oneOf": [
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "operation": {
+            "type": "string",
+            "const": "view_render_model"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "viewId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revisionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mimeType": {
+                "type": "string",
+                "const": "image/png"
+              },
+              "pngBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "sha256": {
+                "type": "string",
+                "minLength": 1
+              },
+              "originalWidth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "originalHeight": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "renderedWidth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "renderedHeight": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "scale": {
+                "type": "number"
+              },
+              "appliedParameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "outOfRangeParameters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "value",
+                    "min",
+                    "max"
+                  ]
+                }
+              },
+              "includedLayerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "annotatedLayerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "annotatedDeformerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "annotatedPathIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "annotatedPathWidth": {
+                "type": "boolean"
+              },
+              "annotatedPathHardness": {
+                "type": "boolean"
+              },
+              "annotatedPathRadius": {
+                "type": "boolean"
+              },
+              "pointIndices": {
+                "type": "boolean"
+              },
+              "objectIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "canvasRect": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "left": {
+                    "type": "number"
+                  },
+                  "top": {
+                    "type": "number"
+                  },
+                  "right": {
+                    "type": "number"
+                  },
+                  "bottom": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "left",
+                  "top",
+                  "right",
+                  "bottom"
+                ]
+              },
+              "spatial": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "spatialReferenceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "coordinateSpace": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pixelOrigin": {
+                    "type": "string",
+                    "const": "top_left_edge"
+                  },
+                  "pixelWidth": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "pixelHeight": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "pixelAspectRatio": {
+                    "type": "integer",
+                    "const": 1
+                  },
+                  "colorSpace": {
+                    "type": "string",
+                    "const": "sRGB"
+                  },
+                  "alphaMode": {
+                    "type": "string",
+                    "const": "straight"
+                  },
+                  "canvasWidth": {
+                    "type": "number"
+                  },
+                  "canvasHeight": {
+                    "type": "number"
+                  },
+                  "canvasUnitsPerPixelX": {
+                    "type": "number"
+                  },
+                  "canvasUnitsPerPixelY": {
+                    "type": "number"
+                  },
+                  "requestedViewRect": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "left": {
+                        "type": "number"
+                      },
+                      "top": {
+                        "type": "number"
+                      },
+                      "right": {
+                        "type": "number"
+                      },
+                      "bottom": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "left",
+                      "top",
+                      "right",
+                      "bottom",
+                      "width",
+                      "height"
+                    ]
+                  },
+                  "viewRect": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "left": {
+                        "type": "number"
+                      },
+                      "top": {
+                        "type": "number"
+                      },
+                      "right": {
+                        "type": "number"
+                      },
+                      "bottom": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "left",
+                      "top",
+                      "right",
+                      "bottom",
+                      "width",
+                      "height"
+                    ]
+                  },
+                  "focusRect": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "left": {
+                        "type": "number"
+                      },
+                      "top": {
+                        "type": "number"
+                      },
+                      "right": {
+                        "type": "number"
+                      },
+                      "bottom": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "left",
+                      "top",
+                      "right",
+                      "bottom",
+                      "width",
+                      "height"
+                    ]
+                  },
+                  "focusLayerIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "objectScale": {
+                    "type": "number"
+                  },
+                  "pixelToCanvas": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 6,
+                    "maxItems": 6
+                  },
+                  "canvasToPixel": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 6,
+                    "maxItems": 6
+                  },
+                  "placementRule": {
+                    "type": "string",
+                    "const": "map_full_png_to_view_rect_preserve_aspect"
+                  }
+                },
+                "required": [
+                  "spatialReferenceId",
+                  "coordinateSpace",
+                  "pixelOrigin",
+                  "pixelWidth",
+                  "pixelHeight",
+                  "pixelAspectRatio",
+                  "colorSpace",
+                  "alphaMode",
+                  "canvasWidth",
+                  "canvasHeight",
+                  "canvasUnitsPerPixelX",
+                  "canvasUnitsPerPixelY",
+                  "requestedViewRect",
+                  "viewRect",
+                  "focusLayerIds",
+                  "pixelToCanvas",
+                  "canvasToPixel",
+                  "placementRule"
+                ]
+              },
+              "referenceMode": {
+                "type": "string",
+                "enum": [
+                  "over",
+                  "under",
+                  "difference"
+                ]
+              },
+              "referenceDifference": {
+                "type": "number"
+              },
+              "texelDensity": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "gridStep": {
+                "type": "number"
+              },
+              "outlinedMaterialIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "required": [
+              "viewId",
+              "revisionId",
+              "kind",
+              "mimeType",
+              "pngBytes",
+              "sha256",
+              "originalWidth",
+              "originalHeight",
+              "renderedWidth",
+              "renderedHeight",
+              "scale",
+              "appliedParameters",
+              "outOfRangeParameters",
+              "includedLayerIds",
+              "annotatedLayerIds",
+              "annotatedDeformerIds",
+              "annotatedPathIds",
+              "annotatedPathWidth",
+              "annotatedPathHardness",
+              "annotatedPathRadius",
+              "pointIndices",
+              "objectIds",
+              "canvasRect",
+              "spatial"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "data"
+        ]
+      },
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "operation": {
+            "type": "string",
+            "const": "view_render_model"
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {},
+              "message": {},
+              "diagnostics": {},
+              "field": {},
+              "operation": {},
+              "edit_index": {},
+              "edit_operation": {},
+              "layer_ids": {},
+              "expected_state": {},
+              "actual_state": {},
+              "expected_project": {},
+              "actual_project": {}
+            },
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "geometry_unsafe"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "diagnostics": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "safe": {
+                        "type": "boolean"
+                      },
+                      "affectedTargets": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "affectedCoordinates": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "violations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "warnings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "GEOMETRY_NON_FINITE",
+                                "GEOMETRY_INVALID_TOPOLOGY",
+                                "GEOMETRY_NEW_FLIP",
+                                "GEOMETRY_NEW_DEGENERATE",
+                                "GEOMETRY_NEW_COLLAPSE",
+                                "GEOMETRY_SAMPLING_LIMIT"
+                              ]
+                            },
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "triangleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "minItems": 1,
+                              "maxItems": 32
+                            },
+                            "detail": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "target",
+                            "coordinate"
+                          ]
+                        }
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "coverage": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "full",
+                              "scoped"
+                            ]
+                          },
+                          "checkedTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalTargets": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "checkedTargets",
+                          "totalTargets"
+                        ]
+                      },
+                      "diagnostics": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "coordinate": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "removed",
+                                "invalid_topology",
+                                "finite"
+                              ]
+                            },
+                            "detail": {
+                              "type": "string"
+                            },
+                            "pointCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "preexistingCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateFlipCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateDegenerateCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "candidateCollapseCount": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "target"
+                          ]
+                        }
+                      },
+                      "newFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newInvalidTopologyCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newNonFiniteCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingFlipCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingDegenerateCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "preexistingCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "newCollapseCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "safe",
+                      "affectedTargets",
+                      "affectedCoordinates",
+                      "violations",
+                      "warnings",
+                      "scope",
+                      "coverage",
+                      "diagnostics",
+                      "newFlipCount",
+                      "newDegenerateCount",
+                      "newInvalidTopologyCount",
+                      "newNonFiniteCount",
+                      "preexistingFlipCount",
+                      "preexistingDegenerateCount",
+                      "preexistingCollapseCount",
+                      "newCollapseCount"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "diagnostics"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_request"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "output_contract"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "field",
+                  "operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "invalid_edit"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "edit_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "edit_operation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "edit_index",
+                  "edit_operation"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "tile_collides"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "layer_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "layer_ids"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "state_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_state": {
+                    "type": "string"
+                  },
+                  "actual_state": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_state",
+                  "actual_state"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "const": "project_conflict"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expected_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "actual_project": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "expected_project",
+                  "actual_project"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "request_id_reused",
+                      "unsaved_changes",
+                      "workspace_busy",
+                      "permission_denied",
+                      "io_error",
+                      "invalid_argument",
+                      "invalid_state",
+                      "operation_failed"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "operation",
+          "error"
+        ]
+      }
+    ],
+    "required": [
+      "ok",
+      "operation"
+    ]
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "format": "psd2live-layout",
+  "version": 1,
+  "name": "Yunque Human v1",
+  "canvas": {
+    "width": 1024,
+    "height": 1536
+  },
+  "layers": [
+    {
+      "id": "BackHair",
+      "name": "BackHair",
+      "image": {
+        "path": "layers/hair-back-v2.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 160,
+        "top": 22,
+        "width": 665.6,
+        "height": 952.3199999999999
+      },
+      "tags": [
+        "hair",
+        "back"
+      ]
+    },
+    {
+      "id": "Body",
+      "name": "Body",
+      "image": {
+        "path": "layers/body-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "width": 1024,
+        "height": 1536
+      },
+      "tags": [
+        "top"
+      ]
+    },
+    {
+      "id": "Face",
+      "name": "Face",
+      "image": {
+        "path": "layers/face-base-v2.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 123,
+        "top": 3,
+        "width": 757.76,
+        "height": 1198.08
+      },
+      "tags": [
+        "face"
+      ]
+    },
+    {
+      "id": "EyeWhiteLeft",
+      "name": "EyeWhiteLeft",
+      "image": {
+        "path": "layers/eye-left-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 92,
+        "top": 74,
+        "width": 819.2,
+        "height": 1259.52
+      },
+      "tags": [
+        "eye",
+        "white",
+        "left"
+      ]
+    },
+    {
+      "id": "EyeWhiteRight",
+      "name": "EyeWhiteRight",
+      "image": {
+        "path": "layers/eye-right-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 277,
+        "top": 168,
+        "width": 501.76,
+        "height": 890.8799999999999
+      },
+      "tags": [
+        "eye",
+        "white",
+        "right"
+      ]
+    },
+    {
+      "id": "IrisLeft",
+      "name": "IrisLeft",
+      "image": {
+        "path": "layers/iris-left-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 264,
+        "top": 222,
+        "width": 440.32,
+        "height": 691.2
+      },
+      "tags": [
+        "eye",
+        "iris",
+        "left"
+      ]
+    },
+    {
+      "id": "IrisRight",
+      "name": "IrisRight",
+      "image": {
+        "path": "layers/iris-right-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 313,
+        "top": 154,
+        "width": 481.28,
+        "height": 691.2
+      },
+      "tags": [
+        "eye",
+        "iris",
+        "right"
+      ]
+    },
+    {
+      "id": "LashesLeft",
+      "name": "LashesLeft",
+      "image": {
+        "path": "layers/lashes-left-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 23,
+        "top": -48,
+        "width": 1003.52,
+        "height": 1536
+      },
+      "tags": [
+        "eye",
+        "lash",
+        "left"
+      ]
+    },
+    {
+      "id": "LashesRight",
+      "name": "LashesRight",
+      "image": {
+        "path": "qa/lash-right-source-0.png",
+        "width": 1536,
+        "height": 751
+      },
+      "rect": {
+        "left": 429.25,
+        "top": 222.75,
+        "width": 452.25,
+        "height": 221.25
+      },
+      "tags": [
+        "eye",
+        "lash",
+        "right"
+      ]
+    },
+    {
+      "id": "Brows",
+      "name": "Brows",
+      "image": {
+        "path": "layers/brows-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 50,
+        "top": 67,
+        "width": 921.6,
+        "height": 998.4000000000001
+      },
+      "tags": [
+        "brow"
+      ]
+    },
+    {
+      "id": "Mouth",
+      "name": "Mouth",
+      "image": {
+        "path": "layers/mouth-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "width": 1024,
+        "height": 1536
+      },
+      "tags": [
+        "face",
+        "detail"
+      ]
+    },
+    {
+      "id": "FrontHair",
+      "name": "FrontHair",
+      "image": {
+        "path": "layers/hair-front-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 154,
+        "top": 2,
+        "width": 675.84,
+        "height": 1013.76
+      },
+      "tags": [
+        "hair",
+        "front"
+      ]
+    },
+    {
+      "id": "Headwear",
+      "name": "Headwear",
+      "image": {
+        "path": "layers/ornament-v1.draft.png",
+        "width": 1024,
+        "height": 1536
+      },
+      "rect": {
+        "left": 257,
+        "top": 66,
+        "width": 665.6,
+        "height": 921.5999999999999
+      },
+      "tags": [
+        "headwear"
+      ]
+    }
+  ]
+}

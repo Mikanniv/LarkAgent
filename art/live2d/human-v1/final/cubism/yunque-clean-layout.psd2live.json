@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "model": "yunque-clean-layout",
+  "generator": "PSD2Live 3.5.2",
+  "runtimeTarget": "Cubism50",
+  "mocVersion": 5,
+  "cmo3TargetVersionNo": 5000000,
+  "cmo3FileFormatVersion": "500000005",
+  "canvas": {"width":1024,"height":1536},
+  "config": {"atlasSize":2048,"meshSpacing":32,"headTurnStrength":0.55,"bodyStrength":0.0,"meshOnly":false,"generateDeformers":true,"exportMotions":false},
+  "faceRig": {"algorithm":"perspective-parallelogram-nine-pose-v2","angleX":[-45,0,45],"angleY":[-30,0,30],"initialAngleZ":-14.398785,"centerX":510.33603,"centerY":393.755,"radiusX":261.47757,"radiusY":270.25262},
+  "deformerHierarchy": {"head":"DeformHeadContainer","face":"DeformFaceNinePose","frontHair":["DeformHairFrontFollow","DeformHairFrontPhysics"],"backHair":["DeformHairBackFollow","DeformHairBackPhysics"]},
+  "physics": {"enabled":false,"frontHair":false,"backHair":false,"eyeJelly":false,"groups":[]},
+  "summary": {"layers":13,"drawables":13,"deformers":19,"parameters":20,"atlasPages":1},
+  "layers": [
+    {"source":"BackHair","type":"preset","tag":"back hair","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshBackHair"},
+  {"source":"Body","type":"preset","tag":"topwear","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshTopwear"},
+  {"source":"Face","type":"preset","tag":"face","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFace"},
+  {"source":"EyeWhiteLeft","type":"preset","tag":"eyewhite","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshEyewhiteL"},
+  {"source":"EyeWhiteRight","type":"preset","tag":"eyewhite","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshEyewhiteR"},
+  {"source":"IrisLeft","type":"preset","tag":"irides","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshIridesL"},
+  {"source":"IrisRight","type":"preset","tag":"irides","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshIridesR"},
+  {"source":"LashesLeft","type":"preset","tag":"eyelash","side":"LEFT","parameter":"","switchId":0,"drawable":"ArtMeshEyelashL"},
+  {"source":"LashesRight","type":"preset","tag":"eyelash","side":"RIGHT","parameter":"","switchId":0,"drawable":"ArtMeshEyelashR"},
+  {"source":"Brows","type":"preset","tag":"eyebrow","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshEyebrow"},
+  {"source":"Mouth","type":"preset","tag":"facedetail","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFaceDetail"},
+  {"source":"FrontHair","type":"preset","tag":"front hair","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshFrontHair"},
+  {"source":"Headwear","type":"preset","tag":"headwear","side":"NONE","parameter":"","switchId":0,"drawable":"ArtMeshHeadwear"}
+  ],
+  "warnings": ["缺少 mouth/mouth_open/mouth_close：口型参数不会绑定到任何画元。","CMO3: Atlas holds up to 2.85x the canvas resolution of 10 layers (BackHair, Brows, EyeWhiteLeft, EyeWhiteRight, Face and 5 more); Cubism Editor rebuilds the atlas from canvas-resolution layers"]
+}

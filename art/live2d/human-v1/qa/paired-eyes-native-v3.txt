@@ -1,0 +1,8 @@
+Eyewhite: same source art, same vertex/UV inventory, 47 vertices; reflected on tilted facial midline
+Eyelash: same source art, same vertex/UV inventory, 48 vertices; reflected on tilted facial midline
+Irides: same source art, same vertex/UV inventory, 22 vertices; translated without reversing highlights
+Runtime reuses 1 original atlas page(s) byte-for-byte; no downsampling of the character.
+Native layer patches reconstructed from retained atlas pixels; original high-resolution source artwork remains in the v2 project.
+ArtMeshEyewhiteR: native roundtrip placement error 0.0 px
+ArtMeshEyelashR: native roundtrip placement error 0.0 px
+ArtMeshIridesR: native roundtrip placement error 0.0 px

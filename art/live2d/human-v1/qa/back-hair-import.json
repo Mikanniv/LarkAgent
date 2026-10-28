@@ -1,0 +1,11 @@
+{
+  "project_id": "2e4e90b8-50ea-4b05-8a3f-de89070852b5",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:1:9",
+  "history_node_id": "history-7a2d222f-29f4-4fa3-80a5-9127d18043ee",
+  "revision": "revision-df19958f0631acf1301d1d9136baadccc8f4e91a85981e074fdab0438e03015d",
+  "applied": true,
+  "edit_count": 1,
+  "changed": [
+    "material:mat_99d63749cd23"
+  ]
+}

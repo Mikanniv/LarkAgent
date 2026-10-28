@@ -1,0 +1,184 @@
+{
+  "width": 1024,
+  "height": 1536,
+  "status": "neutral-alignment-review-not-rigged",
+  "layers": [
+    {
+      "name": "BackHair",
+      "file": "layers/hair-back-v1.draft.png",
+      "role": "back_hair",
+      "matrix": [
+        0.65,
+        0,
+        0,
+        0.62,
+        160,
+        22
+      ]
+    },
+    {
+      "name": "Body",
+      "file": "layers/body-v1.draft.png",
+      "role": "topwear",
+      "matrix": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Face",
+      "file": "layers/face-base-v2.draft.png",
+      "role": "face",
+      "matrix": [
+        0.74,
+        0,
+        0,
+        0.78,
+        123,
+        3
+      ]
+    },
+    {
+      "name": "EyeWhiteLeft",
+      "file": "layers/eye-left-v1.draft.png",
+      "role": "eyewhite",
+      "side": "left",
+      "matrix": [
+        0.8,
+        0,
+        0,
+        0.82,
+        92,
+        74
+      ]
+    },
+    {
+      "name": "EyeWhiteRight",
+      "file": "layers/eye-right-v1.draft.png",
+      "role": "eyewhite",
+      "side": "right",
+      "matrix": [
+        0.49,
+        0,
+        0,
+        0.58,
+        277,
+        168
+      ]
+    },
+    {
+      "name": "IrisLeft",
+      "file": "layers/iris-left-v1.draft.png",
+      "role": "irides",
+      "side": "left",
+      "matrix": [
+        0.43,
+        0,
+        0,
+        0.45,
+        264,
+        222
+      ],
+      "mask": "EyeWhiteLeft"
+    },
+    {
+      "name": "IrisRight",
+      "file": "layers/iris-right-v1.draft.png",
+      "role": "irides",
+      "side": "right",
+      "matrix": [
+        0.47,
+        0,
+        0,
+        0.45,
+        313,
+        154
+      ],
+      "mask": "EyeWhiteRight"
+    },
+    {
+      "name": "LashesLeft",
+      "file": "layers/lashes-left-v1.draft.png",
+      "role": "eyelash",
+      "side": "left",
+      "matrix": [
+        0.98,
+        0,
+        0,
+        1,
+        23,
+        -48
+      ]
+    },
+    {
+      "name": "LashesRight",
+      "file": "layers/lashes-right-v1.draft.png",
+      "role": "eyelash",
+      "side": "right",
+      "matrix": [
+        0.75,
+        0,
+        0,
+        1.25,
+        160,
+        -86
+      ]
+    },
+    {
+      "name": "Brows",
+      "file": "layers/brows-v1.draft.png",
+      "role": "eyebrow",
+      "matrix": [
+        0.9,
+        0,
+        0,
+        0.65,
+        50,
+        67
+      ]
+    },
+    {
+      "name": "Mouth",
+      "file": "layers/mouth-v1.draft.png",
+      "role": "mouth",
+      "matrix": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "FrontHair",
+      "file": "layers/hair-front-v1.draft.png",
+      "role": "front_hair",
+      "matrix": [
+        0.66,
+        0,
+        0,
+        0.66,
+        154,
+        2
+      ]
+    },
+    {
+      "name": "Headwear",
+      "file": "layers/ornament-v1.draft.png",
+      "role": "headwear",
+      "matrix": [
+        0.65,
+        0,
+        0,
+        0.6,
+        257,
+        66
+      ]
+    }
+  ]
+}

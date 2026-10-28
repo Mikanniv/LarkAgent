@@ -1,0 +1,25 @@
+{
+  "project_id": "2e4e90b8-50ea-4b05-8a3f-de89070852b5",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:1:5",
+  "revision": "revision-a2c3ec32f7f0e624f8e611d72341f508bf53f83bcbec830e65db9189d612fc5a",
+  "layer_id": "LashesRight",
+  "can_split": true,
+  "count": 3,
+  "components": [
+    {
+      "index": 0,
+      "canvas_x": 596.049,
+      "canvas_y": 379.34903
+    },
+    {
+      "index": 1,
+      "canvas_x": 603.2046,
+      "canvas_y": 460.0428
+    },
+    {
+      "index": 2,
+      "canvas_x": 594.82294,
+      "canvas_y": 464.0865
+    }
+  ]
+}

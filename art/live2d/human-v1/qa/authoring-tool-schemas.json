@@ -1,0 +1,4204 @@
+{
+  "workspace_inspect": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "project",
+        "settings",
+        "preview",
+        "generation",
+        "objects",
+        "layers",
+        "parameters",
+        "physics",
+        "swings",
+        "paths",
+        "simulations",
+        "interiors",
+        "vertex_groups"
+      ]
+    },
+    "query": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    }
+  },
+  "rig_deform": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "delta": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "translate"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "delta"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "factors": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "pivot": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "scale"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "factors"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "degrees": {
+                      "type": "number"
+                    },
+                    "pivot": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "rotate"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "degrees"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "degrees": {
+                      "type": "number"
+                    },
+                    "root": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "tip": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "root_pin": {
+                      "type": "number"
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "arc"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "degrees",
+                    "root",
+                    "tip"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y"
+                      ]
+                    },
+                    "controls": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "curve"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "controls"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 1,
+                      "maxItems": 16
+                    },
+                    "to": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 1,
+                      "maxItems": 16
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "landmarks"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "from",
+                    "to"
+                  ]
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "selection": {
+            "type": "object",
+            "properties": {
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "center": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "line": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "radius": {
+                "type": "number"
+              },
+              "feather": {
+                "type": "number"
+              },
+              "hardness": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "target",
+          "key",
+          "operations"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 128
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "keyform_apply": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "key": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "op": {
+                "type": "string",
+                "const": "seed"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "op",
+              "target",
+              "key"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "key": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "from": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "destination": {
+                "type": "string"
+              },
+              "channels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "maxItems": 8
+              },
+              "op": {
+                "type": "string",
+                "const": "copy"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "op",
+              "target",
+              "from",
+              "key"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "key": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "channels": {
+                "type": "object",
+                "properties": {
+                  "opacity": {
+                    "type": "number"
+                  },
+                  "drawOrder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "multiplyColor": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "screenColor": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "glueIntensity": {
+                    "type": "number"
+                  },
+                  "flipX": {
+                    "type": "boolean"
+                  },
+                  "flipY": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "geometry": {
+                "type": "object",
+                "properties": {
+                  "originX": {
+                    "type": "number"
+                  },
+                  "originY": {
+                    "type": "number"
+                  },
+                  "angle": {
+                    "type": "number"
+                  },
+                  "scale": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "op": {
+                "type": "string",
+                "const": "set"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "op",
+              "target",
+              "key"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "parameter": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "channel": {
+                "type": "string"
+              },
+              "op": {
+                "type": "string",
+                "const": "delete"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "op",
+              "target",
+              "parameter"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "Source mesh, warp or rotation."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Destination of the same kind; default the target; \"auto\" pairs the opposite-side object by L/R in its id or name."
+              },
+              "from": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "description": "Source key. Omit with all_keys."
+              },
+              "key": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "description": "Destination key; default from with reflected parameters flipped about their default and sided parameters (ParamEyeLOpen) swapped for their opposite where the destination binds it or neither, missing destination axes at default."
+              },
+              "all_keys": {
+                "type": "boolean",
+                "description": "Mirror every keyform cell of the target. On one object only the keys on side are sources."
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "negative"
+                ],
+                "description": "With all_keys on one object: which side of the first reflected parameter off its default is copied over; default positive."
+              },
+              "axis_x": {
+                "type": "number",
+                "description": "Canvas x of the mirror line; default midway between the two objects' rest centers (one object: its own)."
+              },
+              "reflect": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0,
+                "maxItems": 64,
+                "description": "Parameters whose value flips about the default; default the symmetric-range ones that are a 2D pad's horizontal axis or end in X or Z."
+              },
+              "channels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "geometry",
+                    "opacity",
+                    "drawOrder",
+                    "multiplyColor",
+                    "screenColor",
+                    "glueIntensity",
+                    "flipX",
+                    "flipY"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 8,
+                "description": "What to carry over: the reflected geometry and channel values as they are at from; default geometry only."
+              },
+              "op": {
+                "type": "string",
+                "const": "mirror"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "op",
+              "target"
+            ]
+          }
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 128
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "workspace_apply_edits": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "edits": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "atlas_pack",
+              "atlas_set_budget",
+              "atlas_set_tile",
+              "canvas_deform_stroke",
+              "canvas_glue",
+              "canvas_glue_edit",
+              "canvas_rotation",
+              "canvas_topology",
+              "canvas_warp",
+              "interior_delete",
+              "interior_put",
+              "keyform_apply",
+              "layer_add_from_asset",
+              "layer_classify",
+              "layer_delete",
+              "layer_draw_order",
+              "layer_finalize_placement",
+              "layer_mark_reference",
+              "layer_mesh_rebuild",
+              "layer_mesh_structure",
+              "layer_mesh_update",
+              "layer_pin_reference",
+              "layer_place",
+              "layer_reorder",
+              "layer_replace_image",
+              "layer_restore",
+              "layer_set_canvas_rect",
+              "layer_set_pixel_density",
+              "layer_set_placement",
+              "layer_set_variant",
+              "layer_tag",
+              "layer_transform",
+              "layout_add_reference",
+              "layout_order_reference",
+              "layout_set_drawing_kit",
+              "layout_set_reference",
+              "material_add",
+              "material_adjust",
+              "material_adopt_layers",
+              "material_crop",
+              "material_delete",
+              "material_draw",
+              "material_folder_create",
+              "material_fork",
+              "material_mark_reference",
+              "material_move",
+              "material_paint",
+              "material_peel",
+              "material_rename",
+              "material_set_pixels",
+              "material_set_placement",
+              "material_set_resolution",
+              "material_tag",
+              "material_unlink",
+              "model_apply_preset",
+              "motion_create",
+              "motion_delete",
+              "motion_delete_key",
+              "motion_delete_keys",
+              "motion_duplicate",
+              "motion_move_keys",
+              "motion_paste_keys",
+              "motion_pose",
+              "motion_preset",
+              "motion_properties",
+              "motion_put",
+              "motion_remove_curve",
+              "motion_rename",
+              "motion_replace_keys",
+              "motion_seed_builtin",
+              "motion_set_key",
+              "object_edit_appearance",
+              "parameter_create",
+              "parameter_delete",
+              "parameter_update",
+              "path_deform",
+              "path_delete",
+              "path_put",
+              "physics_apply_preset",
+              "physics_config",
+              "physics_delete",
+              "physics_fit",
+              "physics_put",
+              "reference_place_grid",
+              "reference_set_mode",
+              "reference_set_opacity",
+              "rig_create_warp",
+              "rig_deform",
+              "rig_edit_structure",
+              "rig_generate",
+              "rig_update_generation",
+              "settings_update",
+              "simulation_bake",
+              "simulation_clear_bake",
+              "simulation_delete",
+              "simulation_put",
+              "skeleton_auto",
+              "skeleton_bind",
+              "skeleton_bone",
+              "skeleton_delete",
+              "skeleton_enable",
+              "skeleton_move",
+              "skeleton_put",
+              "skeleton_remove",
+              "source_paint_brush",
+              "source_paint_bucket",
+              "source_paint_clear",
+              "source_paint_eraser",
+              "source_paint_pencil",
+              "source_paint_shape",
+              "source_split_components",
+              "source_split_depth",
+              "source_split_polygon",
+              "swing_delete",
+              "swing_put",
+              "vertex_group_paint",
+              "vertex_group_update",
+              "warp_bezier_anchor",
+              "warp_bezier_divisions",
+              "warp_bezier_handle",
+              "warp_bezier_reset",
+              "warp_set_topology"
+            ]
+          },
+          "request": {
+            "type": "object",
+            "description": "The member operation's business fields, without request_id, project_id or state; workspace_get_operation describes them."
+          }
+        },
+        "required": [
+          "operation",
+          "request"
+        ]
+      },
+      "description": "Ordered document edits. Each request uses its single operation's business fields, without state/project_id/request_id. Later edits see earlier candidates. All edits commit together or none do."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "workspace_preview_edits": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "edits": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "canvas_deform_stroke",
+              "canvas_glue",
+              "canvas_rotation",
+              "canvas_topology",
+              "canvas_warp",
+              "keyform_apply",
+              "object_edit_appearance",
+              "path_deform",
+              "rig_deform",
+              "rig_edit_structure"
+            ]
+          },
+          "request": {
+            "type": "object",
+            "description": "The member operation's business fields, without request_id, project_id or state; workspace_get_operation describes them."
+          }
+        },
+        "required": [
+          "operation",
+          "request"
+        ]
+      },
+      "description": "Ordered document edits. Each request uses its single operation's business fields, without state/project_id/request_id. Later edits see earlier candidates. All edits commit together or none do."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "author_axis": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable Cubism ID. Creation accepts 1-64 ASCII letters/digits/underscores and must start with a letter"
+        },
+        "name": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number",
+          "default": -1
+        },
+        "max": {
+          "type": "number",
+          "default": 1
+        },
+        "default": {
+          "type": "number",
+          "default": 0
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "blend_shape"
+          ],
+          "default": "normal"
+        },
+        "repeat": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "description": "The parameter to author. Range fields apply only when it is created."
+    },
+    "shapes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "type": "string",
+            "minLength": 1,
+            "description": "mesh:<id> or warp:<id>"
+          },
+          "value": {
+            "type": "number",
+            "description": "Parameter value this shape belongs to; not the default."
+          },
+          "key": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Values of other axes bound to the target, for a combination key; omitted axes use their defaults."
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "delta": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "translate"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "delta"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "factors": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "pivot": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "scale"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "factors"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "degrees": {
+                      "type": "number"
+                    },
+                    "pivot": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "rotate"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "degrees"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "degrees": {
+                      "type": "number"
+                    },
+                    "root": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "tip": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "root_pin": {
+                      "type": "number"
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "arc"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "degrees",
+                    "root",
+                    "tip"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y"
+                      ]
+                    },
+                    "controls": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "curve"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "controls"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 1,
+                      "maxItems": 16
+                    },
+                    "to": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 1,
+                      "maxItems": 16
+                    },
+                    "selection": {
+                      "type": "object",
+                      "properties": {
+                        "rect": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "center": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "line": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        "radius": {
+                          "type": "number"
+                        },
+                        "feather": {
+                          "type": "number"
+                        },
+                        "hardness": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "landmarks"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "from",
+                    "to"
+                  ]
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "selection": {
+            "type": "object",
+            "properties": {
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "center": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "line": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "radius": {
+                "type": "number"
+              },
+              "feather": {
+                "type": "number"
+              },
+              "hardness": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "target",
+          "value",
+          "operations"
+        ]
+      }
+    },
+    "mirror": {
+      "type": "boolean",
+      "description": "Also write every shape reflected across the canvas at the opposite value: a turn authored to one side makes the other. Needs the opposite value in range."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "author_physics": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "array",
+      "maxItems": 16,
+      "description": "What moves the root. Weight is % of the normalized range",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "x",
+              "angle"
+            ],
+            "description": "x: sideways travel; angle: tilt"
+          },
+          "reflect": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "parameter"
+        ]
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "vertex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16
+          },
+          "scale": {
+            "type": "number",
+            "description": "Parameter units per radian of the segment's swing"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reflect": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "parameter"
+        ]
+      }
+    },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "description": "Root to tip; omitted fields keep the current segment's",
+      "items": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "mobility": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Shakiness"
+          },
+          "delay": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Reaction speed; higher reacts faster"
+          },
+          "acceleration": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Settling speed"
+          }
+        }
+      }
+    },
+    "segment_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "description": "Resize the strand, copying the last segment"
+    },
+    "length": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "mobility": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "delay": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "acceleration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "output_scale": {
+      "type": "number"
+    },
+    "normalization": {
+      "type": "object",
+      "description": "Span a full-range input maps to",
+      "properties": {
+        "position": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "default": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          }
+        },
+        "angle": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "default": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "fit_target": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 10,
+      "maximum": 300,
+      "description": "Percent of each output parameter's end the standard sway reaches; null skips fitting."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "author_compile": {
+    "intent": {
+      "type": "string",
+      "enum": [
+        "author_axis",
+        "author_physics"
+      ]
+    },
+    "request": {
+      "type": "object",
+      "description": "The intent's request, with state and without request_id or project_id."
+    }
+  },
+  "workspace_overview": {
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    }
+  },
+  "workspace_list_operations": {
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "query",
+        "document",
+        "session",
+        "project",
+        "output"
+      ]
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Words that must all occur in the operation ID or description, ignoring case."
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    }
+  },
+  "workspace_get_operation": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "view": {
+    "rect": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "target_long_edge": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 2
+    },
+    "poses": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "time",
+          "parameters"
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 32
+    },
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 10
+      },
+      "minItems": 1,
+      "maxItems": 9
+    },
+    "fps": {
+      "type": "integer",
+      "minimum": 15,
+      "maximum": 120
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "annotate_deformer_ids": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string"
+      },
+      "description": "Warp IDs: posed lattice, name and stable ID; [] is a clean image"
+    },
+    "annotate_path_ids": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "string"
+      },
+      "description": "Deform Path IDs to overlay on the mesh (e.g. ['path_1'] or ['*'] for all paths, or ['L2']/['L3']); [] is a clean image"
+    },
+    "annotate_path_width": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to draw influence width boundaries (outer falloff dashed circle) around deform path control points"
+    },
+    "annotate_path_hardness": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to draw hardness boundaries (inner core solid circle) around deform path control points"
+    },
+    "annotate_path_radius": {
+      "type": "boolean",
+      "default": false,
+      "description": "Legacy alias for enabling both annotate_path_width and annotate_path_hardness"
+    },
+    "point_indices": {
+      "type": "boolean",
+      "default": false
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Draw the reference image (layout_set_reference) with the model: over it, under it, or difference - black where they match, with referenceDifference the mean difference 0..1 over pixels either covers; opacity overrides the reference's own (over and under)",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "over",
+            "under",
+            "difference"
+          ]
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "mode"
+      ]
+    },
+    "density": {
+      "type": "boolean",
+      "default": false,
+      "description": "Texture density heatmap: tint each layer by its texture pixels per canvas unit - blue at 1/4 or less, green at 1, orange at 4 or more - and list them in texelDensity"
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Cubism parameter ID to value, for example {ParamAngleX: 10.0}. Omitted parameters render at their defaults, not at the authored pose; read workspace_inspect scope=preview and pass its values to start from it. Rendering never changes the authored pose.",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "include_layer_ids": {
+      "type": "array",
+      "description": "Exact layer IDs to composite. Omit to follow the active canvas's local visibility, so layers the user hid, layers under a hidden deformer and layers outside a solo are missing; pass IDs for a result independent of the canvas. [] renders no model layers.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "annotate_layer_ids": {
+      "type": "array",
+      "description": "Layer IDs to label and outline at their deformed positions",
+      "items": {
+        "type": "string"
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "description": "Required camera: {mode:canvas_rect,left,top,width,height} or {mode:focus_layers,layer_ids,object_scale,aspect_ratio}",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "canvas_rect",
+            "focus_layers"
+          ]
+        },
+        "left": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "object_scale": {
+          "type": "number"
+        },
+        "aspect_ratio": {
+          "type": "number"
+        },
+        "layer_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "mode"
+      ]
+    },
+    "background": {
+      "type": "string",
+      "enum": [
+        "transparent",
+        "checkerboard"
+      ],
+      "default": "transparent"
+    },
+    "max_bytes": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "columns": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Row-major columns; omit for a compact grid"
+    },
+    "grid": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Draw grid lines every so many canvas units, labelled with canvas coordinates along the top and left; a step too fine for the view is coarsened (x2, x5, x10...) and gridStep says the step drawn"
+    },
+    "outline_material_ids": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {
+        "type": "string"
+      },
+      "description": "Material items with a place on this canvas (drawings from material_draw, crops) whose opaque edge is traced over the view where they sit, each in its own colour with its id; compares a drawing's shape with the reference without placing it"
+    },
+    "layer_id": {
+      "type": "string",
+      "description": "Stable layer ID returned by project_list_layers"
+    },
+    "object_scale": {
+      "type": "number",
+      "minimum": 0.05,
+      "maximum": 4.0,
+      "default": 0.65,
+      "description": "Fraction of the fitted view occupied by the focused layer; values below 1 show surroundings"
+    },
+    "aspect_ratio": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 10.0,
+      "default": 1.0,
+      "description": "Output frame width divided by height; the layer is fitted without stretching"
+    },
+    "alpha_threshold": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 255,
+      "default": 128
+    }
+  },
+  "parameter": {
+    "parameter_id": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "name": {
+      "type": "string"
+    },
+    "min": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "max": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "default": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "kind": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "repeat": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    }
+  },
+  "motion": {
+    "id": {
+      "type": "string"
+    },
+    "time": {
+      "type": "number"
+    },
+    "loop": {
+      "type": "boolean"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "clip": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "builtin": {
+          "type": "string"
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "fps": {
+          "type": "number"
+        },
+        "fade_in": {
+          "type": "number"
+        },
+        "fade_out": {
+          "type": "number"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "curves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "parameter": {
+                "type": "string"
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "time": {
+                      "type": "number"
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "interpolation": {
+                      "type": "string",
+                      "enum": [
+                        "LINEAR",
+                        "BEZIER",
+                        "STEPPED",
+                        "INVERSE_STEPPED"
+                      ]
+                    },
+                    "out": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "in": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "time",
+                    "value"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 4096
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "parameter",
+              "keys"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 256
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "name": {
+      "type": "string"
+    },
+    "from_builtin": {
+      "type": "string",
+      "enum": [
+        "Idle",
+        "Blink",
+        "Nod",
+        "Shake",
+        "TailSwing",
+        "Crouch",
+        "WeightShift",
+        "Shy",
+        "Wave",
+        "HeadTilt",
+        "Cheer",
+        "LegKick",
+        "Sway",
+        "IdleCute"
+      ]
+    },
+    "new_id": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number"
+    },
+    "fps": {
+      "type": "number"
+    },
+    "fade_in": {
+      "type": "number"
+    },
+    "fade_out": {
+      "type": "number"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "builtin": {
+      "type": "string",
+      "enum": [
+        "Idle",
+        "Blink",
+        "Nod",
+        "Shake",
+        "TailSwing",
+        "Crouch",
+        "WeightShift",
+        "Shy",
+        "Wave",
+        "HeadTilt",
+        "Cheer",
+        "LegKick",
+        "Sway",
+        "IdleCute"
+      ]
+    },
+    "parameter": {
+      "type": "string"
+    },
+    "key": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "number"
+        },
+        "value": {
+          "type": "number"
+        },
+        "interpolation": {
+          "type": "string",
+          "enum": [
+            "LINEAR",
+            "BEZIER",
+            "STEPPED",
+            "INVERSE_STEPPED"
+          ]
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "in": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "value"
+      ]
+    },
+    "values": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "selection": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "time": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "parameter",
+          "time"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 4096
+    },
+    "dt": {
+      "type": "number"
+    },
+    "dv": {
+      "type": "number"
+    },
+    "normalized": {
+      "type": "boolean"
+    },
+    "keys": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "update",
+        "reset",
+        "delete",
+        "restore"
+      ]
+    },
+    "disabled": {
+      "type": "boolean"
+    }
+  },
+  "skeleton": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "spec": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 11
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "symmetryAxisX": {
+          "type": "number"
+        },
+        "savedPoses": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "ikTargets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ]
+          }
+        },
+        "manualWeights": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 0,
+                "maxItems": 2147483647
+              },
+              "triangles": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 0,
+                "maxItems": 2147483647
+              },
+              "weights": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                },
+                "minItems": 0,
+                "maxItems": 2147483647
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "positions",
+              "triangles",
+              "weights"
+            ]
+          }
+        },
+        "sampling": {
+          "type": "object",
+          "properties": {
+            "tolerancePx": {
+              "type": "number",
+              "minimum": 0.25,
+              "maximum": 4.0
+            },
+            "minimumStepDegrees": {
+              "type": "number",
+              "minimum": 2.5,
+              "maximum": 20.0
+            },
+            "maxMeshKeyforms": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 1200
+            },
+            "jointMeshSegments": {
+              "type": "integer",
+              "enum": [
+                4,
+                6,
+                8,
+                10,
+                12,
+                14,
+                16,
+                18,
+                20,
+                22,
+                24,
+                26,
+                28,
+                30,
+                32
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "bones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "parent": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "UPPER_BODY",
+                  "LOWER_BODY",
+                  "HEAD",
+                  "UPPER_ARM",
+                  "FOREARM",
+                  "HAND",
+                  "THIGH",
+                  "SHIN",
+                  "FOOT",
+                  "TAIL",
+                  "WING",
+                  "CUSTOM"
+                ]
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "LEFT",
+                  "RIGHT",
+                  "NONE"
+                ]
+              },
+              "head": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "tail": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "drawables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0,
+                "maxItems": 256
+              },
+              "chainIndex": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "direction": {
+                "type": "number"
+              },
+              "minAngle": {
+                "type": "number"
+              },
+              "maxAngle": {
+                "type": "number"
+              },
+              "blendWidth": {
+                "type": "number"
+              },
+              "connected": {
+                "type": "boolean"
+              },
+              "parameterOverride": {
+                "type": "string"
+              },
+              "mirror": {
+                "type": "string"
+              },
+              "flex": {
+                "type": "boolean"
+              },
+              "drawnBend": {
+                "type": "number"
+              },
+              "ik": {
+                "type": "object",
+                "properties": {
+                  "chainLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32
+                  },
+                  "iterations": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 256
+                  },
+                  "tolerancePx": {
+                    "type": "number",
+                    "minimum": 0.001,
+                    "maximum": 10
+                  },
+                  "bendDirection": {
+                    "type": "integer",
+                    "minimum": -1,
+                    "maximum": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "role",
+              "head",
+              "tail"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 128
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "bones"
+      ]
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "bone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "UPPER_BODY",
+            "LOWER_BODY",
+            "HEAD",
+            "UPPER_ARM",
+            "FOREARM",
+            "HAND",
+            "THIGH",
+            "SHIN",
+            "FOOT",
+            "TAIL",
+            "WING",
+            "CUSTOM"
+          ]
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "LEFT",
+            "RIGHT",
+            "NONE"
+          ]
+        },
+        "head": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "tail": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "drawables": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0,
+          "maxItems": 256
+        },
+        "chainIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "direction": {
+          "type": "number"
+        },
+        "minAngle": {
+          "type": "number"
+        },
+        "maxAngle": {
+          "type": "number"
+        },
+        "blendWidth": {
+          "type": "number"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "parameterOverride": {
+          "type": "string"
+        },
+        "mirror": {
+          "type": "string"
+        },
+        "flex": {
+          "type": "boolean"
+        },
+        "drawnBend": {
+          "type": "number"
+        },
+        "ik": {
+          "type": "object",
+          "properties": {
+            "chainLength": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "iterations": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 256
+            },
+            "tolerancePx": {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 10
+            },
+            "bendDirection": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    },
+    "bone_id": {
+      "type": "string"
+    },
+    "end": {
+      "type": "string",
+      "enum": [
+        "head",
+        "tail"
+      ]
+    },
+    "point": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "drawable_id": {
+      "type": "string"
+    },
+    "target": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ik": {
+      "type": "boolean"
+    }
+  },
+  "path": {
+    "target": {
+      "type": "string"
+    },
+    "path_id": {
+      "type": "string"
+    },
+    "moved_points": {
+      "type": "array",
+      "items": {},
+      "minItems": 2,
+      "maxItems": 128
+    },
+    "width": {
+      "type": "number"
+    },
+    "hardness": {
+      "type": "number"
+    },
+    "show_width": {
+      "type": "boolean"
+    },
+    "show_hardness": {
+      "type": "boolean"
+    },
+    "render": {
+      "type": "boolean"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "id": {
+      "type": "string"
+    },
+    "points": {
+      "type": "array",
+      "items": {},
+      "minItems": 2,
+      "maxItems": 128
+    },
+    "closed": {
+      "type": "boolean"
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 3
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "key": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number"
+      }
+    }
+  },
+  "physics": {
+    "id": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "outputs": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "vertex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16
+          },
+          "scale": {
+            "type": "number",
+            "description": "Parameter units per radian of the segment's swing"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reflect": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "parameter"
+        ]
+      }
+    },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "description": "Root to tip; omitted fields keep the current segment's",
+      "items": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "mobility": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Shakiness"
+          },
+          "delay": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Reaction speed; higher reacts faster"
+          },
+          "acceleration": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Settling speed"
+          }
+        }
+      }
+    },
+    "segment_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "description": "Resize the strand, copying the last segment"
+    },
+    "length": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "mobility": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "delay": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "acceleration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "output_scale": {
+      "type": "number"
+    },
+    "normalization": {
+      "type": "object",
+      "description": "Span a full-range input maps to",
+      "properties": {
+        "position": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "default": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          }
+        },
+        "angle": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "default": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Groups to run; default every active group"
+    },
+    "hold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "duration": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 20
+    },
+    "samples": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 60
+    },
+    "target": {
+      "type": "number",
+      "minimum": 10,
+      "maximum": 300
+    },
+    "observed_peaks": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "fps": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 240
+    },
+    "path": {
+      "type": "string"
+    },
+    "preset": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "pendulum"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "parameter": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "x",
+                  "angle"
+                ]
+              },
+              "reflect": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "parameter"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "normalization": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "position": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "default": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "min",
+                "default",
+                "max"
+              ]
+            },
+            "angle": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "default": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "min",
+                "default",
+                "max"
+              ]
+            }
+          },
+          "required": [
+            "position",
+            "angle"
+          ]
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "length": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "mobility": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "delay": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "acceleration": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "length",
+              "mobility",
+              "delay",
+              "acceleration"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 16
+        }
+      },
+      "description": "Fields depend on the variant; workspace_get_operation describes the exact shape."
+    }
+  },
+  "simulation": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "cloth",
+        "hair"
+      ]
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "mass": {
+          "type": "number"
+        },
+        "stretch": {
+          "type": "number"
+        },
+        "bend": {
+          "type": "number"
+        },
+        "damping": {
+          "type": "number"
+        },
+        "goal": {
+          "type": "number"
+        },
+        "slack": {
+          "type": "number"
+        },
+        "area": {
+          "type": "number"
+        },
+        "anisotropy": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "material_preset": {
+      "type": "string",
+      "enum": [
+        "cotton",
+        "silk",
+        "chiffon",
+        "wool",
+        "denim",
+        "leather",
+        "elastic",
+        "hair",
+        "fine_hair",
+        "thick_hair",
+        "bangs"
+      ]
+    },
+    "groups": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "glue_roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "ignore",
+          "pin",
+          "constraint"
+        ]
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "x",
+              "angle"
+            ]
+          },
+          "reflect": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "parameter"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 16
+    },
+    "input_ranges": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "vertical": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "range": {
+            "type": "number",
+            "minimum": 1.0,
+            "maximum": 100.0
+          },
+          "gain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 3.0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "modes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "keys": {
+      "type": "integer",
+      "enum": [
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    "static_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0,
+      "maxItems": 4
+    },
+    "blend_shapes": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "auto_bake": {
+      "type": "boolean"
+    },
+    "exaggeration": {
+      "type": "number",
+      "minimum": 1.0,
+      "maximum": 2.0
+    },
+    "output_names": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "force_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0,
+      "maxItems": 16
+    },
+    "training_clips": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0.05000000074505806,
+        "maximum": 1.0
+      }
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mesh": {
+            "type": "string"
+          },
+          "a": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "b": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "radius": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "radius_b": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "friction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "mesh",
+          "a",
+          "radius"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 32
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "motions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "wind": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "release": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 20
+    }
+  },
+  "swing": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "Warp or mesh IDs; meshes sharing a parent are wrapped in one Warp"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "lateral",
+        "vertical"
+      ]
+    },
+    "segments": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "parameters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "string"
+      },
+      "description": "One per segment, root first"
+    },
+    "magnitude": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.7,
+      "description": "Tip travel at ±1 as a fraction of the pinned-edge-to-tip length"
+    },
+    "lift": {
+      "type": "number",
+      "minimum": -0.5,
+      "maximum": 0.5,
+      "description": "Extra rise (+) or droop (-) of a bending tip at ±1"
+    },
+    "softness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "0 bends evenly; 1 keeps the root stiff"
+    },
+    "zoom": {
+      "type": "number",
+      "minimum": -0.5,
+      "maximum": 0.5,
+      "description": "Tip width change at ±1"
+    },
+    "parallel": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "0 swings the lattice like one board (tip edge tilts); 1 keeps the tip edge level, columns swaying side by side like separate strands"
+    },
+    "flip": {
+      "type": "boolean"
+    },
+    "physics": {
+      "type": "object",
+      "description": "Pendulum override; omit to size it from the target",
+      "properties": {
+        "length": {
+          "type": "number"
+        },
+        "mobility": {
+          "type": "number"
+        },
+        "delay": {
+          "type": "number"
+        },
+        "acceleration": {
+          "type": "number"
+        },
+        "output_scale": {
+          "type": "number"
+        }
+      }
+    },
+    "motions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "description": "One entry per direction; replaces the flat kind/segments/shape fields",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "lateral",
+              "vertical"
+            ]
+          },
+          "segments": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "parameters": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string"
+            },
+            "description": "One per segment, root first"
+          },
+          "magnitude": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.7,
+            "description": "Tip travel at ±1 as a fraction of the pinned-edge-to-tip length"
+          },
+          "lift": {
+            "type": "number",
+            "minimum": -0.5,
+            "maximum": 0.5,
+            "description": "Extra rise (+) or droop (-) of a bending tip at ±1"
+          },
+          "softness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "0 bends evenly; 1 keeps the root stiff"
+          },
+          "zoom": {
+            "type": "number",
+            "minimum": -0.5,
+            "maximum": 0.5,
+            "description": "Tip width change at ±1"
+          },
+          "parallel": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "0 swings the lattice like one board (tip edge tilts); 1 keeps the tip edge level, columns swaying side by side like separate strands"
+          },
+          "flip": {
+            "type": "boolean"
+          },
+          "physics": {
+            "type": "object",
+            "description": "Pendulum override; omit to size it from the target",
+            "properties": {
+              "length": {
+                "type": "number"
+              },
+              "mobility": {
+                "type": "number"
+              },
+              "delay": {
+                "type": "number"
+              },
+              "acceleration": {
+                "type": "number"
+              },
+              "output_scale": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "fulcrum": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "top",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "description": "Pinned lattice edge; auto hangs tall targets from the top and pivots wide ones on the side nearer the body center"
+    },
+    "tilt": {
+      "type": "number",
+      "minimum": -75,
+      "maximum": 75,
+      "description": "Degrees the swing rectangle turns about the pinned edge's midpoint, for art hanging at a slant; + turns the tip toward the right end of a top/bottom edge or the bottom end of a side edge"
+    },
+    "offset_along": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "Moves the swing rectangle's pinned edge toward the tip, in pinned-edge-to-tip lengths; what lies behind it stays put"
+    },
+    "offset_across": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "Moves the swing rectangle along its pinned edge, in edge widths; + toward the right end of a top/bottom edge or the bottom end of a side edge"
+    },
+    "preset": {
+      "type": "string",
+      "enum": [
+        "hair",
+        "accessory",
+        "cloth"
+      ]
+    },
+    "physics_enabled": {
+      "type": "boolean",
+      "description": "Default true: generate the pendulums"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "bake": {
+      "type": "boolean"
+    }
+  },
+  "source_paint": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "layer_id": {
+      "type": "string"
+    },
+    "color": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "opacity": {
+      "type": "number"
+    },
+    "rebuild_mesh": {
+      "type": "boolean"
+    },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 1,
+      "maxItems": 512
+    },
+    "radius": {
+      "type": "number"
+    },
+    "hardness": {
+      "type": "number"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "point": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "tolerance": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "from": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "to": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "shape": {
+      "type": "string",
+      "enum": [
+        "line",
+        "rectangle",
+        "ellipse"
+      ]
+    },
+    "stroke_width": {
+      "type": "number"
+    },
+    "filled": {
+      "type": "boolean"
+    }
+  },
+  "snapshot": {
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "name": {
+      "type": "string"
+    },
+    "values": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    }
+  },
+  "history": {
+    "summary": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current project_id from workspace_inspect; null only when no project is loaded."
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "node_id": {
+      "type": "string",
+      "description": "History node to restore"
+    }
+  },
+  "project": {
+    "path": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "discard_unsaved": {
+      "type": "boolean"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "description": "Depends on op; workspace_get_operation describes it."
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque state from workspace_inspect or the preceding result. Includes load generation and durable version; history node IDs are not state tokens."
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8192
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8192
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "back_hair",
+              "front_hair",
+              "headwear",
+              "face",
+              "face_detail",
+              "irides",
+              "eyebrow",
+              "eyewhite",
+              "eyelash",
+              "eye_close",
+              "eyewear",
+              "ears",
+              "earwear",
+              "nose",
+              "mouth",
+              "mouth_open",
+              "mouth_close",
+              "tooth_t",
+              "tooth_b",
+              "tongue",
+              "neck",
+              "neckwear",
+              "topwear",
+              "handwear",
+              "bottomwear",
+              "legwear",
+              "footwear",
+              "tail",
+              "wings",
+              "objects",
+              "unknown"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "none"
+            ]
+          },
+          "x": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "description": "Layer origin in canvas pixels"
+          },
+          "y": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "description": "Layer origin in canvas pixels"
+          }
+        },
+        "required": [
+          "path",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "new",
+        "replace"
+      ]
+    },
+    "output_directory": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "enum": [
+        "moc3",
+        "cmo3",
+        "vtube-studio",
+        "psd-pose",
+        "p2lrt",
+        "web",
+        "unity",
+        "png-sequence",
+        "sprite-sheet",
+        "gif",
+        "mp4",
+        "webm",
+        "mov",
+        "apng",
+        "webp"
+      ]
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Values are strings. Keys per target: moc3: physics=true|false (true), user_data=true|false (true), display_info=true|false (true), hidden_parts=true|false (true), hidden_meshes=true|false (true), guide_parts=true|false (false), pixels_per_unit=1..100000 (auto); cmo3: timestamp=<epoch milliseconds>, clips=true|false (true); vtube-studio: physics=true|false (true), user_data=true|false (true), display_info=true|false (true), hidden_parts=true|false (true), hidden_meshes=true|false (true), guide_parts=true|false (false), pixels_per_unit=1..100000 (auto); psd-pose: clip=<clip id or name>, time=0..3600 (0), pose=<ParamAngleX=20,ParamEyeLOpen=0>, scale=0.25..2 (1); p2lrt: v1=true|false (false), compress=true|false (false), zstd=true|false (false), strip_names=true|false (false), pose_groups=<PartArmA|PartArmB; PartHatA|PartHatB>, advanced=true|false (true); unity: clips=true|false (true), clip_fps=1..120 (30), pixels_per_unit=1..100000 (100), sample_pairs=0..1000 (48); png-sequence: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>; sprite-sheet: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>; gif: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, dither=true|false (true); mp4: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, ffmpeg=<path to ffmpeg>; webm: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, ffmpeg=<path to ffmpeg>; mov: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, ffmpeg=<path to ffmpeg>; apng: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, ffmpeg=<path to ffmpeg>; webp: clip=<clip id or name> (first clip), fps=1..120 (auto), size=16..8192 (1024), physics=true|false (true), background=<AARRGGBB>, ffmpeg=<path to ffmpeg>"
+    },
+    "scale": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        4
+      ]
+    },
+    "include_generated_layers": {
+      "type": "boolean"
+    }
+  },
+  "job": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 30000
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique request ID. Retry unchanged arguments with this ID to recover the same result; use a new ID for a new attempt."
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    }
+  },
+  "workspace_call": {}
+}

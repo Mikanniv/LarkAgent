@@ -1,0 +1,91 @@
+{
+  "viewId": "view-2a0460a9581fdc82",
+  "revisionId": "revision-acc841b1485d17ded6d8f9936427c7a4278b1372a3ec1a805e84183fc3f1d959",
+  "kind": "layer-composite-png-transparent",
+  "mimeType": "image/png",
+  "pngBytes": 121225,
+  "sha256": "073d1c0492d1444aaf9e4af1b7b3afa5eab83c5e9323e48dd58c60e1fdfad156",
+  "originalWidth": 1536,
+  "originalHeight": 751,
+  "renderedWidth": 1536,
+  "renderedHeight": 751,
+  "scale": 1.0,
+  "appliedParameters": {},
+  "outOfRangeParameters": [],
+  "includedLayerIds": [],
+  "annotatedLayerIds": [],
+  "annotatedDeformerIds": [],
+  "annotatedPathIds": [],
+  "annotatedPathWidth": false,
+  "annotatedPathHardness": false,
+  "annotatedPathRadius": false,
+  "pointIndices": false,
+  "objectIds": [
+    "LashesRightMain"
+  ],
+  "canvasRect": {
+    "left": 429.25,
+    "top": 222.75,
+    "right": 881.5,
+    "bottom": 444.0
+  },
+  "spatial": {
+    "spatialReferenceId": "view-2a0460a9581fdc82",
+    "coordinateSpace": "canvas_top_left_y_down",
+    "pixelOrigin": "top_left_edge",
+    "pixelWidth": 1536,
+    "pixelHeight": 751,
+    "pixelAspectRatio": 1,
+    "colorSpace": "sRGB",
+    "alphaMode": "straight",
+    "canvasWidth": 1024.0,
+    "canvasHeight": 1536.0,
+    "canvasUnitsPerPixelX": 0.2944336,
+    "canvasUnitsPerPixelY": 0.2946072,
+    "requestedViewRect": {
+      "left": 429.25,
+      "top": 222.75,
+      "right": 881.5,
+      "bottom": 444.0,
+      "width": 452.25,
+      "height": 221.25
+    },
+    "viewRect": {
+      "left": 429.25,
+      "top": 222.75,
+      "right": 881.5,
+      "bottom": 444.0,
+      "width": 452.25,
+      "height": 221.25
+    },
+    "focusRect": {
+      "left": 429.25,
+      "top": 222.75,
+      "right": 881.5,
+      "bottom": 444.0,
+      "width": 452.25,
+      "height": 221.25
+    },
+    "focusLayerIds": [
+      "LashesRightMain"
+    ],
+    "objectScale": 1.0,
+    "pixelToCanvas": [
+      0.2944336,
+      0,
+      429.25,
+      0,
+      0.2946072,
+      222.75
+    ],
+    "canvasToPixel": [
+      3.3963516,
+      0,
+      -1457.8839,
+      0,
+      3.3943503,
+      -756.0915
+    ],
+    "placementRule": "map_full_png_to_view_rect_preserve_aspect"
+  }
+}

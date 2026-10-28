@@ -1,0 +1,686 @@
+{
+  "scope": "layers",
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:4:2",
+  "project_id": "27661f2d-52ce-4365-9e7b-9f332f062996",
+  "history_node_id": "history-abf44cb4-975b-4d33-89f1-ea453d912048",
+  "items": [
+    {
+      "id": "ArtMeshTopwear",
+      "name": "Body",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_291024df9917",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        10.0,
+        498.0,
+        1016.0,
+        1509.0
+      ]
+    },
+    {
+      "id": "ArtMeshHeadwear",
+      "name": "Headwear",
+      "visible": true,
+      "role": "headwear",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "headwear"
+      ],
+      "material_id": "mat_58c835310291",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        632.0,
+        132.0,
+        802.0,
+        394.0
+      ]
+    },
+    {
+      "id": "ArtMeshFrontHair",
+      "name": "FrontHair",
+      "visible": true,
+      "role": "front_hair",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "front",
+        "hair"
+      ],
+      "material_id": "mat_5e6106e4707e",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 26.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        196.0,
+        15.0,
+        813.0,
+        556.0
+      ]
+    },
+    {
+      "id": "ArtMeshFace",
+      "name": "Face",
+      "visible": true,
+      "role": "face",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "face"
+      ],
+      "material_id": "mat_6d08231b037c",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "DOUBLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 26.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        357.0,
+        177.0,
+        703.0,
+        524.0
+      ]
+    },
+    {
+      "id": "ArtMeshEyewhiteL",
+      "name": "EyeWhiteLeft",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_36549cf7ec35",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        410.0,
+        396.0,
+        483.0,
+        459.0
+      ]
+    },
+    {
+      "id": "ArtMeshEyewhiteR",
+      "name": "EyeWhiteRight",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_13b8d824e882",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        551.0,
+        364.0,
+        625.0,
+        425.0
+      ]
+    },
+    {
+      "id": "ArtMeshIridesL",
+      "name": "IrisLeft",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_8fded4538643",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        421.0,
+        402.0,
+        471.0,
+        458.0
+      ]
+    },
+    {
+      "id": "ArtMeshIridesR",
+      "name": "IrisRight",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_9a883acd0457",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        563.0,
+        368.0,
+        613.0,
+        424.0
+      ]
+    },
+    {
+      "id": "ArtMeshEyelashL",
+      "name": "LashesLeft",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_5a6af8c66796",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        386.0,
+        386.0,
+        482.0,
+        473.0
+      ]
+    },
+    {
+      "id": "ArtMeshEyelashR",
+      "name": "LashesRight",
+      "visible": true,
+      "role": "unknown",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [],
+      "material_id": "mat_1b2e4ede78b0",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 40.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        543.0,
+        354.0,
+        647.0,
+        430.0
+      ]
+    },
+    {
+      "id": "ArtMeshEyebrow",
+      "name": "Brows",
+      "visible": true,
+      "role": "eyebrow",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "brow"
+      ],
+      "material_id": "mat_08de752cae53",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 18.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        400.0,
+        305.0,
+        637.0,
+        357.0
+      ]
+    },
+    {
+      "id": "ArtMeshFaceDetail",
+      "name": "Mouth",
+      "visible": true,
+      "role": "mouth",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "mouth"
+      ],
+      "material_id": "mat_1ed6a4689d12",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 18.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        509.0,
+        462.0,
+        552.0,
+        479.0
+      ]
+    },
+    {
+      "id": "ArtMeshBackHair",
+      "name": "BackHair",
+      "visible": true,
+      "role": "back_hair",
+      "side": "none",
+      "type": "preset",
+      "parameter": "",
+      "switch_id": 0,
+      "tags": [
+        "back",
+        "hair"
+      ],
+      "material_id": "mat_653fdcd9b580",
+      "mesh": {
+        "overridden": false,
+        "outerMargin": 1.0,
+        "edgeMode": "SINGLE",
+        "edgeWidth": 10.0,
+        "maxEdgeDistance": 12.0,
+        "interiorDensity": 26.0,
+        "fillAlgorithm": "GRADED_POISSON",
+        "suppressBoundaryDiagonals": false,
+        "fillParameters": {
+          "poisson": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "jitter": 0.45
+          },
+          "quadtree": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "angle": 0.0
+          },
+          "fractal": {
+            "edgeRatio": 2.0,
+            "gradation": 2.0,
+            "angle": 0.0
+          },
+          "paving": {
+            "edgeRatio": 2.0,
+            "gradation": 1.0,
+            "maxRows": 12
+          }
+        },
+        "wrap": 0.0
+      },
+      "bounds": [
+        191.0,
+        121.0,
+        821.0,
+        570.0
+      ]
+    }
+  ],
+  "total": 13
+}

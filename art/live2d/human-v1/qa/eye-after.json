@@ -1,0 +1,113 @@
+{
+  "viewId": "view-a31b907b677bb3df",
+  "revisionId": "revision-8fd937cd11c15a96c20baa99cdb1d0537d1c479bc79499d3a55dfe03f98db42f",
+  "kind": "model-composite-png",
+  "mimeType": "image/png",
+  "pngBytes": 306657,
+  "sha256": "edcbb6c67478bb24d6c12704e381127f1937bcc997655a357738f6a6bfeea85c",
+  "originalWidth": 1200,
+  "originalHeight": 726,
+  "renderedWidth": 1200,
+  "renderedHeight": 726,
+  "scale": 1.0,
+  "appliedParameters": {
+    "ParamAngleX": 0.0,
+    "ParamAngleY": 0.0,
+    "ParamAngleZ": 0.0,
+    "ParamBodyAngleX": 0.0,
+    "ParamBodyAngleY": 0.0,
+    "ParamBodyAngleZ": 0.0,
+    "ParamBodyLean": 0.0,
+    "ParamBreath": 0.0,
+    "ParamBrowLY": 0.0,
+    "ParamBrowRY": 0.0,
+    "ParamEyeBallForm": 0.0,
+    "ParamEyeBallX": 0.0,
+    "ParamEyeBallY": 0.0,
+    "ParamEyeLOpen": 1.0,
+    "ParamEyeROpen": 1.0,
+    "ParamHairBack": 0.0,
+    "ParamHairFront": 0.0,
+    "ParamMouthForm": 0.0,
+    "ParamMouthOpenY": 0.0,
+    "ParamProportion": 0.0
+  },
+  "outOfRangeParameters": [],
+  "includedLayerIds": [
+    "EyeWhiteLeft",
+    "EyeWhiteRight",
+    "IrisLeft",
+    "IrisRight",
+    "LashesLeft",
+    "LashesRight"
+  ],
+  "annotatedLayerIds": [],
+  "annotatedDeformerIds": [],
+  "annotatedPathIds": [],
+  "annotatedPathWidth": false,
+  "annotatedPathHardness": false,
+  "annotatedPathRadius": false,
+  "pointIndices": false,
+  "objectIds": [
+    "EyeWhiteLeft",
+    "EyeWhiteRight",
+    "IrisLeft",
+    "IrisRight",
+    "LashesLeft",
+    "LashesRight"
+  ],
+  "canvasRect": {
+    "left": 325.0,
+    "top": 300.05,
+    "right": 705.0,
+    "bottom": 529.95
+  },
+  "spatial": {
+    "spatialReferenceId": "view-a31b907b677bb3df",
+    "coordinateSpace": "canvas_top_left_y_down",
+    "pixelOrigin": "top_left_edge",
+    "pixelWidth": 1200,
+    "pixelHeight": 726,
+    "pixelAspectRatio": 1,
+    "colorSpace": "sRGB",
+    "alphaMode": "straight",
+    "canvasWidth": 1024.0,
+    "canvasHeight": 1536.0,
+    "canvasUnitsPerPixelX": 0.31666666,
+    "canvasUnitsPerPixelY": 0.3166667,
+    "requestedViewRect": {
+      "left": 325.0,
+      "top": 300.0,
+      "right": 705.0,
+      "bottom": 530.0,
+      "width": 380.0,
+      "height": 230.0
+    },
+    "viewRect": {
+      "left": 325.0,
+      "top": 300.05,
+      "right": 705.0,
+      "bottom": 529.95,
+      "width": 380.0,
+      "height": 229.90002
+    },
+    "focusLayerIds": [],
+    "pixelToCanvas": [
+      0.31666666,
+      0,
+      325.0,
+      0,
+      0.3166667,
+      300.05
+    ],
+    "canvasToPixel": [
+      3.1578948,
+      0,
+      -1026.3158,
+      0,
+      3.1578944,
+      -947.5262
+    ],
+    "placementRule": "map_full_png_to_view_rect_preserve_aspect"
+  }
+}

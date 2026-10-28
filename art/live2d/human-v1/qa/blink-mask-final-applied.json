@@ -1,0 +1,136 @@
+{
+  "state": "63c89799-8fe7-4737-8cc1-7cc2d1fa1cce:3:14",
+  "history_node_id": "history-2acbe688-2077-46f7-87d2-ce3cd19003dd",
+  "project_id": "a9331719-38b5-459d-85a8-814422fb92ac",
+  "changed": [
+    "mesh:ArtMeshEyewhiteL",
+    "mesh:ArtMeshEyewhiteR"
+  ],
+  "geometry_diagnostics": {
+    "safe": true,
+    "affectedTargets": [
+      "mesh:ArtMeshEyewhiteL",
+      "mesh:ArtMeshEyewhiteR"
+    ],
+    "affectedCoordinates": {
+      "mesh:ArtMeshEyewhiteL": [
+        {
+          "ParamEyeLOpen": 0.0
+        },
+        {
+          "ParamEyeLOpen": 0.1
+        },
+        {
+          "ParamEyeLOpen": 1.0
+        }
+      ],
+      "mesh:ArtMeshEyewhiteR": [
+        {
+          "ParamEyeROpen": 0.0
+        },
+        {
+          "ParamEyeROpen": 0.1
+        },
+        {
+          "ParamEyeROpen": 1.0
+        }
+      ]
+    },
+    "newFlipCount": 0,
+    "newDegenerateCount": 0,
+    "newInvalidTopologyCount": 0,
+    "newNonFiniteCount": 0,
+    "preexistingFlipCount": 40,
+    "preexistingDegenerateCount": 0,
+    "preexistingCollapseCount": 19,
+    "newCollapseCount": 0,
+    "violations": [],
+    "warnings": [],
+    "diagnostics": [
+      {
+        "target": "mesh:ArtMeshEyewhiteL",
+        "coordinate": {
+          "ParamEyeLOpen": 0.0
+        },
+        "pointCount": 47,
+        "preexistingFlipCount": 20,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 11,
+        "candidateFlipCount": 20,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 11
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteL",
+        "coordinate": {
+          "ParamEyeLOpen": 0.1
+        },
+        "pointCount": 47,
+        "preexistingFlipCount": 1,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 1,
+        "candidateFlipCount": 1,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 1
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteL",
+        "coordinate": {
+          "ParamEyeLOpen": 1.0
+        },
+        "pointCount": 47,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteR",
+        "coordinate": {
+          "ParamEyeROpen": 0.0
+        },
+        "pointCount": 42,
+        "preexistingFlipCount": 17,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 7,
+        "candidateFlipCount": 17,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 7
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteR",
+        "coordinate": {
+          "ParamEyeROpen": 0.1
+        },
+        "pointCount": 42,
+        "preexistingFlipCount": 2,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 2,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      },
+      {
+        "target": "mesh:ArtMeshEyewhiteR",
+        "coordinate": {
+          "ParamEyeROpen": 1.0
+        },
+        "pointCount": 42,
+        "preexistingFlipCount": 0,
+        "preexistingDegenerateCount": 0,
+        "preexistingCollapseCount": 0,
+        "candidateFlipCount": 0,
+        "candidateDegenerateCount": 0,
+        "candidateCollapseCount": 0
+      }
+    ],
+    "scope": "Affected parent-local native key coordinates only; large Cartesian products are sampled. No parent composition, masks, painted coverage, physics, or aesthetics. Targets compared: only those the committed commands address, their deformer descendants, glue partners and generator-owned targets; the other targets were not compared.",
+    "coverage": {
+      "mode": "scoped",
+      "checkedTargets": 2,
+      "totalTargets": 32
+    }
+  }
+}

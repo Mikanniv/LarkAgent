@@ -45,6 +45,8 @@ desktop.ini
 
 # JavaScript / Cloudflare Worker dependencies
 node_modules/
+desktop/.local/
+desktop/dist/
 
 # Flutter generated outputs
 .dart_tool/

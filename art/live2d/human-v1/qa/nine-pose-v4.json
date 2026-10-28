@@ -1,0 +1,161 @@
+{
+  "revisionId": "revision-b1adc2b840f2c3fa3ae1c8d342ebe7cd9b9eb302fdb40a29400ff7677a6c9ce6",
+  "physicsSimulated": false,
+  "comparison": "poses",
+  "width": 1797,
+  "height": 1611,
+  "canvasRect": [
+    150.0,
+    0.1666565,
+    850.0,
+    599.8334
+  ],
+  "commonParameters": {
+    "ParamAngleZ": 0.0,
+    "ParamBodyAngleX": 0.0,
+    "ParamBodyAngleY": 0.0,
+    "ParamBodyAngleZ": 0.0,
+    "ParamBodyLean": 0.0,
+    "ParamBreath": 0.0,
+    "ParamBrowLY": 0.0,
+    "ParamBrowRY": 0.0,
+    "ParamEyeBallForm": 0.0,
+    "ParamEyeBallX": 0.0,
+    "ParamEyeBallY": 0.0,
+    "ParamEyeLOpen": 1.0,
+    "ParamEyeROpen": 1.0,
+    "ParamHairBack": 0.0,
+    "ParamHairFront": 0.0,
+    "ParamMouthForm": 0.0,
+    "ParamMouthOpenY": 0.0,
+    "ParamProportion": 0.0
+  },
+  "tiles": [
+    {
+      "id": "A",
+      "viewId": "view-698ab31ed56afed3",
+      "imageRect": [
+        0,
+        24,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": -30.0,
+        "ParamAngleY": 30.0
+      }
+    },
+    {
+      "id": "B",
+      "viewId": "view-1c3c49ef82ee6a10",
+      "imageRect": [
+        599,
+        24,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 0.0,
+        "ParamAngleY": 30.0
+      }
+    },
+    {
+      "id": "C",
+      "viewId": "view-9fb9abd3c3a28672",
+      "imageRect": [
+        1198,
+        24,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 30.0,
+        "ParamAngleY": 30.0
+      }
+    },
+    {
+      "id": "D",
+      "viewId": "view-bfeeade1b0f5e2fb",
+      "imageRect": [
+        0,
+        561,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": -30.0,
+        "ParamAngleY": 0.0
+      }
+    },
+    {
+      "id": "E",
+      "viewId": "view-c33abaf99ffa86c3",
+      "imageRect": [
+        599,
+        561,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 0.0,
+        "ParamAngleY": 0.0
+      }
+    },
+    {
+      "id": "F",
+      "viewId": "view-b400ea7dcd0f1a97",
+      "imageRect": [
+        1198,
+        561,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 30.0,
+        "ParamAngleY": 0.0
+      }
+    },
+    {
+      "id": "G",
+      "viewId": "view-80e300e3e5ba3597",
+      "imageRect": [
+        0,
+        1098,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": -30.0,
+        "ParamAngleY": -30.0
+      }
+    },
+    {
+      "id": "H",
+      "viewId": "view-0da4c86bf77eb36f",
+      "imageRect": [
+        599,
+        1098,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 0.0,
+        "ParamAngleY": -30.0
+      }
+    },
+    {
+      "id": "I",
+      "viewId": "view-06a576b0386cf718",
+      "imageRect": [
+        1198,
+        1098,
+        599,
+        513
+      ],
+      "parameters": {
+        "ParamAngleX": 30.0,
+        "ParamAngleY": -30.0
+      }
+    }
+  ]
+}
