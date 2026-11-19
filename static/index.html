@@ -38,27 +38,43 @@
           </button>
         </header>
         <nav class="main-nav">
-          <button class="nav-item is-active" id="sidebarChatTab" data-view="chat" type="button">
+          <button class="nav-item is-active" id="sidebarHomeTab" data-view="home" type="button">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>主界面</span>
+          </button>
+          <button class="nav-item" id="sidebarChatTab" data-view="chat" type="button">
             <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg>
-            <span>聊天</span>
+            <span>聊聊天</span>
+          </button>
+          <button class="nav-item" id="sidebarStudyTab" data-view="study" type="button">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span>开始学习！</span>
+          </button>
+          <button class="nav-item" id="sidebarProfileTab" data-view="profile" type="button">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>用户画像</span>
           </button>
           <button class="nav-item" id="sidebarDiaryTab" data-view="diary" type="button">
             <svg viewBox="0 0 24 24"><path d="M5 4a2 2 0 0 1 2-2h12v18H7a2 2 0 0 0-2 2zM5 4v18M9 7h6M9 11h6" /></svg>
-            <span>日记</span>
+            <span>日记小屋</span>
             <span class="new-badge" id="diaryNewBadge" hidden>NEW</span>
           </button>
           <button class="nav-item" id="sidebarMemoryTab" data-view="memory" type="button">
             <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></svg>
-            <span>记忆</span>
+            <span>我们的记忆</span>
             <span class="new-badge" id="memoryNewBadge" hidden>NEW</span>
           </button>
           <button class="nav-item" id="sidebarTrajectoryTab" data-view="trajectory" type="button">
             <svg viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-4 3 2 5-7 2 2" /></svg>
-            <span>轨迹</span>
+            <span>心情轨迹</span>
+          </button>
+          <button class="nav-item" id="sidebarPetButton" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M5 16c0-6 5-11 12-11-1 4-1 6 2 9-4 0-4 6-9 6a5 5 0 0 1-5-4ZM5 16l-3 1M10 20v2M14 19v3"/><circle cx="13.5" cy="9" r=".8" fill="currentColor" stroke="none"/></svg>
+            <span id="sidebarPetLabel">显示桌宠</span>
           </button>
           <button class="nav-item" id="sidebarSettingsTab" data-view="settings" type="button">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z" /></svg>
-            <span>设置</span>
+            <span>偏好设置</span>
           </button>
         </nav>
       </aside>
@@ -66,87 +82,201 @@
 
       <section class="workspace">
         <header class="topbar">
-          <button class="home-back" id="homeBackButton" type="button" hidden aria-label="返回主界面"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg><span>返回</span></button>
-          <button class="companion-brand" id="brandHomeButton" type="button" aria-label="云雀主界面"><svg viewBox="0 0 32 32"><path d="M5 23C8 13 17 5 27 5c-1 11-8 20-18 20M9 25 23 10M14 20l-1-7M19 15l6 1" /></svg><span>云雀</span></button>
-          <button class="icon-button mobile-menu" id="mobileSidebarToggle" type="button" aria-label="打开菜单">
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <h2 id="activeViewTitle">主界面</h2>
-          <span class="backend-state" id="backendStatus"><i></i>离线</span>
-          <button class="topbar-link" id="accountButton" type="button">我的账号</button>
-          <button class="icon-button" id="quickSettingsButton" type="button" aria-label="设置"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor" stroke="none"/><circle cx="16" cy="17" r="3" fill="currentColor" stroke="none"/></svg></button>
+          <div class="topbar-left">
+            <button class="home-back" id="homeBackButton" type="button" hidden aria-label="返回主界面"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg><span>返回</span></button>
+            <button class="companion-brand" id="brandHomeButton" type="button" aria-label="云雀主界面"><svg viewBox="0 0 32 32"><path d="M5 23C8 13 17 5 27 5c-1 11-8 20-18 20M9 25 23 10M14 20l-1-7M19 15l6 1" /></svg><span>云雀</span></button>
+            <button class="icon-button mobile-menu" id="mobileSidebarToggle" type="button" aria-label="打开菜单">
+              <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </button>
+            <h2 id="activeViewTitle" hidden>主界面</h2>
+          </div>
+          <div class="topbar-right">
+            <span class="backend-state" id="backendStatus"><i></i>离线</span>
+            <button class="topbar-link" id="accountButton" type="button">我的账号</button>
+          </div>
         </header>
 
         <div class="companion-stage" id="companionStage" aria-label="坐着的云雀"><div class="character-mount" id="mainCharacter"></div><span class="character-ground"></span></div>
         <section class="view-stack">
-          <section class="app-view home-view is-active" id="homeView" aria-labelledby="homeGreeting">
-<header class="home-welcome"><h1 id="homeGreeting">今天，也一起度过吧。</h1></header>
-<nav class="orbit-nav" aria-label="云雀功能"><button class="orbit-bubble orbit-chat" data-open-view="chat" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2V12a9 9 0 0 1 18-.5Z"/><path d="M7 11h.01M12 11h.01M17 11h.01"/></svg></span><span><strong>聊聊天</strong></span></button>
-<button class="orbit-bubble orbit-diary" data-open-view="diary" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 4h14v17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM7 4v17M11 9h4M11 13h4"/></svg></span><span><strong>日记小屋</strong></span></button>
-<button class="orbit-bubble orbit-memory" data-open-view="memory" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="m12 3 8 5v9l-8 4-8-4V8ZM4 8l8 5 8-5M12 13v8"/></svg></span><span><strong>我们的记忆</strong></span></button>
-<button class="orbit-bubble orbit-pet" id="petToggleButton" aria-pressed="false" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 16c0-6 5-11 12-11-1 4-1 6 2 9-4 0-4 6-9 6a5 5 0 0 1-5-4ZM5 16l-3 1M10 20v2M14 19v3"/><circle cx="13.5" cy="9" r=".8" fill="currentColor" stroke="none"/></svg></span><span><strong id="petToggleLabel">显示桌宠</strong></span></button>
-<button class="orbit-bubble orbit-trajectory" data-open-view="trajectory" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M3 17h4l3-9 4 12 3-9h4"/></svg></span><span><strong>心情轨迹</strong></span></button>
-<button class="orbit-bubble orbit-settings" data-open-view="settings" type="button"><span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg></span><span><strong>偏好设置</strong></span></button>
-</nav>
-</section>
-<section class="app-view chat-view" id="chatView">
-            <article class="chat-panel">
-              <header class="chat-header">
-                <div>
-                  <strong>云雀</strong>
-                  <span id="agentStatus">文本陪伴模式</span>
-                </div>
-                <div class="chat-header-actions">
-                  <button class="header-action" id="sentMediaToggle" type="button" aria-expanded="false">
-                    <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
-                    <span>媒体</span><b id="sentMediaCount">0</b>
-                    <svg class="media-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
-                  </button>
-                  <button class="header-action" id="emotionToggle" type="button" aria-expanded="false">
-                    <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h3l3-5 4 3 4-8 4 3" /></svg>
-                    <span>情绪画像</span>
-                    <svg class="emotion-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-                  </button>
-                </div>
-                <aside class="emotion-widget" id="emotionWidget" hidden>
-                  <header class="emotion-drag-handle" id="emotionDragHandle"><strong>情绪得分</strong><button id="emotionPin" type="button" aria-label="固定当前位置" title="固定当前位置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M5 3h14M7 3v5l-3 5h16l-3-5V3" /></svg></button></header>
-                  <div class="emotion-content">
-                    <div class="score-card">
-                      <span>单模态 · 文本</span>
-                      <strong id="textScore">0.000</strong>
+          <section class="app-view home-view is-active" id="homeView" aria-label="云雀主页">
+            <div class="lark-greeting-wrap">
+              <button class="lark-greeting-bubble" id="larkGreetingBubble" type="button" title="点击让云雀换一句问候">
+                <span class="lark-greeting-dot" aria-hidden="true"></span>
+                <span class="lark-greeting-text" id="larkGreetingText"></span>
+              </button>
+            </div>
+            <nav class="orbit-nav" id="orbitNav" aria-label="云雀快捷方式">
+              <button class="orbit-bubble orbit-chat" data-shortcut-id="chat" data-open-view="chat" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2V12a9 9 0 0 1 18-.5Z"/><path d="M7 11h.01M12 11h.01M17 11h.01"/></svg></span>
+                <span><strong>聊聊天</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-study" data-shortcut-id="study" data-open-view="study" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
+                <span><strong>开始学习！</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-memory" data-shortcut-id="memory" data-open-view="memory" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="m12 3 8 5v9l-8 4-8-4V8ZM4 8l8 5 8-5M12 13v8"/></svg></span>
+                <span><strong>我们的记忆</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-trajectory" data-shortcut-id="trajectory" data-open-view="trajectory" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M3 17h4l3-9 4 12 3-9h4"/></svg></span>
+                <span><strong>心情轨迹</strong></span>
+              </button>
+
+              <button class="orbit-bubble orbit-diary" data-shortcut-id="diary" data-open-view="diary" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 4h14v17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM7 4v17M11 9h4M11 13h4"/></svg></span>
+                <span><strong>日记小屋</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-pet" data-shortcut-id="pet" id="petToggleButton" aria-pressed="false" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 16c0-6 5-11 12-11-1 4-1 6 2 9-4 0-4 6-9 6a5 5 0 0 1-5-4ZM5 16l-3 1M10 20v2M14 19v3"/><circle cx="13.5" cy="9" r=".8" fill="currentColor" stroke="none"/></svg></span>
+                <span><strong id="petToggleLabel">显示桌宠</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-profile" data-shortcut-id="profile" data-open-view="profile" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <span><strong>用户画像</strong></span>
+              </button>
+              <button class="orbit-bubble orbit-settings" data-shortcut-id="settings" data-open-view="settings" type="button" hidden>
+                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z" /></svg></span>
+                <span><strong>偏好设置</strong></span>
+              </button>
+            </nav>
+          </section>
+
+          <section class="app-view chat-view" id="chatView">
+            <div class="chat-deck" id="chatDeck" data-active-card="chat">
+              <article class="chat-panel deck-card is-front-card" id="chatPrimaryCard">
+                <header class="chat-header">
+                  <div>
+                    <span id="agentStatus" hidden></span>
+                  </div>
+                  <div class="chat-header-actions">
+                    <button class="header-action" id="sentMediaToggle" type="button" aria-expanded="false">
+                      <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+                      <span>媒体</span><b id="sentMediaCount">0</b>
+                      <svg class="media-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+                    </button>
+                    <button class="header-action" id="emotionToggle" type="button" aria-expanded="false">
+                      <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h3l3-5 4 3 4-8 4 3" /></svg>
+                      <span>情绪画像</span>
+                      <svg class="emotion-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                    </button>
+                    <button class="header-action card-expand-btn" id="chatExpandToggle" type="button" aria-pressed="false" title="展开全屏">
+                      <svg class="header-action-icon expand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                      <svg class="header-action-icon collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7" /></svg>
+                      <span>展开</span>
+                    </button>
+                  </div>
+                  <aside class="emotion-widget" id="emotionWidget" hidden>
+                    <header class="emotion-drag-handle" id="emotionDragHandle"><strong>情绪得分</strong><button id="emotionPin" type="button" aria-label="固定当前位置" title="固定当前位置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M5 3h14M7 3v5l-3 5h16l-3-5V3" /></svg></button></header>
+                    <div class="emotion-content">
+                      <div class="score-card">
+                        <span>单模态 · 文本</span>
+                        <strong id="textScore">0.000</strong>
+                      </div>
+                      <div class="score-card">
+                        <span>融合得分</span>
+                        <strong id="fusionScore">0.000</strong>
+                      </div>
+                      <div class="score-card">
+                        <span>单模态 · 语音</span>
+                        <strong id="audioScore">--</strong>
+                      </div>
                     </div>
-                    <div class="score-card">
-                      <span>融合得分</span>
-                      <strong id="fusionScore">0.000</strong>
+                  </aside>
+                </header>
+
+                <div class="chat-list" id="chatList"></div>
+
+                <form class="composer" id="chatForm">
+                  <div class="pending-attachments" id="pendingAttachments" hidden></div>
+                  <input id="attachmentInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                  <textarea id="messageInput" rows="2" placeholder="和云雀说点什么……"></textarea>
+                  <button class="attachment-button" id="attachmentButton" type="button" aria-label="添加文件或媒体" title="添加图片、音频、PDF 或文档"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
+                  <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="语音输入">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
+                  </button>
+                  <button class="send-button" id="sendButton" type="submit" aria-label="发送" title="发送">
+                    <svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14" /></svg>
+                  </button>
+                </form>
+                <div class="drop-overlay" id="dropOverlay"><strong>拖放图片或音频到这里</strong><span>最多 9 个文件</span></div>
+              </article>
+
+              <aside class="sent-media-panel deck-card is-back-card" id="sentMediaPanel">
+                <header class="media-card-header">
+                  <strong>已发送媒体</strong>
+                  <button id="sentMediaClose" type="button" hidden>×</button>
+                </header>
+                <div id="sentMediaList" class="sent-media-list"></div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- 独立学习聊天页面（开始学习！） -->
+          <section class="app-view study-view" id="studyView">
+            <div class="study-workspace-layout">
+              <!-- 云雀与自习室对话框中间：新建按钮 + 无边框轮盘式 Session 列表 -->
+              <aside class="study-wheel-column" aria-label="自习室轮盘列表">
+                <button class="study-new-pill-btn" id="newStudySessionBtn" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>新建自习室</span>
+                </button>
+                <div class="study-wheel-stage" id="studyWheelStage" title="滚动鼠标滚轮或点击条目切换自习室">
+                  <div class="study-wheel-list" id="studySessionWheel" role="listbox" aria-label="切换学习会话">
+                    <!-- 动态渲染轮盘项 -->
+                  </div>
+                </div>
+                <select id="studySessionSelect" hidden aria-hidden="true"></select>
+              </aside>
+
+              <!-- 右侧自习室对话框 -->
+              <article class="study-panel">
+                <header class="study-header">
+                  <div class="study-header-info">
+                    <strong id="currentStudySessionTitle">开始学习！</strong>
+                    <span class="study-badge" id="currentStudySubject">专注自习室</span>
+                  </div>
+                  <div class="study-header-actions">
+                    <button class="header-action" id="studyFilesToggle" type="button" aria-expanded="false" title="查看与上传本自习室教材/资料">
+                      <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                      <span>资料库</span><b id="studyFilesCount">0</b>
+                    </button>
+                    <button class="header-action card-expand-btn" id="studyExpandToggle" type="button" aria-pressed="false" title="展开全屏">
+                      <svg class="header-action-icon expand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                      <svg class="header-action-icon collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7" /></svg>
+                      <span>展开</span>
+                    </button>
+                  </div>
+                </header>
+
+                <aside class="study-files-drawer" id="studyFilesDrawer" hidden>
+                  <div class="study-files-drawer-head">
+                    <div class="study-files-drawer-title">
+                      <strong>学习资料库</strong>
+                      <span id="studyFilesSummary">勾选需要关联到当前自习室的资料（本会话仅检索已勾选资料）</span>
                     </div>
-                    <div class="score-card">
-                      <span>单模态 · 语音</span>
-                      <strong id="audioScore">--</strong>
+                    <div class="study-files-drawer-btns">
+                      <button type="button" class="header-action" id="studyFilesFilterLinkedBtn" aria-pressed="false" title="切换仅显示本自习室已关联资料">仅看已关联</button>
+                      <input id="studyLibraryUploadInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                      <button type="button" class="button button-primary" id="studyLibraryUploadBtn">+ 上传资料</button>
                     </div>
                   </div>
+                  <div class="study-files-list" id="studyFilesList"></div>
                 </aside>
-              </header>
 
-              <div class="chat-list" id="chatList"></div>
+                <div class="study-chat-list" id="studyChatList"></div>
 
-              <form class="composer" id="chatForm">
-                <div class="pending-attachments" id="pendingAttachments" hidden></div>
-                <input id="attachmentInput" type="file" accept="image/*,audio/*" multiple hidden />
-                <textarea id="messageInput" rows="2" placeholder="和云雀说点什么……"></textarea>
-                <button class="attachment-button" id="attachmentButton" type="button" aria-label="添加媒体" title="添加图片或音频"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
-                <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="语音输入">
-                  <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
-                </button>
-                <button class="send-button" id="sendButton" type="submit" aria-label="发送" title="发送">
-                  <svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14" /></svg>
-                </button>
-              </form>
-              <div class="drop-overlay" id="dropOverlay"><strong>拖放图片或音频到这里</strong><span>最多 9 个文件</span></div>
-            </article>
-            <aside class="sent-media-panel" id="sentMediaPanel" hidden>
-              <header><div><strong>已发送媒体</strong><span>仅显示文件信息</span></div><button id="sentMediaClose" type="button">×</button></header>
-              <div id="sentMediaList" class="sent-media-list"></div>
-            </aside>
+                <form class="composer study-composer" id="studyForm">
+                  <div class="pending-attachments" id="studyPendingAttachments" hidden></div>
+                  <input id="studyAttachmentInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                  <textarea id="studyMessageInput" rows="2" placeholder="向云雀提问：这道题怎么解、考点怎么推导、概念怎么理解……"></textarea>
+                  <button class="attachment-button" id="studyAttachmentButton" type="button" aria-label="添加学习资料或媒体" title="上传题目图片、音频、PDF 或文档"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
+                  <button class="send-button" id="studySendButton" type="submit" aria-label="发送" title="发送">
+                    <svg viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8zM7 12h14" /></svg>
+                  </button>
+                </form>
+              </article>
+            </div>
           </section>
 
           <section class="app-view" id="diaryView">
@@ -193,20 +323,261 @@
             </article>
           </section>
 
+          <!-- 用户画像管理模块 (Profile) -->
+          <section class="app-view profile-view" id="profileView">
+            <article class="surface profile-surface">
+              <header class="section-header">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <div>
+                    <h3>用户画像管理 (Profile)</h3>
+                    <p>管理你的多重身份与学业阶段画像。云雀在主聊天中将读取当前生效画像，为你定制成长规划与伴学辅导。</p>
+                  </div>
+                  <button class="button button-primary" id="openNewProfileModalBtn" type="button">＋ 新建画像</button>
+                </div>
+              </header>
+
+              <!-- 画像卡片网格列表 -->
+              <div class="profile-cards-section">
+                <div class="profile-cards-title"><strong>我的画像列表</strong><span>点击即可无缝切换为当前生效画像</span></div>
+                <div class="profile-cards-grid" id="profileCardsGrid">
+                  <!-- 动态渲染画像卡片 -->
+                </div>
+              </div>
+
+              <!-- 当前活跃画像编辑表单 -->
+              <div class="active-profile-card">
+                <div class="editor-header-bar">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <strong>编辑当前生效画像</strong>
+                    <span class="active-tag" id="currentActiveProfileBadge">当前生效</span>
+                  </div>
+                </div>
+
+                <div class="stage-select-section">
+                  <div class="stage-section-title">
+                    <span>学业阶段（学历） <b style="color:#e05252;">*</b></span>
+                  </div>
+                  <div class="stage-segmented-bar" id="editStageSegmented">
+                    <button type="button" class="stage-segment-btn is-active" data-stage="high_school">
+                      <span class="segment-icon">🎒</span>
+                      <span class="segment-label">
+                        <strong>高中阶段</strong>
+                        <small>选科组合 · 高考考区 · 模拟考试</small>
+                      </span>
+                    </button>
+                    <button type="button" class="stage-segment-btn" data-stage="undergraduate">
+                      <span class="segment-icon">🎓</span>
+                      <span class="segment-label">
+                        <strong>大学本科</strong>
+                        <small>就读专业 · 学分绩点GPA · 保研考研</small>
+                      </span>
+                    </button>
+                    <button type="button" class="stage-segment-btn" data-stage="growth">
+                      <span class="segment-icon">💼</span>
+                      <span class="segment-label">
+                        <strong>职场与进修</strong>
+                        <small>业务领域 · 进修考证 · 技能跃迁</small>
+                      </span>
+                    </button>
+                  </div>
+                  <select id="editProfileStage" style="display:none;">
+                    <option value="high_school">高中阶段</option>
+                    <option value="undergraduate">大学本科</option>
+                    <option value="growth">职场与自主进修</option>
+                  </select>
+                </div>
+
+                <div class="stage-details-section" style="margin-top:16px;">
+                  <div class="profile-form-grid">
+                    <label class="field-item">
+                      <span>画像名称 <b style="color:#e05252;">*</b></span>
+                      <input id="editProfileName" placeholder="例如：高三冲刺画像" />
+                    </label>
+                    <label class="field-item" id="editItemGrade">
+                      <span id="editLabelGrade">当前年级</span>
+                      <input id="editProfileGrade" placeholder="例如：高三" />
+                    </label>
+                    <label class="field-item" id="editItemSubCategory">
+                      <span id="editLabelSubCategory">选科组合</span>
+                      <input id="editProfileSubCategory" placeholder="例如：物化生 / 物化地 / 史政地" />
+                    </label>
+                    <label class="field-item" id="editItemProvince">
+                      <span id="editLabelProvince">高考省份 / 考区</span>
+                      <input id="editProfileProvince" placeholder="例如：江苏 / 浙江 / 山东 / 广东" />
+                    </label>
+                    <label class="field-item" id="editItemCurrentSchool">
+                      <span id="editLabelCurrentSchool">当前就读院校</span>
+                      <input id="editProfileCurrentSchool" placeholder="例如：某省重点中学" />
+                    </label>
+                    <label class="field-item" id="editItemTargetSchool">
+                      <span id="editLabelTargetSchool">目标高校 / 平台</span>
+                      <input id="editProfileTargetSchool" placeholder="例如：清华大学 / 浙江大学 / 985高校" />
+                    </label>
+                    <label class="field-item" id="editItemTargetGoal">
+                      <span id="editLabelTargetGoal">目标追求 / 愿景</span>
+                      <input id="editProfileTargetGoal" placeholder="例如：高考冲刺650分 / 稳上一本" />
+                    </label>
+                    <label class="field-item" id="editItemScore">
+                      <span id="editLabelScore">近期模考成绩</span>
+                      <input id="editProfileScore" placeholder="例如：模考615分" />
+                    </label>
+                    <label class="field-item" id="editItemRank">
+                      <span id="editLabelRank">全校 / 考区排名</span>
+                      <input id="editProfileRank" placeholder="例如：年级前50名 / 全省前3000名" />
+                    </label>
+                    <label class="field-item full-width" id="editItemExtra">
+                      <span id="editLabelExtra">补充说明（薄弱科目、攻坚重点等）</span>
+                      <textarea id="editProfileExtra" rows="2" placeholder="例如：数学导数与物理电磁弱；立体几何失分较多。"></textarea>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="profile-action-row" style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <button class="button button-primary" id="saveActiveProfileBtn" type="button">保存画像修改</button>
+                    <span class="profile-save-status" id="profileSaveStatus"></span>
+                  </div>
+                  <button class="button button-danger" id="deleteActiveProfileBtn" type="button">删除此画像</button>
+                </div>
+              </div>
+
+              <!-- 成绩测验记录区 -->
+              <div class="score-records-section" style="margin-top:28px;">
+                <div class="score-header-row">
+                  <div>
+                    <strong>历次成绩与模考流水</strong>
+                    <p>记录真实测验数据，云雀将在主Agent聊天中结合这些数据为你提供针对性规划分析</p>
+                  </div>
+                  <button class="button button-link" id="toggleScoreFormButton" type="button">+ 记录成绩</button>
+                </div>
+
+                <!-- 成绩录入折叠表单 -->
+                <form class="score-quick-form" id="scoreQuickForm" hidden>
+                  <div class="profile-form-grid">
+                    <label class="field-item">
+                      <span>考试名称</span>
+                      <input id="scoreExamTitle" placeholder="例如：高三期中统考、大二下期末" required />
+                    </label>
+                    <label class="field-item">
+                      <span>考试日期</span>
+                      <input id="scoreExamDate" type="date" required />
+                    </label>
+                    <label class="field-item">
+                      <span>总分 / GPA</span>
+                      <input id="scoreTotalVal" placeholder="例如：612 或 3.82" type="number" step="0.01" required />
+                    </label>
+                    <label class="field-item">
+                      <span>排名 / 总人数</span>
+                      <div style="display:flex;gap:6px;">
+                        <input id="scoreRankNum" placeholder="名次" type="number" style="width:50%;" />
+                        <input id="scoreRankTotal" placeholder="总人数" type="number" style="width:50%;" />
+                      </div>
+                    </label>
+                    <label class="field-item full-width">
+                      <span>单科明细与反思心得</span>
+                      <input id="scoreNotes" placeholder="例如：数学118物理86，立体几何失分；下次攻克导数大题" />
+                    </label>
+                  </div>
+                  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+                    <button class="button" id="cancelScoreFormButton" type="button">取消</button>
+                    <button class="button button-primary" type="submit">添加记录</button>
+                  </div>
+                </form>
+
+                <!-- 成绩列表 -->
+                <div class="score-list" id="scoreRecordsList">
+                  <div class="score-empty-tip">暂无历史成绩记录，点击上方添加记录。</div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- 偏好设置视图（内部分类导航） -->
           <section class="app-view" id="settingsView">
             <article class="surface settings-surface">
-<header class="section-header"><div><h3>找到舒服的相处方式</h3><p>让云雀按你喜欢的方式陪伴。</p></div></header>
-<div class="setting-row"><div><strong>视线跟随鼠标</strong><p id="gazeFollowDescription">云雀会随鼠标轻轻转头，也可以随时关闭。</p></div><label class="switch"><input id="gazeFollowToggle" type="checkbox" disabled aria-label="视线跟随鼠标"/><span></span></label></div>
-<div class="setting-row"><div><strong>形象预览</strong><p>查看坐姿人型、Q版小人和鸟型。</p></div><a class="button button-link" href="model-viewer.html">查看形象</a></div>
-<div class="setting-row"><div><strong>桌宠形态</strong><p>也可以右键桌宠，随时切换。</p></div><div class="segmented" id="petFormPicker"><button type="button" data-pet-form="bird" class="is-active" aria-pressed="true">鸟型</button><button type="button" data-pet-form="chibi" aria-pressed="false">Q版小人</button></div></div>
-<div class="setting-row"><div><strong>桌面陪伴</strong><p id="petConnectionStatus">正在连接桌面云雀…</p></div><button class="button" id="settingsPetToggle" type="button">显示桌宠</button></div>
-              <div class="setting-row">
-                <div><strong>主动回复</strong><p>允许云雀在长时间无输入时主动发起一句陪伴。</p></div>
-                <label class="switch"><input id="proactiveReplyToggle" type="checkbox" checked /><span></span></label>
+              <header class="section-header">
+                <div>
+                  <h3>偏好设置</h3>
+                  <p>个性化定制云雀相处方式与系统数据。</p>
+                </div>
+              </header>
+
+              <!-- 设置页内部子导航栏 -->
+              <nav class="settings-nav-bar" id="settingsNavBar">
+                <button type="button" class="settings-nav-btn is-active" data-settings-tab="companion">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg>
+                  <span>陪伴偏好</span>
+                </button>
+                <button type="button" class="settings-nav-btn" data-settings-tab="system">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  <span>系统与数据</span>
+                </button>
+              </nav>
+
+              <!-- 分类 1: 陪伴偏好 -->
+              <div class="settings-tab-panel" id="settingsPanelCompanion">
+                <div class="setting-row setting-row-block">
+                  <div class="setting-block-header">
+                    <div>
+                      <strong>主界面悬浮快捷气泡</strong>
+                      <p>只有勾选的功能才会作为快捷气泡悬浮在云雀身边；所有功能已整理至左侧侧边栏随时访问。</p>
+                    </div>
+                  </div>
+                  <div class="shortcut-check-grid" id="orbitShortcutsGrid">
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="chat" data-shortcut-toggle="chat" />
+                      <span>聊聊天</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="study" data-shortcut-toggle="study" />
+                      <span>开始学习！</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="profile" data-shortcut-toggle="profile" />
+                      <span>用户画像</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="diary" data-shortcut-toggle="diary" />
+                      <span>日记小屋</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="memory" data-shortcut-toggle="memory" />
+                      <span>我们的记忆</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="trajectory" data-shortcut-toggle="trajectory" />
+                      <span>心情轨迹</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="pet" data-shortcut-toggle="pet" />
+                      <span>显示桌宠</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="settings" data-shortcut-toggle="settings" />
+                      <span>偏好设置</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="setting-row"><div><strong>视线跟随鼠标</strong><p id="gazeFollowDescription">云雀会随鼠标轻轻转头，也可以随时关闭。</p></div><label class="switch"><input id="gazeFollowToggle" type="checkbox" disabled aria-label="视线跟随鼠标"/><span></span></label></div>
+                <div class="setting-row"><div><strong>形象预览</strong><p>查看坐姿人型、Q版小人和鸟型。</p></div><a class="button button-link" href="model-viewer.html">查看形象</a></div>
+                <div class="setting-row"><div><strong>桌宠形态</strong><p>也可以右键桌宠，随时切换。</p></div><div class="segmented" id="petFormPicker"><button type="button" data-pet-form="bird" class="is-active" aria-pressed="true">鸟型</button><button type="button" data-pet-form="chibi" aria-pressed="false">Q版小人</button></div></div>
+                <div class="setting-row"><div><strong>桌面陪伴</strong><p id="petConnectionStatus">正在连接桌面云雀…</p></div><button class="button" id="settingsPetToggle" type="button">显示桌宠</button></div>
+                <div class="setting-row">
+                  <div><strong>主动回复</strong><p>允许云雀在长时间无输入时主动发起一句陪伴。</p></div>
+                  <label class="switch"><input id="proactiveReplyToggle" type="checkbox" checked /><span></span></label>
+                </div>
               </div>
-              <div class="setting-row">
-                <div><strong>清空开发数据</strong><p>清除当前用户的聊天、日记和 v2.0 三层记忆。</p></div>
-                <button class="button button-danger" id="clearDataButton" type="button">清空</button>
+
+              <!-- 分类 2: 系统与数据 -->
+              <div class="settings-tab-panel" id="settingsPanelSystem" hidden>
+                <div class="setting-row">
+                  <div><strong>当前服务状态</strong><p>云雀轻量化单模态运行中，数据存储于本地 SQLite 与 ChromaDB</p></div>
+                  <span class="backend-state is-online" id="systemStateBadge"><i></i>在线</span>
+                </div>
+                <div class="setting-row">
+                  <div><strong>清空开发数据</strong><p>清除当前用户的聊天、日记、v2.0 三层记忆、成绩记录与学业档案。</p></div>
+                  <button class="button button-danger" id="clearDataButton" type="button">清空</button>
+                </div>
               </div>
             </article>
           </section>
@@ -236,7 +607,138 @@
       </section>
     </div>
 
+    <!-- 新建画像弹窗 (学历必填) -->
+    <div class="modal-backdrop" id="newProfileModal" hidden>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newProfileTitle">
+        <h3 id="newProfileTitle">新建成长与学业画像</h3>
+        <p>为不同的学业阶段设立独立画像。主Agent将基于当前画像进行定制辅导与规划。</p>
+
+        <form id="newProfileForm" style="margin: 16px 0;">
+          <!-- 选择学业阶段（学历） -->
+          <div class="stage-select-section" style="margin-top:4px;">
+            <div class="stage-section-title">
+              <span>选择学业阶段（学历） <b style="color:#e05252;">* 必选</b></span>
+            </div>
+            <div class="stage-segmented-bar" id="newStageSegmented">
+              <button type="button" class="stage-segment-btn is-active" data-stage="high_school">
+                <span class="segment-icon">🎒</span>
+                <span class="segment-label">
+                  <strong>高中阶段</strong>
+                  <small>选科组合 · 高考考区 · 模拟考试</small>
+                </span>
+              </button>
+              <button type="button" class="stage-segment-btn" data-stage="undergraduate">
+                <span class="segment-icon">🎓</span>
+                <span class="segment-label">
+                  <strong>大学本科</strong>
+                  <small>就读专业 · 学分绩点GPA · 保研考研</small>
+                </span>
+              </button>
+              <button type="button" class="stage-segment-btn" data-stage="growth">
+                <span class="segment-icon">💼</span>
+                <span class="segment-label">
+                  <strong>职场与进修</strong>
+                  <small>业务领域 · 进修考证 · 技能跃迁</small>
+                </span>
+              </button>
+            </div>
+            <select id="newProfileStage" required style="display:none;">
+              <option value="high_school" selected>高中阶段</option>
+              <option value="undergraduate">大学本科</option>
+              <option value="growth">职场与自主进修</option>
+            </select>
+          </div>
+
+          <!-- 根据学历动态展开的专属字段 -->
+          <div class="stage-details-section" style="margin-top:16px;">
+            <div class="profile-form-grid">
+              <label class="field-item">
+                <span>画像名称 <b style="color: #e05252;">*</b></span>
+                <input id="newProfileName" placeholder="例如：高三冲刺画像" required />
+              </label>
+              <label class="field-item" id="newItemGrade">
+                <span id="newLabelGrade">当前年级</span>
+                <input id="newProfileGrade" placeholder="例如：高三" />
+              </label>
+              <label class="field-item" id="newItemSubCategory">
+                <span id="newLabelSubCategory">选科组合</span>
+                <input id="newProfileSubCategory" placeholder="例如：物化生 / 物化地" />
+              </label>
+              <label class="field-item" id="newItemProvince">
+                <span id="newLabelProvince">高考省份 / 考区</span>
+                <input id="newProfileProvince" placeholder="例如：江苏 / 浙江 / 山东" />
+              </label>
+              <label class="field-item" id="newItemCurrentSchool">
+                <span id="newLabelCurrentSchool">当前就读院校</span>
+                <input id="newProfileCurrentSchool" placeholder="例如：某省重点高中" />
+              </label>
+              <label class="field-item" id="newItemTargetSchool">
+                <span id="newLabelTargetSchool">目标高校 / 平台</span>
+                <input id="newProfileTargetSchool" placeholder="例如：清华大学 / 浙江大学" />
+              </label>
+              <label class="field-item" id="newItemTargetGoal">
+                <span id="newLabelTargetGoal">目标追求 / 愿景</span>
+                <input id="newProfileTargetGoal" placeholder="例如：高考冲刺650分 / 稳上一本" />
+              </label>
+              <label class="field-item" id="newItemScore">
+                <span id="newLabelScore">近期模考成绩</span>
+                <input id="newProfileScore" placeholder="例如：模考605分" />
+              </label>
+              <label class="field-item" id="newItemRank">
+                <span id="newLabelRank">全校 / 考区排名</span>
+                <input id="newProfileRank" placeholder="例如：年级前50名" />
+              </label>
+            </div>
+          </div>
+
+          <div class="button-row align-end" style="margin-top:16px;">
+            <button class="button" id="newProfileCancelBtn" type="button">取消</button>
+            <button class="button button-primary" id="newProfileSubmitBtn" type="submit">立即创建</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- 新建自习室弹窗 -->
+    <div class="modal-backdrop" id="newStudySessionModal" hidden>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newStudyTitle">
+        <h3 id="newStudyTitle">开启专属自习室</h3>
+        <p>为自习室指定学科科目和重点目标，云雀将以专属辅导导师身份进行互动答疑。</p>
+
+        <form id="newStudySessionForm" style="margin: 16px 0;">
+          <div class="profile-form-grid">
+            <label class="field-item">
+              <span>学科科目 <b style="color: #e05252;">*</b></span>
+              <input id="newStudySubjectInput" placeholder="例如：高等数学、微积分、大学物理、英语四级" required />
+            </label>
+            <label class="field-item">
+              <span>自习主题 / 章节</span>
+              <input id="newStudyTopicInput" placeholder="例如：导数重点攻坚、电磁感应大题" />
+            </label>
+            <label class="field-item full-width">
+              <span>辅导期望与要求（可选）</span>
+              <input id="newStudySeedInput" placeholder="例如：请多用启发式提问，引导我思考解题第一步" />
+            </label>
+          </div>
+          <div class="button-row align-end" style="margin-top:16px;">
+            <button class="button" id="newStudyCancelBtn" type="button">取消</button>
+            <button class="button button-primary" id="newStudyConfirmBtn" type="submit">立即开启</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
     <div class="companion-toast" id="companionToast" role="status" aria-live="polite" hidden></div>
+    <dialog class="study-chunk-modal" id="studyChunkModal" aria-labelledby="studyChunkModalTitle">
+      <div class="study-chunk-modal-head">
+        <div>
+          <strong id="studyChunkModalTitle">切片详情</strong>
+          <div class="study-chunk-modal-sub" id="studyChunkModalSub"></div>
+        </div>
+        <button class="dialog-close icon-button" id="studyChunkModalClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="study-chunk-modal-body" id="studyChunkModalBody"></div>
+    </dialog>
 <dialog class="desktop-dialog" id="desktopSetupDialog" aria-labelledby="desktopSetupTitle"><button class="dialog-close icon-button" id="desktopSetupClose" type="button" aria-label="关闭">×</button><img src="branding/characters/bird.png" alt="蓝色云雀小鸟"/><h2 id="desktopSetupTitle">让云雀来到桌面</h2><p>启动本机的「云雀桌面」后，她就能待在其他应用旁边。浏览器和桌面会自动连接。</p><p id="desktopSetupStatus">首次使用，请先启动桌面程序。</p><button class="button button-primary" id="desktopSetupLaunch" type="button">打开云雀桌面</button><button class="text-button" id="desktopSetupRetry" type="button">已启动，重新连接</button></dialog>
 <script src="app.js?v={{asset_version}}"></script>
 <script type="module" src="companion.js?v={{asset_version}}"></script>

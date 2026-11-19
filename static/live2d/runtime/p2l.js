@@ -474,6 +474,20 @@ export class P2LPlayer {
     this.targetWidth = 0;
     this.targetHeight = 0;
     this.isolation = true;
+    this._cachedClientW = this.canvas.clientWidth || 350;
+    this._cachedClientH = this.canvas.clientHeight || 460;
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const cr = entry.contentRect;
+          if (cr.width > 0 && cr.height > 0) {
+            this._cachedClientW = cr.width;
+            this._cachedClientH = cr.height;
+          }
+        }
+      });
+      this._resizeObserver.observe(this.canvas);
+    }
   }
 
   /** A texture to render into or copy pixels to, sampled pixel for pixel. */
@@ -627,8 +641,10 @@ export class P2LPlayer {
     const gl = this.gl;
     const rt = this.rt;
     const canvas = this.canvas;
-    const ratio = window.devicePixelRatio || 1;
-    const w = Math.round(canvas.clientWidth * ratio), h = Math.round(canvas.clientHeight * ratio);
+    const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
+    const cw = this._cachedClientW || canvas.clientWidth;
+    const ch = this._cachedClientH || canvas.clientHeight;
+    const w = Math.round(cw * ratio), h = Math.round(ch * ratio);
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;

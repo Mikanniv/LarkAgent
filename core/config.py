@@ -75,10 +75,11 @@ ALLOWED_ORIGINS = [
     for item in os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8001,http://localhost:8001").split(",")
     if item.strip()
 ]
-API_KEY = os.getenv("API_KEY", "")
-MODEL = os.getenv("MODEL", "kimi-k2.5")
-API_BASE = os.getenv("API_BASE", "https://api.moonshot.cn/v1")
-API_IMAGE_INPUT = os.getenv("API_IMAGE_INPUT", "1").strip().lower() in {"1", "true", "yes", "on"}
+API_KEY = (os.getenv("SILICON_FLOW_API_KEY") or os.getenv("API_KEY") or "").strip()
+MODEL = (os.getenv("MODEL") or "Qwen/Qwen3-8B").strip()
+API_BASE = (os.getenv("SILICON_FLOW_BASE_URL") or os.getenv("API_BASE") or "https://api.siliconflow.cn/v1").strip().rstrip("/")
+ENABLE_MULTIMODAL = os.getenv("ENABLE_MULTIMODAL", "0").strip().lower() in {"1", "true", "yes", "on"}
+API_IMAGE_INPUT = os.getenv("API_IMAGE_INPUT", "0" if not ENABLE_MULTIMODAL else "1").strip().lower() in {"1", "true", "yes", "on"}
 API_AUDIO_INPUT = os.getenv("API_AUDIO_INPUT", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 FUNASR_MODEL = os.getenv(

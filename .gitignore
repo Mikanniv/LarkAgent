@@ -47,6 +47,10 @@ desktop.ini
 node_modules/
 desktop/.local/
 desktop/dist/
+desktop/*.app/
+
+# Docs (kept locally only, not pushed to repo)
+docs/
 
 # Flutter generated outputs
 .dart_tool/
@@ -58,7 +62,6 @@ build/
 data/**
 !data/
 !data/**/*.pkl
-!data/README.md
 !data/.gitkeep
 
 # Large raw media anywhere

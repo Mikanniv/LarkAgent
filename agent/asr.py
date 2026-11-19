@@ -9,6 +9,7 @@ from typing import Any, Dict
 import imageio_ffmpeg
 
 from core.config import (
+    ENABLE_MULTIMODAL,
     FUNASR_DEVICE,
     FUNASR_MODEL,
     FUNASR_MODEL_REVISION,
@@ -68,6 +69,8 @@ def _get_model() -> Any:
 
 def preload_asr_model() -> Dict[str, Any]:
     """Load FunASR during server startup instead of on the first request."""
+    if not ENABLE_MULTIMODAL:
+        return {"ready": False, "model": "disabled", "device": "none"}
     model = _get_model()
     return {
         "ready": model is not None,
@@ -106,6 +109,8 @@ def _clean_transcript(value: object) -> str:
 
 
 def transcribe_audio(audio_path: Path) -> Dict[str, Any]:
+    if not ENABLE_MULTIMODAL:
+        raise RuntimeError("单模态模式已激活，多模态语音转写已暂停。")
     wav_path = _to_wav_16k(audio_path)
     try:
         result = _get_model().generate(

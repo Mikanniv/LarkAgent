@@ -11,5 +11,9 @@ if ! command -v npm >/dev/null 2>&1; then
   read 'reply?按回车键关闭。'
   exit 1
 fi
+if [[ -d "云雀桌面.app" ]]; then
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "云雀桌面.app" >/dev/null 2>&1 || true
+  osascript -l JavaScript -e 'ObjC.import("CoreServices"); $.LSSetDefaultHandlerForURLScheme($("yunque"), $("me.irises.yunque.desktop"));' >/dev/null 2>&1 || true
+fi
 if [[ ! -d node_modules/electron ]]; then npm install; fi
 exec npm start

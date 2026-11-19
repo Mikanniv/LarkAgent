@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>云雀 Live2D</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+      }
+      #embedCharacter {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #embedCharacter canvas, #embedCharacter img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="embedCharacter"></div>
+    <script type="module">
+      import { mountCharacter } from "./character.js";
+      const mount = document.getElementById("embedCharacter");
+      const character = await mountCharacter(mount, {
+        interactive: true,
+        fallbackSrc: "branding/characters/human-seated.png",
+        size: 360,
+      });
+      window.addEventListener("pointermove", (ev) => {
+        const rect = mount.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        character.setGaze(
+          ((ev.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)),
+          ((ev.clientY - (rect.top + rect.height * 0.42)) / (rect.height / 2)),
+        );
+      }, { passive: true });
+    </script>
+  </body>
+</html>

@@ -7,7 +7,8 @@ const PORT = 17643;
 const LOCAL_ORIGIN = `http://127.0.0.1:${PORT}`;
 const STATIC_ROOT = path.resolve(__dirname, "../static");
 const PET_SIZE = { width: 250, height: 295 };
-if (process.env.YUNQUE_USER_DATA) app.setPath("userData", path.resolve(process.env.YUNQUE_USER_DATA));
+const userDataOverride = process.env.LARK_USER_DATA || process.env.YUNQUE_USER_DATA;
+if (userDataOverride) app.setPath("userData", path.resolve(userDataOverride));
 app.setName("云雀桌面");
 let mainWindow, petWindow, tray, bridge, preferencesFile, state, cursorTimer, saveTimer, quitting = false, dragging = null;
 const snapshot = () => ({ visible: state.visible, form: state.form, gazeEnabled: state.gazeEnabled, position: state.position });
@@ -134,8 +135,8 @@ else {
     session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => callback({}));
     bridge = createBridge({
       staticRoot: STATIC_ROOT, getState: snapshot, command: applyCommand,
-      apiBase: process.env.YUNQUE_API_BASE || "http://127.0.0.1:8001",
-      origins: [...DEFAULT_ORIGINS, ...((process.env.YUNQUE_WEB_ORIGINS || "").split(",").filter(Boolean))],
+      apiBase: process.env.LARK_API_BASE || process.env.YUNQUE_API_BASE || "http://127.0.0.1:8001",
+      origins: [...DEFAULT_ORIGINS, ...((process.env.LARK_WEB_ORIGINS || process.env.YUNQUE_WEB_ORIGINS || "").split(",").filter(Boolean))],
     });
     try { await new Promise((resolve, reject) => { bridge.once("error", reject); bridge.listen(PORT, "127.0.0.1", resolve); }); }
     catch (error) { dialog.showErrorBox("云雀桌面暂时无法启动", `本地连接端口 ${PORT} 不可用，请关闭重复程序后重试。\n${error.message}`); app.quit(); return; }
@@ -148,8 +149,12 @@ else {
       { role: "editMenu", label: "编辑" },
       { label: "窗口", submenu: [{ role: "minimize", label: "最小化" }, { label: "显示桌宠", click: () => applyCommand("set-visible", true) }] },
     ]));
-    if (process.defaultApp) app.setAsDefaultProtocolClient("yunque", process.execPath, [path.resolve(__dirname)]);
-    else app.setAsDefaultProtocolClient("yunque");
+    if (process.platform !== "darwin") {
+      if (process.defaultApp) app.setAsDefaultProtocolClient("yunque", process.execPath, [path.resolve(__dirname)]);
+      else app.setAsDefaultProtocolClient("yunque");
+    } else if (!process.defaultApp) {
+      app.setAsDefaultProtocolClient("yunque");
+    }
     if (process.argv.some(value => value === "--show-pet" || value.startsWith("yunque://show-pet"))) applyCommand("set-visible", true);
     screen.on("display-removed", () => { positionPet(); broadcast(); });
     screen.on("display-metrics-changed", () => { positionPet(); broadcast(); });

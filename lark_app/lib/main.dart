@@ -8,7 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'lark_home_stage.dart';
 import 'lark_http_client.dart';
+import 'profile_page.dart';
+import 'study_room_page.dart';
 
 void main() {
   runApp(const LarkApp());
@@ -17,10 +20,10 @@ void main() {
 const _assetLarkSplash = 'assets/lark-q.png';
 const _assetLarkIcon = 'assets/lark-icon.png';
 const _apiBase = String.fromEnvironment(
-  'YUNQUE_API_BASE',
+  'LARK_API_BASE',
   defaultValue: 'https://worker.lark.irises.me',
 );
-const _sessionKey = 'yunque_session_cookie';
+const _sessionKey = 'lark_session_cookie';
 const _proactiveEnabledKey = 'proactive_reply_enabled';
 
 Uint8List _wavFromPcm(List<int> pcm) {
@@ -116,7 +119,7 @@ class _SplashGateState extends State<SplashGate> {
   }
 }
 
-enum MainPanel { chat, memory, diary, trajectory, settings }
+enum MainPanel { home, chat, study, memory, diary, trajectory, profile, settings }
 
 enum TrendMode { oneDay, daily, weekly, monthly }
 
@@ -152,7 +155,7 @@ class _LarkHomePageState extends State<LarkHomePage> {
   bool _loadingData = false;
   bool _memoryLoading = false;
   String? _authError;
-  MainPanel _panel = MainPanel.chat;
+  MainPanel _panel = MainPanel.home;
   DateTime _lastUserInteractionAt = DateTime.now();
   String _selectedUserDiaryDate = _dateKey(DateTime.now());
   MemoryLayer _selectedMemoryLayer = MemoryLayer.observation;
@@ -1238,13 +1241,41 @@ class _LarkHomePageState extends State<LarkHomePage> {
       .where((batch) => !_seenAiDiaryBatchIds.contains(batch.batchId))
       .length;
 
+  Future<Map<String, dynamic>> _requestApiJson(
+    String path, {
+    String method = 'GET',
+    Map<String, dynamic>? body,
+  }) async {
+    final uri = Uri.parse('$_apiBase$path');
+    late http.Response response;
+    if (method.toUpperCase() == 'POST') {
+      response = await _client
+          .post(uri, headers: _headers, body: jsonEncode(body ?? const {}))
+          .timeout(const Duration(seconds: 60));
+    } else {
+      response = await _client
+          .get(uri, headers: _headers)
+          .timeout(const Duration(seconds: 30));
+    }
+    if (response.statusCode >= 400) {
+      throw ApiException(_responseError(response));
+    }
+    if (mounted && !_backendOnline) {
+      setState(() => _backendOnline = true);
+    }
+    return _decodeMap(response.body);
+  }
+
   String get _headerTitle {
     return switch (_panel) {
-      MainPanel.chat => '云雀',
-      MainPanel.memory => '记忆',
-      MainPanel.diary => '日记',
-      MainPanel.trajectory => '情绪轨迹',
-      MainPanel.settings => '设置',
+      MainPanel.home => '云雀',
+      MainPanel.chat => '聊聊天',
+      MainPanel.study => '开始学习！',
+      MainPanel.memory => '我们的记忆',
+      MainPanel.diary => '日记小屋',
+      MainPanel.trajectory => '心情轨迹',
+      MainPanel.profile => '用户画像',
+      MainPanel.settings => '偏好设置',
     };
   }
 
@@ -1256,10 +1287,13 @@ class _LarkHomePageState extends State<LarkHomePage> {
       drawer: LarkDrawer(
         selected: _panel,
         user: _user,
+        onOpenHome: () => _openPanel(MainPanel.home),
         onOpenChat: () => _openPanel(MainPanel.chat),
+        onOpenStudy: () => _openPanel(MainPanel.study),
         onOpenMemory: () => _openPanel(MainPanel.memory),
         onOpenDiary: () => _openPanel(MainPanel.diary),
         onOpenTrajectory: () => _openPanel(MainPanel.trajectory),
+        onOpenProfile: () => _openPanel(MainPanel.profile),
         onOpenSettings: () => _openPanel(MainPanel.settings),
         memoryNewCount: _memoryUnreadTotal,
         diaryNewCount: _aiDiaryNewCount,
@@ -1272,7 +1306,12 @@ class _LarkHomePageState extends State<LarkHomePage> {
               children: [
                 LarkHeader(
                   title: _headerTitle,
-                  online: _panel == MainPanel.chat ? _backendOnline : null,
+                  online: (_panel == MainPanel.home || _panel == MainPanel.chat)
+                      ? _backendOnline
+                      : null,
+                  onBackHome: _panel == MainPanel.home
+                      ? null
+                      : () => setState(() => _panel = MainPanel.home),
                   action: _panel == MainPanel.diary
                       ? IconButton(
                           tooltip: _diaryCalendarVisible ? '隐藏日历' : '显示日历',
@@ -1310,6 +1349,64 @@ class _LarkHomePageState extends State<LarkHomePage> {
 
   Widget _buildMainPanel() {
     return switch (_panel) {
+      MainPanel.home => LarkHomeStage(
+        apiBase: _apiBase,
+        backendOnline: _backendOnline,
+        active: _authChecked && _isLoggedIn,
+        shortcuts: [
+          LarkOrbitShortcut(
+            id: 'chat',
+            label: '聊聊天',
+            icon: Icons.chat_bubble_outline_rounded,
+            onTap: () => _openPanel(MainPanel.chat),
+          ),
+          LarkOrbitShortcut(
+            id: 'study',
+            label: '开始学习！',
+            icon: Icons.menu_book_rounded,
+            onTap: () => _openPanel(MainPanel.study),
+          ),
+          LarkOrbitShortcut(
+            id: 'memory',
+            label: '我们的记忆',
+            icon: Icons.psychology_alt_outlined,
+            badgeCount: _memoryUnreadTotal,
+            onTap: () => _openPanel(MainPanel.memory),
+          ),
+          LarkOrbitShortcut(
+            id: 'diary',
+            label: '日记小屋',
+            icon: Icons.edit_note_rounded,
+            badgeCount: _aiDiaryNewCount,
+            onTap: () => _openPanel(MainPanel.diary),
+          ),
+          LarkOrbitShortcut(
+            id: 'trajectory',
+            label: '心情轨迹',
+            icon: Icons.show_chart_rounded,
+            onTap: () => _openPanel(MainPanel.trajectory),
+          ),
+          LarkOrbitShortcut(
+            id: 'profile',
+            label: '用户画像',
+            icon: Icons.person_outline_rounded,
+            onTap: () => _openPanel(MainPanel.profile),
+          ),
+          LarkOrbitShortcut(
+            id: 'settings',
+            label: '偏好设置',
+            icon: Icons.tune_rounded,
+            onTap: () => _openPanel(MainPanel.settings),
+          ),
+        ],
+      ),
+      MainPanel.study => StudyRoomPage(
+        requestJson: _requestApiJson,
+      ),
+      MainPanel.profile => ProfilePage(
+        requestJson: _requestApiJson,
+        onProfileSwitched: _loadUserData,
+      ),
       MainPanel.chat => ChatPage(
         messages: _messages,
         typing: _sending || _proactiveSending,
@@ -1629,6 +1726,7 @@ class LarkHeader extends StatelessWidget {
     required this.title,
     required this.online,
     required this.onMenuTap,
+    this.onBackHome,
     this.action,
     super.key,
   });
@@ -1636,6 +1734,7 @@ class LarkHeader extends StatelessWidget {
   final String title;
   final bool? online;
   final VoidCallback onMenuTap;
+  final VoidCallback? onBackHome;
   final Widget? action;
 
   @override
@@ -1649,12 +1748,20 @@ class LarkHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            tooltip: '侧边栏',
-            onPressed: onMenuTap,
-            icon: const Icon(Icons.menu_open_rounded),
-            color: LarkColors.text,
-          ),
+          if (onBackHome != null)
+            IconButton(
+              tooltip: '返回主页',
+              onPressed: onBackHome,
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 19),
+              color: LarkColors.text,
+            )
+          else
+            IconButton(
+              tooltip: '侧边栏',
+              onPressed: onMenuTap,
+              icon: const Icon(Icons.menu_open_rounded),
+              color: LarkColors.text,
+            ),
           Expanded(
             child: Text(
               title,
@@ -1696,10 +1803,13 @@ class LarkDrawer extends StatelessWidget {
   const LarkDrawer({
     required this.selected,
     required this.user,
+    required this.onOpenHome,
     required this.onOpenChat,
+    required this.onOpenStudy,
     required this.onOpenMemory,
     required this.onOpenDiary,
     required this.onOpenTrajectory,
+    required this.onOpenProfile,
     required this.onOpenSettings,
     required this.memoryNewCount,
     required this.diaryNewCount,
@@ -1709,10 +1819,13 @@ class LarkDrawer extends StatelessWidget {
 
   final MainPanel selected;
   final LarkUser? user;
+  final VoidCallback onOpenHome;
   final VoidCallback onOpenChat;
+  final VoidCallback onOpenStudy;
   final VoidCallback onOpenMemory;
   final VoidCallback onOpenDiary;
   final VoidCallback onOpenTrajectory;
+  final VoidCallback onOpenProfile;
   final VoidCallback onOpenSettings;
   final int memoryNewCount;
   final int diaryNewCount;
@@ -1759,35 +1872,53 @@ class LarkDrawer extends StatelessWidget {
               ),
             ),
             DrawerRow(
+              selected: selected == MainPanel.home,
+              icon: Icons.home_outlined,
+              title: '主页',
+              onTap: onOpenHome,
+            ),
+            DrawerRow(
               selected: selected == MainPanel.chat,
               icon: Icons.chat_bubble_outline_rounded,
-              title: '聊天',
+              title: '聊聊天',
               onTap: onOpenChat,
+            ),
+            DrawerRow(
+              selected: selected == MainPanel.study,
+              icon: Icons.menu_book_rounded,
+              title: '开始学习！',
+              onTap: onOpenStudy,
             ),
             DrawerRow(
               selected: selected == MainPanel.memory,
               icon: Icons.psychology_alt_outlined,
-              title: '记忆',
+              title: '我们的记忆',
               newCount: memoryNewCount,
               onTap: onOpenMemory,
             ),
             DrawerRow(
               selected: selected == MainPanel.diary,
               icon: Icons.edit_note_rounded,
-              title: '日记',
+              title: '日记小屋',
               newCount: diaryNewCount,
               onTap: onOpenDiary,
             ),
             DrawerRow(
               selected: selected == MainPanel.trajectory,
               icon: Icons.show_chart_rounded,
-              title: '情绪轨迹',
+              title: '心情轨迹',
               onTap: onOpenTrajectory,
+            ),
+            DrawerRow(
+              selected: selected == MainPanel.profile,
+              icon: Icons.person_outline_rounded,
+              title: '用户画像',
+              onTap: onOpenProfile,
             ),
             DrawerRow(
               selected: selected == MainPanel.settings,
               icon: Icons.settings_rounded,
-              title: '设置',
+              title: '偏好设置',
               onTap: onOpenSettings,
             ),
             const Spacer(),
@@ -4677,7 +4808,8 @@ String _responseError(http.Response response) {
 
 String? _extractSessionCookie(String? setCookie) {
   if (setCookie == null || setCookie.isEmpty) return null;
-  final match = RegExp(r'yunque_session=[^;,]+').firstMatch(setCookie);
+  final match = RegExp(r'(?:lark_session|yunque_session)=[^;,]+')
+      .firstMatch(setCookie);
   return match?.group(0);
 }
 

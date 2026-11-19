@@ -1,6 +1,6 @@
 from http.server import ThreadingHTTPServer
 
-from core.config import HOST, PORT
+from core.config import HOST, PORT, ENABLE_MULTIMODAL
 from core.config import CHAT_DB_PATH, CHROMA_DIR, DIARY_DIR, MEMORY_DIR, RUNTIME_MEDIA_DIR
 from diary.store import ensure_diary_dir
 from server.handlers import AppHandler
@@ -17,10 +17,13 @@ def ensure_runtime_dirs() -> None:
 
 def main():
     ensure_runtime_dirs()
-    print("Preloading emotion, audio, and ASR models...")
-    get_emotion_runner()
-    preload_audio_feature_extractor()
-    preload_asr_model()
+    if ENABLE_MULTIMODAL:
+        print("Preloading emotion, audio, and ASR models...")
+        get_emotion_runner()
+        preload_audio_feature_extractor()
+        preload_asr_model()
+    else:
+        print("[Mode] 单模态运行中（纯文本）：多模态及权重下载已暂停。")
     server = ThreadingHTTPServer((HOST, PORT), AppHandler)
     display_host = "127.0.0.1" if HOST in {"0.0.0.0", "::"} else HOST
     print(f"Server running at http://{display_host}:{PORT}")

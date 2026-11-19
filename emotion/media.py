@@ -7,7 +7,7 @@ from typing import Dict, Tuple
 import numpy as np
 import torch
 
-from core.config import FACE_TASK_PATH, RUNTIME_MEDIA_DIR, project_path
+from core.config import ENABLE_MULTIMODAL, FACE_TASK_PATH, RUNTIME_MEDIA_DIR, project_path
 from emotion_model.train_self_mm_mediapipe import (
     AUDIO_DIM,
     AUDIO_SEQ_LEN,
@@ -174,6 +174,8 @@ def summarize_audio_tensor(audio_tensor: torch.Tensor) -> Dict[str, float]:
 
 def preload_audio_feature_extractor() -> Dict[str, object]:
     """Import and exercise LibROSA's inexpensive primitives at startup."""
+    if not ENABLE_MULTIMODAL:
+        return {"ready": False, "extractor": "disabled", "sample_rate": 16000}
     import librosa
 
     sample = np.zeros(1600, dtype=np.float32)

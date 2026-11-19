@@ -19,13 +19,25 @@ export function mountCharacter(container, form = "human") {
   container.replaceChildren(art);
 
   let pixels = null, pixelWidth = 0, pixelHeight = 0, disposed = false;
-  let player = null, canvas = null, animation = 0, enabled = true, lastTime = 0;
-  let targetX = 0, targetY = 0, currentX = 0, currentY = 0, sampleTime = 0;
+  let player = null, canvas = null, animation = 0, enabled = true, lastTime = 0, lastDrawTime = 0;
+  let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+  let pauseUntil = 0;
   const clamp = value => Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
 
   function animate(now) {
     animation = 0;
     if (disposed || !player) return;
+    if (now < pauseUntil) {
+      lastTime = now;
+      if (!document.hidden) animation = requestAnimationFrame(animate);
+      return;
+    }
+    // 限制 WebGL 重绘帧率在 ~36fps，避免 120Hz 屏幕下每帧多通道渲染抢占主线程与合成器
+    if (now - lastDrawTime < 26) {
+      if (!document.hidden) animation = requestAnimationFrame(animate);
+      return;
+    }
+    lastDrawTime = now;
     const dt = Math.min(.05, Math.max(0, (now - lastTime) / 1000 || 0));
     lastTime = now;
     const ease = 1 - Math.exp(-dt * 8);
@@ -39,11 +51,6 @@ export function mountCharacter(container, form = "human") {
     player.setParameter("ParamEyeBallY", -currentY * .55);
     player.update(dt);
     player.draw();
-    if (now - sampleTime > 120) {
-      container.dataset.headX = (currentX * 25).toFixed(1);
-      container.dataset.headY = (-currentY * 24).toFixed(1);
-      sampleTime = now;
-    }
     if (!document.hidden) animation = requestAnimationFrame(animate);
   }
 
@@ -113,6 +120,7 @@ export function mountCharacter(container, form = "human") {
   return {
     get supportsGaze() { return Boolean(player); },
     lookAt(x, y) { targetX = clamp(x); targetY = clamp(y); },
+    pauseForTransition(ms = 440) { pauseUntil = performance.now() + ms; },
     setEnabled(value) {
       enabled = Boolean(value);
       container.dataset.tracking = String(enabled);

@@ -24,8 +24,10 @@ function render() {
   const connected = Boolean(desktop.state);
   const visible = connected && desktop.state.visible;
   $("petToggleLabel").textContent = visible ? "隐藏桌宠" : "显示桌宠";
+  if ($("sidebarPetLabel")) $("sidebarPetLabel").textContent = visible ? "隐藏桌宠" : "显示桌宠";
   $("settingsPetToggle").textContent = visible ? "隐藏桌宠" : "显示桌宠";
   $("petToggleButton").setAttribute("aria-pressed", String(visible));
+  if ($("sidebarPetButton")) $("sidebarPetButton").setAttribute("aria-pressed", String(visible));
   $("petConnectionStatus").textContent = connected ? "已连接云雀桌面，可在其他应用旁陪伴。" : "启动本机的云雀桌面后，即可连接。";
   $("gazeFollowToggle").checked = character.supportsGaze && gazeEnabled;
   $("gazeFollowToggle").disabled = !character.supportsGaze;
@@ -69,6 +71,7 @@ async function togglePet() {
   finally { togglePending = false; }
 }
 $("petToggleButton").addEventListener("click", togglePet);
+$("sidebarPetButton")?.addEventListener("click", togglePet);
 $("settingsPetToggle").addEventListener("click", togglePet);
 $("desktopSetupClose").onclick = () => $("desktopSetupDialog").close();
 $("desktopSetupLaunch").onclick = () => {
@@ -99,7 +102,7 @@ document.querySelectorAll("[data-pet-form]").forEach(button => button.onclick = 
 });
 document.querySelectorAll("[data-open-view]").forEach(button => button.onclick = () => setView(button.dataset.openView));
 $("homeBackButton").onclick = $("brandHomeButton").onclick = () => setView("home");
-$("quickSettingsButton").onclick = () => setView("settings");
+if ($("quickSettingsButton")) $("quickSettingsButton").onclick = () => setView("settings");
 $("accountButton").onclick = () => {
   $("introScreen").classList.remove("is-hidden");
   $("authForm").hidden = false;
@@ -108,13 +111,29 @@ $("accountButton").onclick = () => {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && !$("introScreen").classList.contains("is-hidden")) $("introScreen").classList.add("is-hidden");
 });
+let cachedCharRect = null;
+function updateCachedCharRect() {
+  const el = $("mainCharacter");
+  if (el) cachedCharRect = el.getBoundingClientRect();
+}
+window.addEventListener("resize", updateCachedCharRect, { passive: true });
+$("companionStage")?.addEventListener("transitionend", updateCachedCharRect, { passive: true });
+window.addEventListener("yunque:view", (e) => {
+  character.pauseForTransition?.(420);
+  setTimeout(updateCachedCharRect, 450);
+});
+
 document.addEventListener("pointermove", event => {
-  if (!character.supportsGaze) return;
-  cancelAnimationFrame(pointerFrame);
+  if (!character.supportsGaze || !gazeEnabled) return;
+  if (pointerFrame) return;
+  const cx = event.clientX;
+  const cy = event.clientY;
   pointerFrame = requestAnimationFrame(() => {
-    if (!gazeEnabled) return;
-    const rect = $("mainCharacter").getBoundingClientRect();
-    character.lookAt((event.clientX - rect.left - rect.width / 2) / 280, (event.clientY - rect.top - rect.height * .27) / 280);
+    pointerFrame = 0;
+    if (!cachedCharRect || !cachedCharRect.width) updateCachedCharRect();
+    const rect = cachedCharRect;
+    if (!rect || !rect.width) return;
+    character.lookAt((cx - rect.left - rect.width / 2) / 280, (cy - rect.top - rect.height * .27) / 280);
   });
 }, { passive: true });
 document.documentElement.addEventListener("pointerleave", () => character.lookAt(0, 0));

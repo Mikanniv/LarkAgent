@@ -2,6 +2,8 @@ import re
 from typing import Dict, List, Tuple
 
 from agent.agent import call_chat_completion, chat_api_ready
+from agent.attachments import build_multimodal_user_content
+from agent.academic import format_academic_context
 from core.config import API_AUDIO_INPUT, API_IMAGE_INPUT, MODEL
 from emotion.mapping import FineGrainedEmotion
 
@@ -59,6 +61,7 @@ def build_agent_prompt(
     strategies: List[Dict] | None = None,
     proactive: bool = False,
     attachments: List[Dict] | None = None,
+    academic_profile: Dict | None = None,
 ) -> List[Dict]:
     recent_assistant_replies = [
         (item.get("content") or "").strip()
@@ -66,18 +69,19 @@ def build_agent_prompt(
         if item.get("role") == "assistant" and (item.get("content") or "").strip()
     ]
     system = (
-        "你叫云雀，是一个自然、温柔、真诚的中文陪伴对象。"
+        "你叫云雀，是一个自然、温柔、真诚的中文陪伴与成长搭档。"
         "直接回复用户，不要写分析过程，只输出自然中文。"
         "不要暴露模型、参数、传感器、valence/arousal 等系统实现细节。"
-        "你可以参考长期记忆理解用户偏好和近期背景，但不要机械复述记忆。"
+        "你可以参考长期记忆与学业背景理解用户偏好、当前困惑与长远目标，但不要机械复述记忆或强行说教。"
         "如果长期记忆和当前输入冲突，以当前输入为准。"
-        "避免书面腔，要像真人聊天。"
+        "避免书面腔，要像真人学伴聊天。"
+        "当用户需要可视化演示、互动小工具、图表、动画或可交互练习时，可输出一个完整自包含的 ```html-widget ... ``` 单文件代码块（内联 CSS 与 JS，不依赖外部本地文件），前端会自动渲染为可交互预览卡片。"
     )
     if proactive:
         system += (
             "这次是你主动发起回应，要自然、克制，不要显得像系统提醒。"
             "不要使用“今天有好好吃饭吗”“记得吃饭/喝水/早点睡”这类打卡式关心，除非用户刚刚明确提到饮食、喝水或睡眠。"
-            "不要重复最近已经说过的句式。优先结合最近对话、长期记忆或当前情绪状态，轻轻承接一句。"
+            "不要重复最近已经说过的句式。优先结合最近对话、长期记忆、学业阶段或当前情绪状态，轻轻承接一句。"
         )
     proactive_reason = raw_scores.get("proactive_reason")
     context_summary = f"用户的情感得分为{float(raw_scores.get('fusion', 0.0)):.3f}。"
@@ -93,6 +97,8 @@ def build_agent_prompt(
         {"role": "system", "content": memory_context},
         {"role": "system", "content": strategy_context},
     ]
+    if academic_profile:
+        messages.append({"role": "system", "content": f"用户学业与成长背景：\n{format_academic_context(academic_profile)}"})
     for item in history[-RECENT_DIALOGUE_MESSAGES:]:
         role = "assistant" if item.get("role") == "assistant" else "user"
         messages.append({"role": role, "content": item.get("content", "")})
@@ -101,17 +107,13 @@ def build_agent_prompt(
         "不要问吃饭、喝水、睡觉这类泛化生活打卡问题。"
     )
     final_text = user_text or proactive_user_prompt
-    content_parts: List[Dict] = [{"type": "text", "text": final_text}]
-    for item in attachments or []:
-        mime_type = str(item.get("type") or "").lower()
-        data_url = str(item.get("data") or "")
-        if mime_type.startswith("image/") and API_IMAGE_INPUT and data_url.startswith("data:image/"):
-            content_parts.append({"type": "image_url", "image_url": {"url": data_url}})
-        elif mime_type.startswith("audio/") and API_AUDIO_INPUT and data_url.startswith("data:audio/"):
-            encoded = data_url.split(",", 1)[-1]
-            subtype = mime_type.split("/", 1)[-1].split(";", 1)[0]
-            content_parts.append({"type": "input_audio", "input_audio": {"data": encoded, "format": "wav" if subtype in {"wav", "x-wav", "wave"} else subtype}})
-    messages.append({"role": "user", "content": content_parts if len(content_parts) > 1 else final_text})
+    user_content = build_multimodal_user_content(
+        final_text,
+        attachments,
+        allow_image=API_IMAGE_INPUT,
+        allow_audio=API_AUDIO_INPUT,
+    )
+    messages.append({"role": "user", "content": user_content})
     return messages
 
 
@@ -154,6 +156,7 @@ def generate_agent_reply(
     strategies: List[Dict] | None = None,
     proactive: bool = False,
     attachments: List[Dict] | None = None,
+    academic_profile: Dict | None = None,
 ) -> Tuple[str, str, str]:
     content, error = call_chat_completion(
         build_agent_prompt(
@@ -165,6 +168,7 @@ def generate_agent_reply(
             strategies=strategies,
             proactive=proactive,
             attachments=attachments,
+            academic_profile=academic_profile,
         ),
         max_tokens=REPLY_MAX_TOKENS,
         temperature=0.7,

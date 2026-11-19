@@ -44,5 +44,5 @@ test("the loopback bridge rejects untrusted origins, unauthenticated writes and 
   const traversal = await fetch(`${base}/..%2f..%2f.env`);
   assert.equal(traversal.status, 404);
   const page = await fetch(`${base}/`);
-  assert.equal(page.status, 200); assert.match(await page.text(), /homeGreeting/);
+  assert.equal(page.status, 200); assert.match(await page.text(), /larkGreetingBubble/);
 });
