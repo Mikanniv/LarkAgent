@@ -6,8 +6,6 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-import imageio_ffmpeg
-
 from core.config import (
     ENABLE_MULTIMODAL,
     FUNASR_DEVICE,
@@ -82,8 +80,14 @@ def preload_asr_model() -> Dict[str, Any]:
 def _to_wav_16k(audio_path: Path) -> Path:
     RUNTIME_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
     output = RUNTIME_MEDIA_DIR / f"{audio_path.stem}_16k.wav"
+    try:
+        import imageio_ffmpeg  # type: ignore
+
+        ffmpeg_bin = imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        ffmpeg_bin = "ffmpeg"
     command = [
-        imageio_ffmpeg.get_ffmpeg_exe(),
+        ffmpeg_bin,
         "-y",
         "-i",
         str(audio_path),

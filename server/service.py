@@ -13,6 +13,11 @@ from agent.attachments import (
     infer_file_type,
     is_supported_attachment,
 )
+from agent.realtime_voice import (
+    split_spoken_sentences,
+    synthesize_sentence_tts,
+    transcribe_voice_audio,
+)
 from agent.rag import (
     DEFAULT_RELEVANCE_THRESHOLD,
     build_file_chunks,
@@ -47,7 +52,6 @@ from emotion.media import (
     resolve_payload_media_path,
     resolve_text_input,
 )
-from emotion.models import SelfMMRunner
 from memory import v2 as memory_v2
 from memory.pipeline_v2 import list_ai_diary_batches, record_complete_interaction, review_ai_diary_item
 from storage.chat_store import (
@@ -136,9 +140,11 @@ def current_user_id(payload: Dict | None = None) -> str:
     return str(user_id).strip() or DEFAULT_MEMORY_USER_ID
 
 
-def get_emotion_runner() -> SelfMMRunner:
+def get_emotion_runner() -> Any:
     global EMOTION_RUNNER
     if EMOTION_RUNNER is None:
+        from emotion.models import SelfMMRunner
+
         EMOTION_RUNNER = SelfMMRunner(SELF_MM_MODEL_PATH)
     return EMOTION_RUNNER
 
@@ -1360,3 +1366,165 @@ def stream_main_chat(payload: Dict):
         "chat_history": list_chat_messages(user_id, limit=CHAT_DISPLAY_LIMIT, profile_id=profile_id),
     }
 
+
+
+def stream_realtime_voice_turn(payload: Dict):
+    """路线 1 实时语音单轮流水线：单次 SSE 连接内串行完成 ASR -> 流式 LLM -> 分句流式 TTS。"""
+    import base64
+    import time as _time
+
+    t0 = _time.perf_counter()
+    user_id = current_user_id(payload)
+    timestamp = normalize_timestamp_to_china(str(payload.get("timestamp") or ""))
+    text_override = str(payload.get("text") or "").strip()
+    audio_b64 = str(payload.get("audio_b64") or "").strip()
+    mime_type = str(payload.get("mime_type") or "audio/webm").strip()
+    filename = str(payload.get("filename") or "voice.webm").strip()
+    voice = str(payload.get("voice") or "").strip()
+
+    asr_provider = "text"
+    transcript = text_override
+    if not transcript:
+        if not audio_b64:
+            yield {"type": "empty", "error": "未收到有效语音数据。"}
+            return
+        if "," in audio_b64 and audio_b64.startswith("data:"):
+            audio_b64 = audio_b64.split(",", 1)[1]
+        try:
+            audio_bytes = base64.b64decode(audio_b64)
+        except Exception:
+            yield {"type": "empty", "error": "语音数据解码失败。"}
+            return
+        transcript, asr_provider, asr_err = transcribe_voice_audio(
+            audio_bytes,
+            mime_type=mime_type,
+            filename=filename,
+        )
+        if not transcript:
+            yield {"type": "empty", "error": asr_err or "没有听清，请再说一次。"}
+            return
+        # 过滤纯标点或极短环境杂音误识别（如 "。" / 单字杂音）
+        import re as _re
+
+        clean_chars = _re.sub(r"[\W_]+", "", transcript)
+        if not clean_chars or (len(clean_chars) == 1 and clean_chars not in {"嗯", "好", "行", "对", "是", "不", "啊", "哦", "嗨"}):
+            yield {"type": "empty", "error": "环境音太轻，继续聆听中…"}
+            return
+
+    asr_ms = int((_time.perf_counter() - t0) * 1000)
+    yield {
+        "type": "transcript",
+        "text": transcript,
+        "asr_provider": asr_provider,
+        "elapsed_ms": asr_ms,
+    }
+
+    active_profile = get_active_profile(user_id)
+    profile_id = str(active_profile["id"]) if active_profile else ""
+    history = list_context_messages(user_id, limit=CHAT_CONTEXT_LIMIT)
+    try:
+        recalled = memory_v2.recall_for_chat(user_id, transcript, memory_k=3, strategy_k=2)
+    except Exception:
+        recalled = {"memories": [], "strategies": []}
+    raw_scores = {"fusion": 0.0, "text": 0.0, "audio": 0.0, "video": 0.0}
+    emotion = FineGrainedEmotion(label="平静", valence=0.1, arousal=0.25, confidence=0.5)
+
+    messages = build_agent_prompt(
+        transcript,
+        emotion,
+        raw_scores,
+        history,
+        memories=recalled["memories"],
+        strategies=recalled["strategies"],
+        proactive=False,
+        attachments=[],
+        academic_profile=active_profile,
+    )
+    messages.insert(
+        1,
+        {
+            "role": "system",
+            "content": (
+                "当前处于实时语音通话模式：请像贴心朋友打电话一样自然口语化地回复，"
+                "每次控制在 2 到 4 句简短清晰的中文，避免输出长列表、Markdown 表格或大段代码。"
+            ),
+        },
+    )
+
+    chunks: list[str] = []
+    sentence_buf = ""
+    sent_idx = 0
+    tts_provider_used = "browser"
+
+    def _emit_sentence(sentence_text: str):
+        nonlocal sent_idx, tts_provider_used
+        audio_out, out_mime, provider = synthesize_sentence_tts(sentence_text, voice=voice)
+        tts_provider_used = provider
+        sent_idx += 1
+        if audio_out:
+            return {
+                "type": "audio",
+                "index": sent_idx,
+                "text": sentence_text,
+                "mime": out_mime or "audio/mpeg",
+                "audio_b64": base64.b64encode(audio_out).decode("ascii"),
+                "tts_provider": provider,
+            }
+        return {
+            "type": "tts_sentence",
+            "index": sent_idx,
+            "text": sentence_text,
+            "tts_provider": provider,
+        }
+
+    try:
+        for delta in stream_chat_completion(messages, max_tokens=600, temperature=0.75):
+            chunks.append(delta)
+            yield {"type": "delta", "delta": delta}
+            sentence_buf += delta
+            ready_sentences, sentence_buf = split_spoken_sentences(sentence_buf, flush=False, min_chars=26)
+            for sent in ready_sentences:
+                yield _emit_sentence(sent)
+    except Exception:
+        pass
+
+    if not chunks:
+        fallback_reply, _, _ = generate_agent_reply(
+            transcript,
+            emotion,
+            raw_scores,
+            history,
+            memories=recalled["memories"],
+            strategies=recalled["strategies"],
+            proactive=False,
+            attachments=[],
+            academic_profile=active_profile,
+        )
+        chunks.append(fallback_reply)
+        yield {"type": "delta", "delta": fallback_reply}
+        sentence_buf = fallback_reply
+
+    tail_sentences, _ = split_spoken_sentences(sentence_buf, flush=True, min_chars=1)
+    for sent in tail_sentences:
+        yield _emit_sentence(sent)
+
+    agent_reply = "".join(chunks).strip()
+    if profile_id and transcript:
+        mark_profile_chatted(user_id, profile_id)
+    if transcript:
+        add_chat_message(user_id, "user", transcript, created_at=timestamp, profile_id=profile_id)
+    if agent_reply:
+        add_chat_message(user_id, "assistant", agent_reply, created_at=timestamp, profile_id=profile_id)
+    if transcript and agent_reply:
+        record_complete_interaction(user_id, timestamp)
+
+    yield {
+        "type": "done",
+        "ok": True,
+        "transcript": transcript,
+        "reply": agent_reply,
+        "asr_provider": asr_provider,
+        "tts_provider": tts_provider_used,
+        "total_ms": int((_time.perf_counter() - t0) * 1000),
+        "chat_history": list_chat_messages(user_id, limit=CHAT_DISPLAY_LIMIT, profile_id=profile_id),
+    }

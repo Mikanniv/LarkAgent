@@ -58,6 +58,7 @@ from server.service import (
     handle_study_session_links_update,
     handle_user_clear,
     stream_main_chat,
+    stream_realtime_voice_turn,
     stream_study_chat,
 )
 
@@ -109,6 +110,7 @@ class AppHandler(BaseHTTPRequestHandler):
         candidates = [
             STATIC_DIR / "app.js",
             STATIC_DIR / "companion.js",
+            STATIC_DIR / "realtime-voice.js",
             STATIC_DIR / "character.js",
             STATIC_DIR / "styles.css",
             STATIC_DIR / "companion.css",
@@ -349,6 +351,8 @@ class AppHandler(BaseHTTPRequestHandler):
         if route not in {
             "/api/chat",
             "/api/chat/stream",
+            "/api/voice/turn/stream",
+            "/api/voice/tts",
             "/api/asr/segment",
             "/api/audio/input",
             "/api/diary/user",
@@ -399,6 +403,23 @@ class AppHandler(BaseHTTPRequestHandler):
                 return
             if route == "/api/study/chat/stream":
                 self.send_sse_stream(stream_study_chat(payload))
+                return
+            if route == "/api/voice/turn/stream":
+                self.send_sse_stream(stream_realtime_voice_turn(payload))
+                return
+            if route == "/api/voice/tts":
+                import base64
+                from agent.realtime_voice import synthesize_sentence_tts
+
+                text = str(payload.get("text") or "").strip()
+                voice = str(payload.get("voice") or "").strip()
+                audio_bytes, mime, provider = synthesize_sentence_tts(text, voice=voice)
+                self.send_json({
+                    "ok": True,
+                    "tts_provider": provider,
+                    "mime": mime,
+                    "audio_b64": base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else "",
+                })
                 return
             if route == "/api/chat":
                 response = analyze_and_reply(payload, should_reply=True)

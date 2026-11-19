@@ -1,23 +1,14 @@
+from __future__ import annotations
+
 import base64
 import mimetypes
 import tempfile
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 import numpy as np
-import torch
 
 from core.config import ENABLE_MULTIMODAL, FACE_TASK_PATH, RUNTIME_MEDIA_DIR, project_path
-from emotion_model.train_self_mm_mediapipe import (
-    AUDIO_DIM,
-    AUDIO_SEQ_LEN,
-    VIDEO_DIM,
-    VIDEO_FEATURE_ORDER,
-    VIDEO_SEQ_LEN,
-    extract_audio_feature,
-    extract_video_feature,
-    prepare_face_task,
-)
 
 AUDIO_FEATURE_ORDER = ["logF0"] + [f"mfcc_{index:02d}" for index in range(1, 21)] + [
     f"cqt_{index:02d}" for index in range(1, 13)
@@ -109,18 +100,24 @@ def resolve_payload_media_path(payload: Dict, modality: str) -> tuple[Path | Non
     return None, False
 
 
-def zero_feature_tensor(seq_len: int, dim: int) -> torch.Tensor:
+def zero_feature_tensor(seq_len: int, dim: int) -> Any:
+    import torch
+
     return torch.zeros((1, seq_len, dim), dtype=torch.float32)
 
 
-def tensor_from_feature(feature: np.ndarray, seq_len: int, dim: int) -> torch.Tensor:
+def tensor_from_feature(feature: np.ndarray, seq_len: int, dim: int) -> Any:
+    import torch
+
     arr = np.asarray(feature, dtype=np.float32)
     if arr.shape != (seq_len, dim):
         arr = np.zeros((seq_len, dim), dtype=np.float32)
     return torch.from_numpy(arr).unsqueeze(0)
 
 
-def build_audio_tensor_from_media(media_path: Path | None) -> tuple[torch.Tensor, Dict[str, object]]:
+def build_audio_tensor_from_media(media_path: Path | None) -> tuple[Any, Dict[str, object]]:
+    from emotion_model.train_self_mm_mediapipe import AUDIO_DIM, AUDIO_SEQ_LEN, extract_audio_feature
+
     if media_path is None:
         return zero_feature_tensor(AUDIO_SEQ_LEN, AUDIO_DIM), {"available": False}
     try:
@@ -139,7 +136,15 @@ def build_audio_tensor_from_media(media_path: Path | None) -> tuple[torch.Tensor
         }
 
 
-def build_video_tensor_from_media(video_path: Path | None) -> tuple[torch.Tensor, Dict[str, object]]:
+def build_video_tensor_from_media(video_path: Path | None) -> tuple[Any, Dict[str, object]]:
+    from emotion_model.train_self_mm_mediapipe import (
+        VIDEO_DIM,
+        VIDEO_FEATURE_ORDER,
+        VIDEO_SEQ_LEN,
+        extract_video_feature,
+        prepare_face_task,
+    )
+
     if video_path is None:
         return zero_feature_tensor(VIDEO_SEQ_LEN, VIDEO_DIM), {"available": False}
     try:
@@ -160,13 +165,17 @@ def build_video_tensor_from_media(video_path: Path | None) -> tuple[torch.Tensor
         }
 
 
-def summarize_video_tensor(video_tensor: torch.Tensor) -> Dict[str, float]:
+def summarize_video_tensor(video_tensor: Any) -> Dict[str, float]:
+    from emotion_model.train_self_mm_mediapipe import VIDEO_DIM, VIDEO_FEATURE_ORDER
+
     arr = video_tensor.detach().cpu().numpy()[0]
     values = arr.mean(axis=0) if arr.size else np.zeros((VIDEO_DIM,), dtype=np.float32)
     return {name: float(values[index]) for index, name in enumerate(VIDEO_FEATURE_ORDER)}
 
 
-def summarize_audio_tensor(audio_tensor: torch.Tensor) -> Dict[str, float]:
+def summarize_audio_tensor(audio_tensor: Any) -> Dict[str, float]:
+    from emotion_model.train_self_mm_mediapipe import AUDIO_DIM
+
     arr = audio_tensor.detach().cpu().numpy()[0]
     values = arr.mean(axis=0) if arr.size else np.zeros((AUDIO_DIM,), dtype=np.float32)
     return {name: float(values[index]) for index, name in enumerate(AUDIO_FEATURE_ORDER)}

@@ -99,3 +99,21 @@ R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID", "").strip()
 R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "").strip()
 R2_REGION = os.getenv("R2_REGION", "auto").strip() or "auto"
 R2_PREFIX = os.getenv("R2_PREFIX", "diaries").strip().strip("/")
+
+# === Realtime Voice Call (Route 1: Cascaded ASR -> Stream LLM -> Stream TTS) ===
+# ASR providers: "auto" | "openai_compat" (SiliconFlow SenseVoiceSmall / Groq Whisper / OpenAI) | "local_funasr"
+LARK_ASR_PROVIDER = os.getenv("LARK_ASR_PROVIDER", "auto").strip().lower()
+LARK_ASR_API_BASE = (os.getenv("LARK_ASR_API_BASE") or (API_BASE if API_KEY else "")).strip().rstrip("/")
+LARK_ASR_API_KEY = (os.getenv("LARK_ASR_API_KEY") or API_KEY or "").strip()
+LARK_ASR_MODEL = os.getenv(
+    "LARK_ASR_MODEL",
+    "FunAudioLLM/SenseVoiceSmall" if "siliconflow" in LARK_ASR_API_BASE.lower() else "whisper-large-v3-turbo",
+).strip()
+
+# TTS providers: "auto" (cloud API -> edge-tts -> browser) | "edge" | "openai_compat" | "browser"
+LARK_TTS_PROVIDER = os.getenv("LARK_TTS_PROVIDER", "auto").strip().lower()
+LARK_TTS_API_BASE = (os.getenv("LARK_TTS_API_BASE") or "").strip().rstrip("/")
+LARK_TTS_API_KEY = (os.getenv("LARK_TTS_API_KEY") or "").strip()
+LARK_TTS_MODEL = os.getenv("LARK_TTS_MODEL", "gpt-4o-mini-tts").strip()
+LARK_TTS_VOICE = os.getenv("LARK_TTS_VOICE", "zh-CN-XiaoyiNeural").strip()
+LARK_TTS_FORMAT = os.getenv("LARK_TTS_FORMAT", "mp3").strip().lower() or "mp3"

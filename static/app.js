@@ -3320,6 +3320,56 @@ function initLarkGreeting() {
   window.addEventListener("yunque:view", (ev) => {
     if (ev?.detail?.view === "home") updateLarkGreeting(false);
   });
+  let liveVoiceAgentBubble = null;
+  window.addEventListener("lark:voice-greeting", (ev) => {
+    const text = (ev?.detail?.text || "").trim();
+    if (!text || !els.chatList) return;
+    lastRenderedChatSig = "";
+    const agentItem = document.createElement("article");
+    agentItem.className = "message is-agent";
+    agentItem.innerHTML = `<div class="message-content"><div class="bubble md-bubble">${renderMarkdown(text)}</div></div>`;
+    els.chatList.appendChild(agentItem);
+    els.chatList.scrollTop = els.chatList.scrollHeight;
+  });
+  window.addEventListener("lark:voice-user-transcript", (ev) => {
+    const text = (ev?.detail?.text || "").trim();
+    if (!text || !els.chatList) return;
+    lastRenderedChatSig = "";
+    const userItem = document.createElement("article");
+    userItem.className = "message is-user";
+    userItem.innerHTML = `<div class="message-content"><div class="bubble md-bubble">${renderMarkdown(text)}</div></div>`;
+    els.chatList.appendChild(userItem);
+
+    const agentItem = document.createElement("article");
+    agentItem.className = "message is-agent";
+    agentItem.innerHTML = `<div class="message-content"><div class="bubble md-bubble" style="color:var(--muted);">云雀思考中……</div></div>`;
+    els.chatList.appendChild(agentItem);
+    liveVoiceAgentBubble = agentItem.querySelector(".bubble");
+    els.chatList.scrollTop = els.chatList.scrollHeight;
+  });
+  window.addEventListener("lark:voice-assistant-delta", (ev) => {
+    const text = ev?.detail?.text || "";
+    if (!liveVoiceAgentBubble || !text) return;
+    liveVoiceAgentBubble.style.color = "";
+    liveVoiceAgentBubble.innerHTML = renderMarkdown(text, { streaming: true });
+    if (els.chatList) els.chatList.scrollTop = els.chatList.scrollHeight;
+  });
+  window.addEventListener("lark:voice-turn-error", (ev) => {
+    if (liveVoiceAgentBubble) {
+      liveVoiceAgentBubble.style.color = "#dc2626";
+      liveVoiceAgentBubble.textContent = `语音回复遇到波动：${ev?.detail?.error || "请重试"}`;
+      liveVoiceAgentBubble = null;
+    }
+  });
+  window.addEventListener("lark:voice-turn-done", (ev) => {
+    liveVoiceAgentBubble = null;
+    lastRenderedChatSig = "";
+    const history = ev?.detail?.chat_history;
+    if (Array.isArray(history)) {
+      state.chatHistory = history;
+      renderChat();
+    }
+  });
 }
 
   renderAiDiary();
