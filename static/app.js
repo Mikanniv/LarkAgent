@@ -29,8 +29,8 @@ const els = Object.fromEntries(
     "introScreen", "enterAppButton", "authToggleButton", "authForm", "authUsername",
     "authPassword", "authLoginButton", "authRegisterButton", "authStatus", "appShell",
     "appSidebar", "sidebarToggle", "mobileSidebarToggle", "sidebarScrim", "activeViewTitle",
-    "backendStatus", "agentStatus", "sidebarHomeTab", "sidebarChatTab", "sidebarStudyTab", "sidebarProfileTab", "sidebarGrowthTab", "sidebarDiaryTab", "sidebarMemoryTab", "sidebarTrajectoryTab",
-    "sidebarSettingsTab", "diaryNewBadge", "memoryNewBadge", "homeView", "chatView", "studyView", "profileView", "growthView", "diaryView", "trajectoryView",
+    "backendStatus", "agentStatus", "sidebarHomeTab", "sidebarChatTab", "sidebarStudyTab", "sidebarLibraryTab", "sidebarProfileTab", "sidebarGrowthTab", "sidebarDiaryTab", "sidebarMemoryTab", "sidebarTrajectoryTab",
+    "sidebarSettingsTab", "diaryNewBadge", "memoryNewBadge", "homeView", "chatView", "studyView", "libraryView", "profileView", "growthView", "diaryView", "trajectoryView",
     "memoryView", "settingsView", "emotionWidget", "emotionToggle", "emotionPin", "emotionDragHandle", "textScore",
     "fusionScore", "audioScore", "chatList", "chatForm", "messageInput", "voiceButton", "sendButton", "diaryUserModeTab",
     "diaryAiModeTab", "userDiaryPane", "aiDiaryPane", "userDiaryDate", "userDiary",
@@ -54,7 +54,7 @@ const els = Object.fromEntries(
 
 const CHINA_TIME_ZONE = "Asia/Shanghai";
 const API_BASE = resolveApiBase();
-const VIEW_TITLES = { home: "主界面", chat: "聊聊天", study: "开始学习！", profile: "用户画像", growth: "学业成长", diary: "日记", memory: "长期记忆", trajectory: "情绪轨迹", settings: "设置" };
+const VIEW_TITLES = { home: "主界面", chat: "聊聊天", study: "自习室", library: "资料库", profile: "用户画像", growth: "学业成长", diary: "日记", memory: "长期记忆", trajectory: "情绪轨迹", settings: "设置" };
 const LAYER_LABELS = { observation: "观察", reflection: "反思", strategy: "策略" };
 const TOPIC_LABELS = { event: "事件", preference: "偏好", routine: "习惯", relationship: "关系" };
 const REVIEW_LABELS = { pending: "待审查", confirmed: "已确认", revised: "已修改", deleted: "已删除" };
@@ -153,6 +153,7 @@ function setView(view) {
     home: [els.sidebarHomeTab, els.homeView],
     chat: [els.sidebarChatTab, els.chatView],
     study: [els.sidebarStudyTab, els.studyView],
+    library: [els.sidebarLibraryTab, els.libraryView],
     profile: [els.sidebarProfileTab, els.profileView],
     growth: [els.sidebarGrowthTab, els.growthView],
     diary: [els.sidebarDiaryTab, els.diaryView],
@@ -167,14 +168,20 @@ function setView(view) {
   if (els.activeViewTitle) els.activeViewTitle.textContent = VIEW_TITLES[view];
   els.appShell.classList.remove("is-mobile-menu-open");
   syncExpandedCardState(view);
+  els.appShell.classList.toggle("is-library-graph", view === "library" && libraryActiveMode === "graph");
   window.dispatchEvent(new CustomEvent("yunque:view", { detail: view }));
 
   clearTimeout(viewLoadTimer);
-  const stageMoved = prevView !== view && (prevView === "home" || view === "home" || prevView === "study" || view === "study");
+  const stageMoved = prevView !== view && (
+    prevView === "home" || view === "home" ||
+    prevView === "study" || view === "study" ||
+    prevView === "library" || view === "library"
+  );
   const runViewLoad = () => {
     if (state.activeView !== view) return;
     if (view === "chat") loadChatHistory();
     if (view === "study") loadStudySessions();
+    if (view === "library") loadStudyFiles(currentStudySessionId || "");
     if (view === "profile") { loadProfiles(); fetchAcademicScores(); }
     if (view === "growth") { fetchAcademicProfile(); fetchAcademicScores(); }
     if (view === "memory") fetchMemories();
@@ -328,9 +335,115 @@ function updateScores(scores = {}) {
     : "--";
 }
 
+function renderStreamingBubble(bubbleEl, rawText) {
+  if (!bubbleEl) return;
+  bubbleEl.innerHTML = renderMarkdown(rawText, { streaming: true });
+  const caret = document.createElement("span");
+  caret.className = "lark-stream-caret";
+  caret.setAttribute("aria-hidden", "true");
+  // Place caret inline at the end of the last text block rather than on a new line below
+  let target = bubbleEl;
+  while (target.lastElementChild && !["BR", "HR", "IMG", "PRE", "TABLE"].includes(target.lastElementChild.tagName)) {
+    const child = target.lastElementChild;
+    if (child.tagName === "UL" || child.tagName === "OL" || child.tagName === "BLOCKQUOTE") {
+      target = child;
+    } else {
+      target = child;
+      break;
+    }
+  }
+  target.appendChild(caret);
+}
+
+function createSmoothBubbleStreamer({ getBubble, scrollEl, signal } = {}) {
+  let targetText = "";
+  let shownLen = 0;
+  let timerId = 0;
+  let finished = false;
+  let resolveDone = null;
+
+  const stop = () => {
+    if (timerId) {
+      window.clearInterval(timerId);
+      timerId = 0;
+    }
+    if (resolveDone) {
+      const fn = resolveDone;
+      resolveDone = null;
+      fn();
+    }
+  };
+
+  if (signal) {
+    if (signal.aborted) stop();
+    else signal.addEventListener("abort", stop, { once: true });
+  }
+
+  const tick = () => {
+    if (signal?.aborted) {
+      stop();
+      return;
+    }
+    const remaining = targetText.length - shownLen;
+    if (remaining <= 0) {
+      if (finished) stop();
+      else if (timerId) {
+        window.clearInterval(timerId);
+        timerId = 0;
+      }
+      return;
+    }
+    const step = finished
+      ? Math.max(6, Math.min(28, Math.ceil(remaining / 14)))
+      : Math.max(2, Math.min(14, Math.ceil(remaining / 10)));
+    shownLen = Math.min(targetText.length, shownLen + step);
+    const bubble = getBubble();
+    if (bubble) {
+      renderStreamingBubble(bubble, targetText.slice(0, shownLen));
+      if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+    }
+    if (shownLen >= targetText.length && finished) {
+      stop();
+    }
+  };
+
+  const ensureRunning = () => {
+    if (!timerId && !signal?.aborted) {
+      tick();
+      if (shownLen < targetText.length) {
+        timerId = window.setInterval(tick, 26);
+      }
+    }
+  };
+
+  return {
+    push(delta) {
+      if (!delta || signal?.aborted) return;
+      targetText += delta;
+      ensureRunning();
+    },
+    finish(finalText = "") {
+      if (finalText && finalText.length >= targetText.length) {
+        targetText = finalText;
+      }
+      finished = true;
+      if (signal?.aborted || shownLen >= targetText.length) {
+        stop();
+        return Promise.resolve();
+      }
+      return new Promise((resolve) => {
+        resolveDone = resolve;
+        ensureRunning();
+      });
+    },
+    stop,
+  };
+}
+
 async function consumeSseStream(url, payload, { signal, onMeta, onDelta, onDone, onError } = {}) {
-  const response = await fetch(url, {
+  const response = await fetch(apiUrl(url), {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     signal,
     body: JSON.stringify(payload),
@@ -350,34 +463,45 @@ async function consumeSseStream(url, payload, { signal, onMeta, onDelta, onDone,
   let buffer = "";
   let donePayload = null;
 
+  const processPart = (part) => {
+    const line = part
+      .split("\n")
+      .find((l) => l.startsWith("data:"));
+    if (!line) return;
+    const raw = line.slice(5).trim();
+    if (!raw) return;
+    let evt;
+    try {
+      evt = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (evt.type === "meta" && onMeta) onMeta(evt);
+    else if (evt.type === "delta" && onDelta) onDelta(evt.delta || "");
+    else if (evt.type === "done") {
+      donePayload = evt;
+      if (onDone) onDone(evt);
+    } else if (evt.type === "error") {
+      if (onError) onError(new Error(evt.error || "流式生成出错"));
+      else throw new Error(evt.error || "流式生成出错");
+    }
+  };
+
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      buffer += decoder.decode();
+      break;
+    }
     buffer += decoder.decode(value, { stream: true });
+    buffer = buffer.replace(/\r\n/g, "\n");
     const parts = buffer.split("\n\n");
     buffer = parts.pop() || "";
-    for (const part of parts) {
-      const line = part
-        .split("\n")
-        .find((l) => l.startsWith("data:"));
-      if (!line) continue;
-      const raw = line.slice(5).trim();
-      if (!raw) continue;
-      let evt;
-      try {
-        evt = JSON.parse(raw);
-      } catch {
-        continue;
-      }
-      if (evt.type === "meta" && onMeta) onMeta(evt);
-      else if (evt.type === "delta" && onDelta) onDelta(evt.delta || "");
-      else if (evt.type === "done") {
-        donePayload = evt;
-        if (onDone) onDone(evt);
-      } else if (evt.type === "error") {
-        if (onError) onError(new Error(evt.error || "流式生成出错"));
-        else throw new Error(evt.error || "流式生成出错");
-      }
+    for (const part of parts) processPart(part);
+  }
+  if (buffer.trim()) {
+    for (const part of buffer.replace(/\r\n/g, "\n").split("\n\n")) {
+      if (part.trim()) processPart(part);
     }
   }
   return donePayload;
@@ -394,7 +518,19 @@ async function sendChat(message, { proactive = false } = {}) {
   if (els.agentStatus) els.agentStatus.textContent = "云雀正在思考";
   let streamText = "";
   let streamBubble = null;
-  let lastRenderAt = 0;
+  const ensureChatBubble = () => {
+    if (!streamBubble) {
+      typing.classList.remove("typing");
+      streamBubble = typing.querySelector(".bubble");
+      streamBubble.classList.add("md-bubble", "is-streaming");
+    }
+    return streamBubble;
+  };
+  const streamer = createSmoothBubbleStreamer({
+    getBubble: ensureChatBubble,
+    scrollEl: els.chatList,
+    signal: abortController.signal,
+  });
 
   try {
     const attachments = proactive ? [] : [...state.pendingFiles];
@@ -422,17 +558,7 @@ async function sendChat(message, { proactive = false } = {}) {
         onDelta: (delta) => {
           if (!delta) return;
           streamText += delta;
-          if (!streamBubble) {
-            typing.classList.remove("typing");
-            streamBubble = typing.querySelector(".bubble");
-            streamBubble.classList.add("md-bubble");
-          }
-          const now = Date.now();
-          if (now - lastRenderAt > 120) {
-            lastRenderAt = now;
-            streamBubble.innerHTML = renderMarkdown(streamText, { streaming: true });
-            els.chatList.scrollTop = els.chatList.scrollHeight;
-          }
+          streamer.push(delta);
         },
       });
     } catch (streamErr) {
@@ -453,13 +579,12 @@ async function sendChat(message, { proactive = false } = {}) {
 
     const finalReply = donePayload?.reply || streamText;
     if (!finalReply) throw new Error("模型没有返回回复内容");
-    if (!streamBubble) {
-      typing.classList.remove("typing");
-      streamBubble = typing.querySelector(".bubble");
-      streamBubble.classList.add("md-bubble");
-    }
-    streamBubble.innerHTML = renderMarkdown(finalReply);
-    hydrateHtmlWidgets(streamBubble);
+    await streamer.finish(finalReply);
+    const bubbleEl = ensureChatBubble();
+    bubbleEl.classList.remove("is-streaming");
+    bubbleEl.classList.add("is-stream-done");
+    bubbleEl.innerHTML = renderMarkdown(finalReply);
+    hydrateHtmlWidgets(bubbleEl);
     els.chatList.scrollTop = els.chatList.scrollHeight;
 
     if (donePayload?.study_intent && donePayload?.ask_study_confirmation) {
@@ -494,6 +619,7 @@ async function sendChat(message, { proactive = false } = {}) {
     window.alert(error.message); if (els.agentStatus) els.agentStatus.textContent = Number(error.status || 0) >= 500 ? "模型调用失败" : "连接失败";
     setBackendOnline(Number(error.status || 0) >= 500);
   } finally {
+    streamer.stop();
     if (state.chatAbortController === abortController) state.chatAbortController = null; setChatPending(false);
   }
 }
@@ -512,7 +638,7 @@ function renderPendingFiles() {
 }
 
 const SUPPORTED_DOC_EXTENSIONS = new Set([
-  ".pdf", ".docx", ".pptx", ".xlsx", ".csv", ".tsv", ".txt", ".md", ".markdown",
+  ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".csv", ".tsv", ".txt", ".md", ".markdown",
   ".json", ".jsonl", ".xml", ".yaml", ".yml", ".py", ".js", ".ts", ".tsx", ".jsx",
   ".html", ".htm", ".css", ".scss", ".java", ".c", ".cpp", ".h", ".hpp", ".go", ".rs", ".sql", ".sh", ".log"
 ]);
@@ -532,7 +658,10 @@ function inferClientMime(file) {
   const name = String(file?.name || "").toLowerCase();
   if (name.endsWith(".pdf")) return "application/pdf";
   if (name.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (name.endsWith(".ppt")) return "application/vnd.ms-powerpoint";
   if (name.endsWith(".pptx")) return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  if (name.endsWith(".doc")) return "application/msword";
+  if (name.endsWith(".xls")) return "application/vnd.ms-excel";
   if (name.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   if (name.endsWith(".csv")) return "text/csv";
   if (name.endsWith(".json")) return "application/json";
@@ -1049,12 +1178,12 @@ els.authForm.addEventListener("submit", (event) => {
 });
 els.authRegisterButton.addEventListener("click", () => submitAuth("register"));
 
-[els.sidebarHomeTab, els.sidebarChatTab, els.sidebarStudyTab, els.sidebarProfileTab, els.sidebarDiaryTab, els.sidebarMemoryTab, els.sidebarTrajectoryTab, els.sidebarSettingsTab]
+[els.sidebarHomeTab, els.sidebarChatTab, els.sidebarStudyTab, els.sidebarLibraryTab, els.sidebarProfileTab, els.sidebarDiaryTab, els.sidebarMemoryTab, els.sidebarTrajectoryTab, els.sidebarSettingsTab]
   .filter(Boolean)
   .forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
-els.sidebarToggle.addEventListener("click", () => setSidebarCollapsed(!state.sidebarCollapsed));
-els.mobileSidebarToggle.addEventListener("click", () => els.appShell.classList.add("is-mobile-menu-open"));
-els.sidebarScrim.addEventListener("click", () => els.appShell.classList.remove("is-mobile-menu-open"));
+els.sidebarToggle?.addEventListener("click", () => setSidebarCollapsed(!state.sidebarCollapsed));
+els.mobileSidebarToggle?.addEventListener("click", () => els.appShell.classList.add("is-mobile-menu-open"));
+els.sidebarScrim?.addEventListener("click", () => els.appShell.classList.remove("is-mobile-menu-open"));
 els.emotionToggle.addEventListener("click", () => {
   showEmotionWidget(els.emotionWidget.hidden);
 });
@@ -1889,7 +2018,7 @@ els.chatList.addEventListener("click", async (e) => {
           title: "学习自习室已就绪",
           desc: `已成功为你开启【${title}】！`,
           link: {
-            text: "👉 点击立即前往「开始学习！」页面",
+            text: "👉 点击立即前往「自习室」页面",
             onclick: `window.openStudySession('${res.session.id}')`
           }
         });
@@ -2356,6 +2485,7 @@ function renderStudySessionWheel() {
       <span class="wheel-item-subject">${escapeHtml(sess.subject || "自习")}</span>
       <span class="wheel-item-title">${escapeHtml(sess.title || "专注自习室")}</span>
     `;
+    btn.title = "点击切换自习室，右键可删除";
 
     btn.addEventListener("click", () => {
       if (sess.id !== currentStudySessionId) {
@@ -2363,8 +2493,85 @@ function renderStudySessionWheel() {
       }
     });
 
+    btn.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showStudySessionContextMenu(e.clientX, e.clientY, sess);
+    });
+
     wheelEl.appendChild(btn);
   });
+}
+
+let studyContextMenuEl = null;
+
+function hideStudySessionContextMenu() {
+  if (studyContextMenuEl) {
+    studyContextMenuEl.remove();
+    studyContextMenuEl = null;
+  }
+}
+
+function showStudySessionContextMenu(x, y, sess) {
+  hideStudySessionContextMenu();
+  const menu = document.createElement("div");
+  menu.className = "study-context-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = `
+    <button type="button" class="study-context-menu-item is-danger" role="menuitem">
+      删除该自习室
+    </button>
+  `;
+  document.body.appendChild(menu);
+  studyContextMenuEl = menu;
+
+  const rect = menu.getBoundingClientRect();
+  const left = Math.min(x, window.innerWidth - rect.width - 10);
+  const top = Math.min(y, window.innerHeight - rect.height - 10);
+  menu.style.left = `${Math.max(8, left)}px`;
+  menu.style.top = `${Math.max(8, top)}px`;
+
+  menu.querySelector("button").addEventListener("click", async () => {
+    hideStudySessionContextMenu();
+    await deleteStudySessionById(sess);
+  });
+
+  const onClose = (ev) => {
+    if (ev.type === "keydown" && ev.key !== "Escape") return;
+    if (ev.type === "mousedown" && menu.contains(ev.target)) return;
+    hideStudySessionContextMenu();
+    document.removeEventListener("mousedown", onClose, true);
+    document.removeEventListener("keydown", onClose, true);
+    window.removeEventListener("scroll", onClose, true);
+  };
+  document.addEventListener("mousedown", onClose, true);
+  document.addEventListener("keydown", onClose, true);
+  window.addEventListener("scroll", onClose, true);
+}
+
+async function deleteStudySessionById(sess) {
+  if (!sess?.id) return;
+  const label = sess.title || "专注自习室";
+  if (!window.confirm(`确定要删除自习室「${label}」吗？该自习室内的聊天记录也会一并清除。`)) {
+    return;
+  }
+  try {
+    const res = await requestJson("/api/study/sessions/delete", {
+      method: "POST",
+      body: JSON.stringify({ session_id: sess.id }),
+    });
+    if (!res.ok) {
+      alert("删除自习室失败，请稍后重试。");
+      return;
+    }
+    if (currentStudySessionId === sess.id) {
+      currentStudySessionId = null;
+    }
+    showToastMessage(`已删除自习室「${label}」`);
+    await loadStudySessions();
+  } catch (err) {
+    alert(`删除自习室失败：${err.message}`);
+  }
 }
 
 async function loadStudySessions(targetSessionId = null) {
@@ -2419,6 +2626,7 @@ async function selectStudySession(sessionId, sessionObj = null) {
 
 let studyLibraryFiles = [];
 let studyFilterLinkedOnly = false;
+let libraryTypeFilter = "all";
 
 function formatFileTypeLabel(fileType, fileName = "") {
   const ft = String(fileType || "").toLowerCase();
@@ -2433,8 +2641,51 @@ function renderTopicChipsHtml(topics = [], maxItems = 5) {
   return `<div class="rag-topic-row">${list.map((t) => `<span class="rag-topic-chip"># ${escapeHtml(t)}</span>`).join("")}</div>`;
 }
 
+function renderLibraryView(files = studyLibraryFiles) {
+  const gridEl = document.getElementById("libraryCardsGrid");
+  if (!gridEl) return;
+  const list = (Array.isArray(files) ? files : []).filter((file) => {
+    if (libraryTypeFilter === "all") return true;
+    const ft = String(file.file_type || "").toLowerCase();
+    return ft === libraryTypeFilter;
+  });
+  gridEl.innerHTML = "";
+  if (!list.length) {
+    gridEl.innerHTML = '<div class="library-empty-hint">学习资料库暂无匹配资料，点击右上角「+ 上传资料」即可按类型切片并生成预览。</div>';
+    return;
+  }
+  list.forEach((file) => {
+    const card = document.createElement("article");
+    card.className = "lib-preview-card";
+    const ft = String(file.file_type || "").toLowerCase();
+    const previewSnippet = (file.summary || "").trim() || "点击查看文档切片与主题词…";
+    const topics = Array.isArray(file.topics) ? file.topics.slice(0, 3) : [];
+    const thumbHtml = file.has_thumb
+      ? `<img class="lib-thumb-img" src="${apiUrl(`/api/study/library/thumb?file_id=${encodeURIComponent(file.id)}`)}" loading="lazy" alt="" />`
+      : `<div class="lib-thumb-sheet"><div class="lib-thumb-lines">${escapeHtml(previewSnippet)}</div></div>`;
+    card.innerHTML = `
+      <div class="lib-card-thumb ${ft === "code" ? "is-code" : ""} ${file.has_thumb ? "has-real-thumb" : ""}">
+        ${thumbHtml}
+      </div>
+      <div class="lib-card-scrim"></div>
+      <button type="button" class="lib-card-del" title="从资料库删除" aria-label="删除 ${escapeHtml(file.file_name)}">×</button>
+      <div class="lib-card-bottom">
+        <div class="lib-card-title" title="${escapeHtml(file.file_name)}">${escapeHtml(file.file_name)}</div>
+        ${topics.length ? `<div class="lib-card-topics">${topics.map((t) => `<span># ${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      </div>
+    `;
+    card.querySelector(".lib-card-del").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      deleteStudyLibraryFile(file.id, file.file_name);
+    });
+    card.addEventListener("click", () => openLibraryReader(file));
+    gridEl.appendChild(card);
+  });
+}
+
 function renderStudyFilesList(files = studyLibraryFiles) {
   studyLibraryFiles = Array.isArray(files) ? files : [];
+  renderLibraryView(studyLibraryFiles);
   const linkedFiles = studyLibraryFiles.filter((f) => f.linked);
   const countEl = document.getElementById("studyFilesCount");
   if (countEl) countEl.textContent = `${linkedFiles.length}/${studyLibraryFiles.length}`;
@@ -2451,47 +2702,57 @@ function renderStudyFilesList(files = studyLibraryFiles) {
   const visible = studyFilterLinkedOnly ? linkedFiles : studyLibraryFiles;
   if (!visible.length) {
     listEl.innerHTML = studyFilterLinkedOnly
-      ? '<span class="study-files-empty">本自习室还没有关联任何资料，取消“仅看已关联”可从资料库勾选，或点击右上角上传。</span>'
-      : '<span class="study-files-empty">学习资料库暂无资料，上传 PDF / PPTX / Word / Markdown / 代码后将自动按类型切片并提取主题词。</span>';
+      ? '<span class="study-files-empty">本自习室还没有关联任何资料，取消“仅看已关联”可从资料库勾选，或前往「资料库」模块上传。</span>'
+      : '<span class="study-files-empty">学习资料库暂无资料，请前往顶部「资料库」模块上传后再来勾选关联。</span>';
     return;
   }
 
   visible.forEach((file) => {
-    const row = document.createElement("div");
-    row.className = `study-library-item${file.linked ? " is-linked" : ""}`;
+    const card = document.createElement("article");
+    card.className = `lib-preview-card study-lib-preview-card${file.linked ? " is-linked" : ""}`;
+    const ft = String(file.file_type || "").toLowerCase();
     const kb = Math.max(1, Math.ceil(Number(file.file_size || 0) / 1024));
     const chunkInfo = file.chunk_count ? `${file.chunk_count} 切片` : (file.file_category === "image" ? "图片" : "媒体");
-    const typeLabel = formatFileTypeLabel(file.file_type, file.file_name);
-    row.innerHTML = `
-      <label class="study-lib-check" title="勾选后，本自习室将读取该资料">
-        <input type="checkbox" ${file.linked ? "checked" : ""} />
-        <span class="study-lib-check-box">${file.linked ? "已关联" : "关联"}</span>
-      </label>
-      <div class="study-lib-main">
-        <div class="study-lib-title-row">
-          <span class="study-type-badge">${escapeHtml(typeLabel)}</span>
-          <strong class="study-lib-name" title="${escapeHtml(file.file_name)}">${escapeHtml(file.file_name)}</strong>
-          <small class="study-lib-meta">${kb} KB · ${chunkInfo}</small>
-        </div>
-        ${renderTopicChipsHtml(file.topics, 5)}
+    const previewSnippet = (file.summary || "").trim() || "点击勾选关联，或查看切片…";
+    const topics = Array.isArray(file.topics) ? file.topics.slice(0, 3) : [];
+    const thumbHtml = file.has_thumb
+      ? `<img class="lib-thumb-img" src="${apiUrl(`/api/study/library/thumb?file_id=${encodeURIComponent(file.id)}`)}" loading="lazy" alt="" />`
+      : `<div class="lib-thumb-sheet"><div class="lib-thumb-lines">${escapeHtml(previewSnippet)}</div></div>`;
+    card.innerHTML = `
+      <div class="lib-card-thumb ${ft === "code" ? "is-code" : ""} ${file.has_thumb ? "has-real-thumb" : ""}">
+        ${thumbHtml}
       </div>
-      <div class="study-lib-actions">
-        <button type="button" class="study-lib-btn btn-inspect-chunks" title="查看切片与主题词">切片</button>
-        <button type="button" class="study-lib-btn is-danger btn-delete-lib" title="从学习资料库永久删除" aria-label="删除 ${escapeHtml(file.file_name)}">删除</button>
+      <div class="lib-card-scrim"></div>
+      <label class="study-lib-float-check" title="勾选后，本自习室将读取该资料">
+        <input type="checkbox" ${file.linked ? "checked" : ""} />
+        <span>${file.linked ? "已关联" : "关联"}</span>
+      </label>
+      <button type="button" class="study-lib-float-chunks" title="查看切片与主题词">切片</button>
+      <div class="lib-card-bottom">
+        <div class="lib-card-title" title="${escapeHtml(file.file_name)}">${escapeHtml(file.file_name)}</div>
+        <div class="study-lib-card-meta">${kb} KB · ${chunkInfo}</div>
+        ${topics.length ? `<div class="lib-card-topics">${topics.map((t) => `<span># ${escapeHtml(t)}</span>`).join("")}</div>` : ""}
       </div>
     `;
-    const checkbox = row.querySelector('input[type="checkbox"]');
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    card.querySelector(".study-lib-float-check").addEventListener("click", (ev) => ev.stopPropagation());
     checkbox.addEventListener("change", () => toggleStudyFileLink(file.id, checkbox.checked));
-    row.querySelector(".btn-inspect-chunks").addEventListener("click", () => openFileChunksModal(file));
-    row.querySelector(".btn-delete-lib").addEventListener("click", () => deleteStudyLibraryFile(file.id, file.file_name));
-    listEl.appendChild(row);
+    card.querySelector(".study-lib-float-chunks").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openFileChunksModal(file);
+    });
+    card.addEventListener("click", () => {
+      checkbox.checked = !checkbox.checked;
+      toggleStudyFileLink(file.id, checkbox.checked);
+    });
+    listEl.appendChild(card);
   });
 }
 
 async function loadStudyFiles(sessionId = currentStudySessionId) {
-  if (!sessionId) return;
   try {
-    const res = await requestJson(`/api/study/library?session_id=${encodeURIComponent(sessionId)}`);
+    const q = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
+    const res = await requestJson(`/api/study/library${q}`);
     if (res.ok) renderStudyFilesList(res.files || []);
   } catch (err) {
     console.error("loadStudyFiles error:", err);
@@ -2518,32 +2779,106 @@ async function toggleStudyFileLink(fileId, linked) {
 async function uploadFilesToStudyLibrary(fileList) {
   const files = [...fileList].filter(isSupportedClientFile);
   if (!files.length) return;
-  const payloadFiles = [];
-  for (const file of files.slice(0, 9)) {
+  const validFiles = [];
+  for (const file of files) {
     if (file.size > 10 * 1024 * 1024) {
-      window.alert(`${file.name} 超过 10 MB`);
+      window.alert(`${file.name} 超过 10 MB，已跳过`);
       continue;
     }
-    payloadFiles.push({
-      name: file.name,
-      type: inferClientMime(file),
-      size: file.size,
-      data: await blobToDataUrl(file),
-    });
+    validFiles.push(file);
   }
-  if (!payloadFiles.length) return;
-  try {
-    const res = await requestJson("/api/study/library", {
-      method: "POST",
-      body: JSON.stringify({ session_id: currentStudySessionId || "", attachments: payloadFiles }),
-    });
-    if (res.ok) {
-      renderStudyFilesList(res.files || []);
-      showToastMessage(`已入库并切片 ${payloadFiles.length} 份资料${currentStudySessionId ? "（已自动关联本自习室）" : ""}`);
+  if (!validFiles.length) return;
+  const sessionId = currentStudySessionId || "";
+  let uploadedCount = 0;
+  let latestFiles = null;
+  const failedFiles = [];
+  // The server finishes parsing and indexing all attachments before responding.
+  for (const file of validFiles) {
+    try {
+      const attachment = {
+        name: file.name,
+        type: inferClientMime(file),
+        size: file.size,
+        data: await blobToDataUrl(file),
+      };
+      const res = await requestJson("/api/study/library", {
+        method: "POST",
+        body: JSON.stringify({ session_id: sessionId, attachments: [attachment] }),
+      });
+      if (!res.ok) throw new Error(res.error || "上传未完成");
+      uploadedCount += 1;
+      latestFiles = res.files || latestFiles;
+    } catch (err) {
+      const message = err.name === "AbortError" ? "请求超时，请刷新确认是否已入库" : err.message;
+      failedFiles.push(`${file.name}：${message}`);
     }
-  } catch (err) {
-    alert("上传资料失败: " + err.message);
   }
+  if (latestFiles && (currentStudySessionId || "") === sessionId) renderStudyFilesList(latestFiles);
+  if (failedFiles.length) {
+    window.alert(`已入库 ${uploadedCount} 份，以下资料未确认入库：\n${failedFiles.join("\n")}`);
+  } else if (uploadedCount > 0) {
+    showToastMessage(`已入库并切片 ${uploadedCount} 份资料${sessionId ? "（已自动关联上传时的自习室）" : ""}`);
+  }
+}
+
+function initLibraryDragAndDrop() {
+  const surface = document.querySelector("#libraryView .library-panel") || document.getElementById("libraryView");
+  if (!surface || surface.dataset.boundDrop) return;
+  surface.dataset.boundDrop = "1";
+
+  let overlay = surface.querySelector(".library-drop-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "library-drop-overlay";
+    overlay.innerHTML = "<strong>松开即可识别文件并确认上传</strong><span>支持批量拖入 PDF、Word、PPT、Markdown、代码与文本资料</span>";
+    surface.appendChild(overlay);
+  }
+
+  let dragDepth = 0;
+  const hasFiles = (ev) => Array.from(ev.dataTransfer?.types || []).includes("Files");
+
+  surface.addEventListener("dragenter", (ev) => {
+    if (!hasFiles(ev)) return;
+    ev.preventDefault();
+    dragDepth += 1;
+    surface.classList.add("is-drag-over");
+  });
+
+  surface.addEventListener("dragover", (ev) => {
+    if (!hasFiles(ev)) return;
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = "copy";
+    surface.classList.add("is-drag-over");
+  });
+
+  surface.addEventListener("dragleave", (ev) => {
+    if (!hasFiles(ev)) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) surface.classList.remove("is-drag-over");
+  });
+
+  surface.addEventListener("drop", async (ev) => {
+    if (!hasFiles(ev)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    dragDepth = 0;
+    surface.classList.remove("is-drag-over");
+
+    const dropped = [...(ev.dataTransfer?.files || [])];
+    if (!dropped.length) return;
+    const supported = dropped.filter(isSupportedClientFile);
+    if (!supported.length) {
+      showToastMessage("未识别到可上传的资料文件（支持 PDF / Word / PPT / Markdown / 代码 / 图片等）");
+      return;
+    }
+    const previewNames = supported.slice(0, 6).map((f) => `• ${f.name}`).join("\n");
+    const moreLine = supported.length > 6 ? `\n… 等共 ${supported.length} 个文件` : "";
+    const skippedNote = dropped.length > supported.length ? `\n（已忽略 ${dropped.length - supported.length} 个不支持的文件）` : "";
+    const ok = window.confirm(`识别到 ${supported.length} 个可上传文件：\n${previewNames}${moreLine}${skippedNote}\n\n是否批量上传到学习资料库？`);
+    if (ok) {
+      await uploadFilesToStudyLibrary(supported);
+    }
+  });
 }
 
 async function deleteStudyLibraryFile(fileId, fileName = "") {
@@ -2581,22 +2916,89 @@ function openChunkPreviewModal(chunk) {
   const loc = chunk.location || `片段 ${(chunk.chunk_index || 0) + 1}`;
   if (titleEl) titleEl.textContent = `${docName} · ${loc}`;
   if (subEl) subEl.textContent = chunk.section_title || "";
-  if (bodyEl) {
-    bodyEl.innerHTML = `
-      ${renderTopicChipsHtml(chunk.topics, 8)}
-      <pre class="study-chunk-fulltext">${escapeHtml(chunk.content || chunk.snippet || "")}</pre>
-      <div class="study-chunk-modal-actions">
-        <button type="button" class="button button-primary" id="studyChunkAskBtn">学习 / 追问此切片</button>
-      </div>
-    `;
-    const askBtn = bodyEl.querySelector("#studyChunkAskBtn");
-    if (askBtn) {
-      askBtn.addEventListener("click", () => {
-        studyChunkModal.close();
-        askAboutStudyChunk(chunk);
-      });
+
+  const matchedFile = (studyLibraryFiles || []).find(
+    (f) => (chunk.file_id && f.id === chunk.file_id) || f.file_name === docName,
+  );
+  const fileId = chunk.file_id || matchedFile?.id || "";
+  const ft = String(matchedFile?.file_type || "").toLowerCase()
+    || (/\.(pptx?|PPTX?)$/.test(docName) ? "pptx"
+      : /\.pdf$/i.test(docName) ? "pdf"
+      : /\.docx?$/i.test(docName) ? "docx"
+      : /\.xlsx?$/i.test(docName) ? "xlsx" : "");
+  const canShowOriginal = Boolean(fileId) && (matchedFile ? Boolean(matchedFile.has_original) : true)
+    && ["pptx", "pdf", "docx", "xlsx", "image"].includes(ft);
+
+  const renderMode = (mode) => {
+    if (!bodyEl) return;
+    if (mode === "doc" && canShowOriginal) {
+      const rawUrl = apiUrl(`/api/study/library/raw?file_id=${encodeURIComponent(fileId)}`);
+      const pageNum = Number(chunk.page_num || 0);
+      let viewerHtml = "";
+      if (ft === "pdf") {
+        const pdfSrc = pageNum > 0 ? `${rawUrl}#page=${pageNum}&view=FitH` : rawUrl;
+        viewerHtml = `<iframe class="lib-raw-iframe" src="${pdfSrc}" title="${escapeHtml(docName)}"></iframe>`;
+      } else if (ft === "image") {
+        viewerHtml = `<img class="lib-raw-img" src="${rawUrl}" alt="${escapeHtml(docName)}" />`;
+      } else {
+        const previewUrl = apiUrl(`/api/study/library/preview/${encodeURIComponent(fileId)}/Preview.html`);
+        viewerHtml = `<iframe class="lib-raw-iframe" id="studyChunkPreviewIframe" src="${previewUrl}" title="${escapeHtml(docName)}"></iframe>`;
+      }
+      bodyEl.innerHTML = `
+        <div class="study-chunk-modal-actions" style="justify-content:space-between;margin-top:0;margin-bottom:10px;">
+          <button type="button" class="header-action" id="studyChunkSwitchTextBtn">查看文字切片</button>
+          <button type="button" class="button button-primary" id="studyChunkAskBtn">学习 / 追问此切片</button>
+        </div>
+        <div class="lib-raw-viewer">${viewerHtml}</div>
+      `;
+      const previewIframe = bodyEl.querySelector("#studyChunkPreviewIframe");
+      if (previewIframe && ft === "pptx") {
+        previewIframe.addEventListener("load", () => {
+          try {
+            const doc = previewIframe.contentDocument;
+            if (!doc) return;
+            const slides = [...doc.querySelectorAll("div.slide")];
+            if (!slides.length) return;
+            const locMatch = String(loc).match(/(\d+)/);
+            const fallbackIdx = Math.max(0, Math.min(slides.length - 1, (pageNum || (locMatch ? Number(locMatch[1]) : 1)) - 1));
+            // 优先用切片内容关键词匹配真实对应的幻灯片页，若未命中则回退到页码
+            const rawContent = String(chunk.content || chunk.snippet || "").replace(/\s+/g, "");
+            const probe = rawContent.slice(0, 18);
+            const probeMid = rawContent.length > 40 ? rawContent.slice(20, 38) : "";
+            let matchIdx = -1;
+            if (probe.length >= 6) {
+              matchIdx = slides.findIndex((s) => {
+                const st = (s.textContent || "").replace(/\s+/g, "");
+                return st.includes(probe) || (probeMid && st.includes(probeMid));
+              });
+            }
+            const targetIdx = matchIdx >= 0 ? matchIdx : fallbackIdx;
+            slides.forEach((s, idx) => {
+              s.style.display = idx === targetIdx ? "" : "none";
+            });
+            doc.querySelectorAll("div.loading-slide").forEach((el) => { el.style.display = "none"; });
+          } catch {}
+        });
+      }
+      bodyEl.querySelector("#studyChunkSwitchTextBtn")?.addEventListener("click", () => renderMode("text"));
+    } else {
+      bodyEl.innerHTML = `
+        ${canShowOriginal ? '<div class="study-chunk-modal-actions" style="justify-content:flex-start;margin-top:0;margin-bottom:10px;"><button type="button" class="header-action" id="studyChunkSwitchDocBtn">返回 PPT / 原文档</button></div>' : ""}
+        ${renderTopicChipsHtml(chunk.topics, 8)}
+        <pre class="study-chunk-fulltext">${escapeHtml(chunk.content || chunk.snippet || "")}</pre>
+        <div class="study-chunk-modal-actions">
+          <button type="button" class="button button-primary" id="studyChunkAskBtn">学习 / 追问此切片</button>
+        </div>
+      `;
+      bodyEl.querySelector("#studyChunkSwitchDocBtn")?.addEventListener("click", () => renderMode("doc"));
     }
-  }
+    bodyEl.querySelector("#studyChunkAskBtn")?.addEventListener("click", () => {
+      studyChunkModal.close();
+      askAboutStudyChunk(chunk);
+    });
+  };
+
+  renderMode(canShowOriginal ? "doc" : "text");
   studyChunkModal.showModal();
 }
 
@@ -2605,19 +3007,64 @@ async function openFileChunksModal(file) {
   const titleEl = document.getElementById("studyChunkModalTitle");
   const subEl = document.getElementById("studyChunkModalSub");
   const bodyEl = document.getElementById("studyChunkModalBody");
-  if (titleEl) titleEl.textContent = `${file.file_name} · 切片一览`;
+  const ft = String(file.file_type || "").toLowerCase();
+  const isInlinePreviewable = Boolean(file.has_original) && (ft === "pdf" || ft === "image");
+  const rawUrl = apiUrl(`/api/study/library/raw?file_id=${encodeURIComponent(file.id)}`);
+
+  if (titleEl) titleEl.textContent = `${file.file_name}`;
   if (subEl) subEl.textContent = `${formatFileTypeLabel(file.file_type, file.file_name)} · 共 ${file.chunk_count || 0} 个切片`;
-  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:var(--muted);text-align:center;">正在加载切片与主题词...</div>';
+  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:var(--muted);text-align:center;">正在加载预览与切片...</div>';
   studyChunkModal.showModal();
+
+  let chunks = [];
   try {
     const res = await requestJson(`/api/study/library/chunks?file_id=${encodeURIComponent(file.id)}`);
-    if (!res.ok || !bodyEl) return;
-    const chunks = res.chunks || [];
-    if (!chunks.length) {
-      bodyEl.innerHTML = '<div style="padding:20px;color:var(--muted);text-align:center;">该资料暂无文本切片。</div>';
+    if (res?.ok) chunks = res.chunks || [];
+  } catch (err) {
+    if (!isInlinePreviewable && bodyEl) {
+      bodyEl.innerHTML = `<div style="padding:20px;color:#e05252;">加载失败：${escapeHtml(err.message)}</div>`;
       return;
     }
+  }
+  if (!bodyEl) return;
+
+  const renderModalMode = (mode) => {
     bodyEl.innerHTML = "";
+    if (file.has_original) {
+      const toolbar = document.createElement("div");
+      toolbar.className = "lib-modal-toolbar";
+      toolbar.innerHTML = `
+        <div class="lib-modal-tabs">
+          ${isInlinePreviewable ? `<button type="button" class="lib-modal-tab ${mode === "raw" ? "is-active" : ""}" data-mode="raw">原文件预览</button>` : ""}
+          <button type="button" class="lib-modal-tab ${mode === "chunks" ? "is-active" : ""}" data-mode="chunks">切片与主题词 (${chunks.length})</button>
+        </div>
+        <a class="lib-modal-open-link" href="${rawUrl}" target="_blank" rel="noopener">新窗口打开原文件 ↗</a>
+      `;
+      toolbar.querySelectorAll("[data-mode]").forEach((btn) => {
+        btn.addEventListener("click", () => renderModalMode(btn.dataset.mode));
+      });
+      bodyEl.appendChild(toolbar);
+    }
+
+    if (mode === "raw" && isInlinePreviewable) {
+      const wrap = document.createElement("div");
+      wrap.className = "lib-raw-preview-wrap";
+      if (ft === "pdf") {
+        wrap.innerHTML = `<iframe class="lib-raw-iframe" src="${rawUrl}" title="${escapeHtml(file.file_name)}"></iframe>`;
+      } else {
+        wrap.innerHTML = `<img class="lib-raw-img" src="${rawUrl}" alt="${escapeHtml(file.file_name)}" />`;
+      }
+      bodyEl.appendChild(wrap);
+      return;
+    }
+
+    if (!chunks.length) {
+      const empty = document.createElement("div");
+      empty.style.cssText = "padding:20px;color:var(--muted);text-align:center;";
+      empty.textContent = "该资料暂无文本切片。";
+      bodyEl.appendChild(empty);
+      return;
+    }
     chunks.forEach((ch) => {
       const card = document.createElement("div");
       card.className = "study-chunk-list-card";
@@ -2638,18 +3085,30 @@ async function openFileChunksModal(file) {
       }
       bodyEl.appendChild(card);
     });
-  } catch (err) {
-    if (bodyEl) bodyEl.innerHTML = `<div style="padding:20px;color:#e05252;">加载失败：${escapeHtml(err.message)}</div>`;
-  }
+  };
+
+  renderModalMode(isInlinePreviewable ? "raw" : "chunks");
 }
 
 const studyFilesToggleBtn = document.getElementById("studyFilesToggle");
 const studyFilesDrawer = document.getElementById("studyFilesDrawer");
+const studyFilesCloseBtn = document.getElementById("studyFilesCloseBtn");
 if (studyFilesToggleBtn && studyFilesDrawer) {
+  const closeStudyFilesPopup = () => {
+    studyFilesDrawer.hidden = true;
+    studyFilesToggleBtn.setAttribute("aria-expanded", "false");
+  };
   studyFilesToggleBtn.addEventListener("click", () => {
     const nextHidden = !studyFilesDrawer.hidden;
     studyFilesDrawer.hidden = nextHidden;
     studyFilesToggleBtn.setAttribute("aria-expanded", String(!nextHidden));
+  });
+  studyFilesCloseBtn?.addEventListener("click", closeStudyFilesPopup);
+  studyFilesDrawer.addEventListener("click", (ev) => {
+    if (ev.target === studyFilesDrawer) closeStudyFilesPopup();
+  });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && !studyFilesDrawer.hidden) closeStudyFilesPopup();
   });
 }
 const studyFilesFilterLinkedBtn = document.getElementById("studyFilesFilterLinkedBtn");
@@ -2670,8 +3129,24 @@ if (studyLibraryUploadBtn && studyLibraryUploadInput) {
     studyLibraryUploadInput.value = "";
   });
 }
+const studyGoLibraryBtn = document.getElementById("studyGoLibraryBtn");
+if (studyGoLibraryBtn) {
+  studyGoLibraryBtn.addEventListener("click", () => setView("library"));
+}
+const libraryFilterBar = document.getElementById("libraryFilterBar");
+if (libraryFilterBar) {
+  libraryFilterBar.addEventListener("click", (ev) => {
+    const pill = ev.target.closest("[data-lib-filter]");
+    if (!pill) return;
+    libraryTypeFilter = pill.dataset.libFilter || "all";
+    libraryFilterBar.querySelectorAll("[data-lib-filter]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn === pill);
+    });
+    renderLibraryView();
+  });
+}
 
-function hydrateStudyCitationsAndPanels(messageItem, ragMeta) {
+function hydrateStudyCitationsAndPanels(messageItem, ragMeta, { animate = false } = {}) {
   if (!messageItem || !ragMeta || !ragMeta.grounded) return;
   const contentWrap = messageItem.querySelector(".message-content");
   const bubble = messageItem.querySelector(".md-bubble");
@@ -2722,15 +3197,26 @@ function hydrateStudyCitationsAndPanels(messageItem, ragMeta) {
   contentWrap.querySelectorAll(".study-rag-panel").forEach((el) => el.remove());
 
   const panel = document.createElement("div");
-  panel.className = "study-rag-panel";
+  panel.className = `study-rag-panel${animate ? " is-stream-revealed" : ""}`;
 
   const statusStrip = document.createElement("div");
   statusStrip.className = `rag-status-strip${ragMeta.abstained ? " is-abstained" : ""}`;
-  const scoreStr = Number(ragMeta.max_score || 0).toFixed(3);
-  const thStr = Number(ragMeta.threshold || 0.22).toFixed(2);
+  const maxScore = Number(ragMeta.max_score || 0);
+  const thVal = Number(ragMeta.threshold || 0.22);
+  const scoreStr = maxScore.toFixed(3);
+  const thStr = thVal.toFixed(2);
+  const abstainedByThreshold = Boolean(ragMeta.abstained) && maxScore < thVal;
+  const badgeText = !ragMeta.abstained
+    ? "已溯源作答"
+    : (abstainedByThreshold ? "诚实拒答 · 检索相关度不足" : "诚实拒答 · 语义校验无直接依据");
+  const detailText = !ragMeta.abstained
+    ? `最高相关度 <code>${scoreStr}</code>（阈值 <code>${thStr}</code>）`
+    : (abstainedByThreshold
+        ? `最高相关度 <code>${scoreStr}</code> &lt; 阈值 <code>${thStr}</code>`
+        : `最高相关度 <code>${scoreStr}</code>（阈值 <code>${thStr}</code>，已由模型语义校验拦截）`);
   statusStrip.innerHTML = `
-    <span class="rag-status-badge">${ragMeta.abstained ? "诚实拒答 · 相关度不足" : "已溯源作答"}</span>
-    <span>最高相关度 <code>${scoreStr}</code>（阈值 <code>${thStr}</code>）</span>
+    <span class="rag-status-badge">${badgeText}</span>
+    <span>${detailText}</span>
     ${ragMeta.citation_warning ? `<span class="rag-warning">${escapeHtml(ragMeta.citation_warning)}</span>` : ""}
   `;
   panel.appendChild(statusStrip);
@@ -2741,22 +3227,24 @@ function hydrateStudyCitationsAndPanels(messageItem, ragMeta) {
     srcDet.open = true;
     srcDet.innerHTML = `<summary>${
       ragMeta.abstained
-        ? `最相关的候选切片（共 ${sources.length} 处 · 相关度低于阈值，仅供参考）`
+        ? (abstainedByThreshold
+            ? `最相关的候选切片（共 ${sources.length} 处 · 相关度低于阈值，仅供参考）`
+            : `最相关的候选切片（共 ${sources.length} 处 · 语义校验未包含直接答案，仅供参考）`)
         : `引用来源（共 ${sources.length} 处 · 点击查看切片原文）`
     }</summary>`;
     const list = document.createElement("div");
     list.className = "rag-card-list";
-    sources.forEach((src) => {
+    sources.forEach((src, idx) => {
       const card = document.createElement("div");
       card.className = "rag-card";
+      card.style.setProperty("--rag-idx", String(idx));
       card.innerHTML = `
         <div class="rag-card-top">
           <span class="rag-card-title">[${escapeHtml(src.cite_id || "S")}] ${escapeHtml(src.doc_name)} · ${escapeHtml(src.location)}</span>
           <span class="rag-card-score">相关度 ${Number(src.score || 0).toFixed(3)}</span>
         </div>
-        ${src.section_title ? `<div class="rag-card-sub">${escapeHtml(src.section_title)}</div>` : ""}
-        ${renderTopicChipsHtml(src.topics, 5)}
-        ${src.snippet ? `<div class="rag-card-snippet">${escapeHtml(src.snippet)}</div>` : ""}
+        ${src.section_title ? `<div class="rag-card-sub">${escapeHtml(String(src.section_title).split(/\s{2,}|[\u3000]+/)[0].slice(0, 26))}</div>` : ""}
+        ${renderTopicChipsHtml(src.topics, 3)}
       `;
       card.addEventListener("click", () => openChunkPreviewModal(src));
       list.appendChild(card);
@@ -2773,17 +3261,17 @@ function hydrateStudyCitationsAndPanels(messageItem, ragMeta) {
     recDet.innerHTML = `<summary>继续学习 · 按主题词选择下一个学习切片</summary>`;
     const list = document.createElement("div");
     list.className = "rag-card-list";
-    recs.forEach((rec) => {
+    recs.forEach((rec, idx) => {
       const card = document.createElement("div");
       card.className = "rag-card rag-rec-card";
+      card.style.setProperty("--rag-idx", String(sources.length + idx));
       card.innerHTML = `
         <div class="rag-card-top">
           <span class="rag-card-title">${escapeHtml(rec.doc_name)} · ${escapeHtml(rec.location)}</span>
           <span class="rag-reason-badge">${escapeHtml(rec.reason || "推荐学习")}</span>
         </div>
-        ${rec.section_title ? `<div class="rag-card-sub"><strong>本切片主题：</strong>${escapeHtml(rec.section_title)}</div>` : ""}
-        ${renderTopicChipsHtml(rec.topics, 6)}
-        ${rec.snippet ? `<div class="rag-card-snippet">${escapeHtml(rec.snippet)}</div>` : ""}
+        ${rec.section_title ? `<div class="rag-card-sub">${escapeHtml(String(rec.section_title).split(/\s{2,}|[\u3000]+/)[0].slice(0, 26))}</div>` : ""}
+        ${renderTopicChipsHtml(rec.topics, 3)}
         <div class="rag-card-actions">
           <button type="button" class="rag-mini-btn is-primary btn-learn-next">学习此主题</button>
           <button type="button" class="rag-mini-btn btn-view-slice">查看切片</button>
@@ -2937,8 +3425,16 @@ async function sendStudyQuestion(rawText, options = {}) {
   els.studyChatList.scrollTop = els.studyChatList.scrollHeight;
 
   let streamText = "";
-  let lastRenderAt = 0;
   const replyBubble = typingItem.querySelector(".bubble");
+  const ensureStudyBubble = () => {
+    replyBubble.style.color = "";
+    replyBubble.classList.add("md-bubble", "is-streaming");
+    return replyBubble;
+  };
+  const studyStreamer = createSmoothBubbleStreamer({
+    getBubble: ensureStudyBubble,
+    scrollEl: els.studyChatList,
+  });
 
   try {
     const studyReqBody = {
@@ -2956,14 +3452,7 @@ async function sendStudyQuestion(rawText, options = {}) {
         onDelta: (delta) => {
           if (!delta) return;
           streamText += delta;
-          replyBubble.style.color = "";
-          replyBubble.classList.add("md-bubble");
-          const now = Date.now();
-          if (now - lastRenderAt > 120) {
-            lastRenderAt = now;
-            replyBubble.innerHTML = renderMarkdown(streamText, { streaming: true });
-            els.studyChatList.scrollTop = els.studyChatList.scrollHeight;
-          }
+          studyStreamer.push(delta);
         },
       });
     } catch (streamErr) {
@@ -2975,18 +3464,22 @@ async function sendStudyQuestion(rawText, options = {}) {
     }
     const finalReply = donePayload?.reply || streamText;
     if (finalReply) {
+      await studyStreamer.finish(finalReply);
       replyBubble.style.color = "";
-      replyBubble.classList.add("md-bubble");
+      replyBubble.classList.remove("is-streaming");
+      replyBubble.classList.add("md-bubble", "is-stream-done");
       replyBubble.innerHTML = renderMarkdown(finalReply);
       hydrateHtmlWidgets(replyBubble);
       if (donePayload?.rag_meta && donePayload.rag_meta.grounded) {
-        hydrateStudyCitationsAndPanels(typingItem, donePayload.rag_meta);
+        hydrateStudyCitationsAndPanels(typingItem, donePayload.rag_meta, { animate: true });
       }
       if (Array.isArray(donePayload?.library_files)) renderStudyFilesList(donePayload.library_files);
     } else {
+      studyStreamer.stop();
       replyBubble.textContent = "解答遇到一点问题，请重试~";
     }
   } catch (err) {
+    studyStreamer.stop();
     replyBubble.textContent = `回答失败: ${err.message}`;
   }
   els.studyChatList.scrollTop = els.studyChatList.scrollHeight;
@@ -3037,15 +3530,16 @@ window.openStudySession = function(sessionId) {
 };
 
 const SHORTCUT_STORAGE_KEY = "yunque.companion.shortcuts.v1";
+const DEFAULT_SHORTCUTS = ["chat", "study", "library", "diary"];
 
 function getEnabledShortcuts() {
   try {
     const raw = localStorage.getItem(SHORTCUT_STORAGE_KEY);
-    if (!raw) return [];
+    if (raw === null) return [...DEFAULT_SHORTCUTS];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed : [...DEFAULT_SHORTCUTS];
   } catch {
-    return [];
+    return [...DEFAULT_SHORTCUTS];
   }
 }
 
@@ -3066,54 +3560,20 @@ function renderOrbitShortcuts() {
     });
   }
 
-  const nav = document.getElementById("orbitNav") || document.querySelector(".orbit-nav");
+  const nav = document.getElementById("orbitNav") || document.querySelector(".home-quick-cards");
   if (!nav) return;
-  const allBubbles = [...nav.querySelectorAll(".orbit-bubble[data-shortcut-id]")];
-  const visibleBubbles = [];
+  const allCards = [...nav.querySelectorAll("[data-shortcut-id]")];
+  let visibleCount = 0;
 
-  allBubbles.forEach((btn) => {
+  allCards.forEach((btn) => {
     const id = btn.dataset.shortcutId;
     const isShown = enabled.has(id);
     btn.hidden = !isShown;
     btn.style.display = isShown ? "" : "none";
-    if (isShown) visibleBubbles.push(btn);
+    if (isShown) visibleCount += 1;
   });
 
-  // 根据勾选的气泡数量，动态在云雀左右两侧排布优美对称弧线
-  const leftSide = [];
-  const rightSide = [];
-  visibleBubbles.forEach((btn, idx) => {
-    if (idx % 2 === 0) leftSide.push(btn);
-    else rightSide.push(btn);
-  });
-
-  const getArcSlots = (count) => {
-    if (count === 1) return [{ top: "50%", dist: "215px" }];
-    if (count === 2) return [{ top: "38%", dist: "215px" }, { top: "62%", dist: "215px" }];
-    if (count === 3) return [{ top: "27%", dist: "195px" }, { top: "50%", dist: "235px" }, { top: "73%", dist: "195px" }];
-    return [
-      { top: "22%", dist: "185px" },
-      { top: "41%", dist: "240px" },
-      { top: "61%", dist: "240px" },
-      { top: "80%", dist: "185px" },
-    ];
-  };
-
-  const leftSlots = getArcSlots(leftSide.length);
-  leftSide.forEach((btn, i) => {
-    const slot = leftSlots[i] || leftSlots[leftSlots.length - 1];
-    btn.style.top = slot.top;
-    btn.style.right = `calc(50% + ${slot.dist})`;
-    btn.style.left = "auto";
-  });
-
-  const rightSlots = getArcSlots(rightSide.length);
-  rightSide.forEach((btn, i) => {
-    const slot = rightSlots[i] || rightSlots[rightSlots.length - 1];
-    btn.style.top = slot.top;
-    btn.style.left = `calc(50% + ${slot.dist})`;
-    btn.style.right = "auto";
-  });
+  nav.hidden = visibleCount === 0;
 }
 
 function setupOrbitShortcuts() {
@@ -3241,22 +3701,6 @@ function setupAcademicProfileEvents() {
   setupOrbitShortcuts();
 }
 
-async function initialize() {
-  els.userDiaryDate.value = chinaDateKey();
-  configureTrajectoryAnchor(true);
-  try {
-    state.sidebarCollapsed = localStorage.getItem("yunque.web.sidebar.collapsed.v2") === "1";
-    state.proactiveEnabled = localStorage.getItem("yunque.web.proactive.v2") !== "0";
-    state.emotionPinned = localStorage.getItem("yunque.web.emotion.pinned.v1") !== "0";
-    state.emotionPosition = JSON.parse(localStorage.getItem("yunque.web.emotion.position.v1")||"null");
-  } catch {
-    state.sidebarCollapsed = false;
-    state.proactiveEnabled = true;
-  }
-  setSidebarCollapsed(state.sidebarCollapsed);
-  els.proactiveReplyToggle.checked = state.proactiveEnabled;
-  renderChatHistory();
-  renderMemoryBrowser();
 const LARK_TIME_GREETINGS = {
   morning: [
     "早上好，准备开始一天的学习了吗？",
@@ -3296,35 +3740,262 @@ function getLarkTimeSlot(hour = new Date().getHours()) {
   return "night";
 }
 
-function updateLarkGreeting(advance = false) {
+function updateLarkGreeting(advance = false, { random = false } = {}) {
   const textEl = document.getElementById("larkGreetingText");
   if (!textEl) return;
   const slot = getLarkTimeSlot();
   const list = LARK_TIME_GREETINGS[slot] || LARK_TIME_GREETINGS.morning;
+  const storageKey = `lark.greeting.idx.${slot}`;
   if (slot !== larkGreetingSlot) {
     larkGreetingSlot = slot;
-    larkGreetingIndex = 0;
+    let stored = -1;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw !== null) stored = Number.parseInt(raw, 10);
+    } catch {}
+    // 每次页面刷新自动切换到同一时间段的下一句问候
+    larkGreetingIndex = Number.isFinite(stored) && stored >= 0 ? (stored + 1) % list.length : 0;
+    try { localStorage.setItem(storageKey, String(larkGreetingIndex)); } catch {}
+  } else if (random && list.length > 1) {
+    let nextIdx = Math.floor(Math.random() * list.length);
+    if (nextIdx === larkGreetingIndex) {
+      nextIdx = (larkGreetingIndex + 1 + Math.floor(Math.random() * (list.length - 1))) % list.length;
+    }
+    larkGreetingIndex = nextIdx;
+    try { localStorage.setItem(storageKey, String(larkGreetingIndex)); } catch {}
   } else if (advance) {
     larkGreetingIndex = (larkGreetingIndex + 1) % list.length;
+    try { localStorage.setItem(storageKey, String(larkGreetingIndex)); } catch {}
   }
   textEl.textContent = list[larkGreetingIndex];
 }
 
+const GREETING_TTS_STORAGE_KEY = "yunque.companion.greeting.tts.v1";
+const GREETING_TTS_VOICE_KEY = "yunque.companion.greeting.tts.voice.v1";
+
+function isGreetingTtsEnabled() {
+  try {
+    return localStorage.getItem(GREETING_TTS_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setGreetingTtsEnabled(enabled) {
+  try {
+    localStorage.setItem(GREETING_TTS_STORAGE_KEY, enabled ? "1" : "0");
+  } catch {}
+}
+
+function getGreetingTtsVoice() {
+  try {
+    const saved = localStorage.getItem(GREETING_TTS_VOICE_KEY);
+    if (saved === "zh-CN-XiaoxiaoNeural" || saved === "zh-CN-XiaoyiNeural") return saved;
+  } catch {}
+  return "zh-CN-XiaoyiNeural";
+}
+
+function setGreetingTtsVoice(voice) {
+  try {
+    localStorage.setItem(GREETING_TTS_VOICE_KEY, voice);
+  } catch {}
+  greetingAudioCache.clear();
+  greetingAudioInflight.clear();
+}
+
+let activeGreetingAudio = null;
+let greetingTtsSeq = 0;
+const greetingAudioCache = new Map();
+const greetingAudioInflight = new Map();
+
+function stopGreetingAudio() {
+  greetingTtsSeq += 1;
+  if (activeGreetingAudio) {
+    try {
+      activeGreetingAudio.pause();
+      activeGreetingAudio.currentTime = 0;
+    } catch {}
+    activeGreetingAudio = null;
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    try { window.speechSynthesis.cancel(); } catch {}
+  }
+}
+
+function fetchGreetingAudioUrl(text, voice = getGreetingTtsVoice()) {
+  if (!text) return Promise.resolve(null);
+  const cacheKey = `${voice}::${text}`;
+  if (greetingAudioCache.has(cacheKey)) return Promise.resolve(greetingAudioCache.get(cacheKey));
+  if (greetingAudioInflight.has(cacheKey)) return greetingAudioInflight.get(cacheKey);
+  const requestTts = (rateStr) =>
+    requestJson("/api/voice/tts", {
+      method: "POST",
+      body: JSON.stringify({ text, voice, rate: rateStr }),
+    });
+  const p = requestTts("+5%")
+    .then(async (res) => {
+      // 若后端返回了降级音色（如旧进程并发降级到了 Xiaoxiao），换新 rate 键串行重试一次以强制使用目标音色
+      if (res?.ok && res.audio_data_url && res.voice && res.voice !== voice) {
+        res = await requestTts("+3%");
+      }
+      if (res?.ok && res.audio_data_url && (!res.voice || res.voice === voice)) {
+        greetingAudioCache.set(cacheKey, res.audio_data_url);
+        return res.audio_data_url;
+      }
+      return null;
+    })
+    .catch(() => null)
+    .finally(() => { greetingAudioInflight.delete(cacheKey); });
+  greetingAudioInflight.set(cacheKey, p);
+  return p;
+}
+
+let prewarmRunId = 0;
+async function prewarmCurrentSlotGreetings() {
+  if (!isGreetingTtsEnabled()) return;
+  const runId = ++prewarmRunId;
+  const slot = getLarkTimeSlot();
+  const list = LARK_TIME_GREETINGS[slot] || [];
+  const voice = getGreetingTtsVoice();
+  // 串行预热，避免 5 个并发请求同时打到 edge-tts 触发限流降级到另一音色
+  for (const line of list) {
+    if (runId !== prewarmRunId || !isGreetingTtsEnabled() || getGreetingTtsVoice() !== voice) break;
+    await fetchGreetingAudioUrl(line, voice);
+  }
+}
+
+function pickFemaleZhVoice(targetVoice = getGreetingTtsVoice()) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices?.() || [];
+  const preferXiaoxiao = /xiaoxiao/i.test(targetVoice || "");
+  const preferred = preferXiaoxiao
+    ? ["xiaoxiao", "xiaoyi", "tingting", "mei-jia", "meijia", "huihui", "yaoyao", "sin-ji"]
+    : ["xiaoyi", "xiaoxiao", "tingting", "mei-jia", "meijia", "huihui", "yaoyao", "sin-ji"];
+  for (const kw of preferred) {
+    const found = voices.find((v) => /zh/i.test(v.lang || "") && (v.name || "").toLowerCase().includes(kw));
+    if (found) return found;
+  }
+  return voices.find((v) => /zh[-_]?cn/i.test(v.lang || "")) || null;
+}
+
+async function speakGreetingText(text, { force = false, voice = getGreetingTtsVoice(), notifyOnFallback = false } = {}) {
+  if (!text || (!force && !isGreetingTtsEnabled())) return;
+  stopGreetingAudio();
+  const seq = greetingTtsSeq;
+  const dataUrl = await fetchGreetingAudioUrl(text, voice);
+  if (seq !== greetingTtsSeq || (!force && !isGreetingTtsEnabled())) return;
+  if (dataUrl) {
+    try {
+      const audio = new Audio(dataUrl);
+      activeGreetingAudio = audio;
+      audio.onended = () => { if (activeGreetingAudio === audio) activeGreetingAudio = null; };
+      await audio.play();
+      return;
+    } catch {}
+  }
+  if (notifyOnFallback) {
+    showToastMessage("后端 TTS 接口暂未就绪，请先重启 python app.py 后再试");
+  }
+  if (seq !== greetingTtsSeq || (!force && !isGreetingTtsEnabled())) return;
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "zh-CN";
+    const fallbackVoice = pickFemaleZhVoice(voice);
+    if (fallbackVoice) utter.voice = fallbackVoice;
+    utter.rate = 1.04;
+    utter.pitch = 1.08;
+    window.speechSynthesis.speak(utter);
+  } catch {}
+}
+
 function initLarkGreeting() {
   updateLarkGreeting(false);
+  prewarmCurrentSlotGreetings();
+  const ttsToggle = document.getElementById("homeGreetingTtsToggle");
+  if (ttsToggle && !ttsToggle.dataset.boundTts) {
+    ttsToggle.dataset.boundTts = "1";
+    ttsToggle.checked = isGreetingTtsEnabled();
+    ttsToggle.addEventListener("change", () => {
+      setGreetingTtsEnabled(ttsToggle.checked);
+      if (ttsToggle.checked) {
+        prewarmCurrentSlotGreetings();
+      } else {
+        stopGreetingAudio();
+      }
+    });
+  }
+  const voicePicker = document.getElementById("ttsVoicePicker");
+  if (voicePicker && !voicePicker.dataset.boundVoice) {
+    voicePicker.dataset.boundVoice = "1";
+    const syncVoiceButtons = () => {
+      const current = getGreetingTtsVoice();
+      voicePicker.querySelectorAll("[data-tts-voice]").forEach((b) => {
+        const active = b.dataset.ttsVoice === current;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-pressed", String(active));
+      });
+    };
+    syncVoiceButtons();
+    voicePicker.querySelectorAll("[data-tts-voice]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const chosen = b.dataset.ttsVoice;
+        setGreetingTtsVoice(chosen);
+        syncVoiceButtons();
+        stopGreetingAudio();
+        await speakGreetingText("你好呀，我是云雀。", { force: true, voice: chosen, notifyOnFallback: true });
+        prewarmCurrentSlotGreetings();
+      });
+    });
+  }
   const btn = document.getElementById("larkGreetingBubble");
   if (btn && !btn.dataset.boundGreeting) {
     btn.dataset.boundGreeting = "1";
-    btn.addEventListener("click", () => updateLarkGreeting(true));
+    btn.addEventListener("click", () => {
+      updateLarkGreeting(true);
+      const text = document.getElementById("larkGreetingText")?.textContent || "";
+      speakGreetingText(text, { voice: getGreetingTtsVoice() });
+    });
   }
+  let hasVisitedNonHome = false;
   window.addEventListener("yunque:view", (ev) => {
-    if (ev?.detail?.view === "home") updateLarkGreeting(false);
+    const targetView = typeof ev?.detail === "string" ? ev.detail : ev?.detail?.view;
+    if (targetView === "home") {
+      if (hasVisitedNonHome) {
+        updateLarkGreeting(false, { random: true });
+        const text = document.getElementById("larkGreetingText")?.textContent || "";
+        speakGreetingText(text, { voice: getGreetingTtsVoice() });
+      } else {
+        updateLarkGreeting(false);
+      }
+    } else if (targetView) {
+      hasVisitedNonHome = true;
+      stopGreetingAudio();
+    }
   });
 }
 
+async function initialize() {
+  els.userDiaryDate.value = chinaDateKey();
+  configureTrajectoryAnchor(true);
+  try {
+    state.sidebarCollapsed = localStorage.getItem("yunque.web.sidebar.collapsed.v2") === "1";
+    state.proactiveEnabled = localStorage.getItem("yunque.web.proactive.v2") !== "0";
+    state.emotionPinned = localStorage.getItem("yunque.web.emotion.pinned.v1") !== "0";
+    state.emotionPosition = JSON.parse(localStorage.getItem("yunque.web.emotion.position.v1")||"null");
+  } catch {
+    state.sidebarCollapsed = false;
+    state.proactiveEnabled = true;
+  }
+  setSidebarCollapsed(state.sidebarCollapsed);
+  els.proactiveReplyToggle.checked = state.proactiveEnabled;
+  renderChatHistory();
+  renderMemoryBrowser();
   renderAiDiary();
   renderPendingFiles(); rebuildSentMedia(); renderTrajectory(); initializeEmotionDragging();
   setupAcademicProfileEvents();
+  initLibraryDragAndDrop();
+  initLibraryReaderAndGraph();
   loadProfiles();
   initLarkGreeting();
   updateEmotionPinState(); if(state.emotionPosition){els.emotionWidget.style.left=`${state.emotionPosition.left}px`;els.emotionWidget.style.top=`${state.emotionPosition.top}px`;els.emotionWidget.style.right="auto"}
@@ -3334,3 +4005,505 @@ function initLarkGreeting() {
 }
 
 initialize();
+
+
+/* ============== 资料库内置分栏阅读器 + 关联规则无向知识图谱 ============== */
+let libraryActiveMode = "cards";
+let libraryReaderActiveFile = null;
+let libraryReaderActiveTab = "read";
+let libraryReaderChunksCache = new Map();
+let libraryGraphData = null;
+let libraryGraphSelectedNode = null;
+
+function setLibraryMode(mode) {
+  libraryActiveMode = mode === "graph" ? "graph" : "cards";
+  const grid = document.getElementById("libraryCardsGrid");
+  const graphShell = document.getElementById("libraryGraphShell");
+  const filterBar = document.getElementById("libraryFilterBar");
+  document.querySelectorAll("#libraryModeSwitch .lib-mode-btn").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.libMode === libraryActiveMode);
+  });
+  els.appShell?.classList.toggle("is-library-graph", state.activeView === "library" && libraryActiveMode === "graph");
+  if (grid) grid.hidden = libraryActiveMode !== "cards";
+  if (filterBar) filterBar.hidden = libraryActiveMode !== "cards";
+  if (graphShell) graphShell.hidden = libraryActiveMode !== "graph";
+  if (libraryActiveMode === "graph") {
+    loadLibraryKnowledgeGraph();
+  }
+}
+
+function closeLibraryReader() {
+  const header = document.getElementById("libraryHeader");
+  const grid = document.getElementById("libraryCardsGrid");
+  const graphShell = document.getElementById("libraryGraphShell");
+  const readerShell = document.getElementById("libraryReaderShell");
+  const panel = document.getElementById("libraryPanel");
+  libraryReaderActiveFile = null;
+  if (panel) panel.classList.remove("is-reader-open");
+  if (readerShell) readerShell.hidden = true;
+  if (header) header.hidden = false;
+  if (grid) grid.hidden = libraryActiveMode !== "cards";
+  if (graphShell) graphShell.hidden = libraryActiveMode !== "graph";
+}
+
+async function openLibraryReader(file) {
+  if (!file) return;
+  const header = document.getElementById("libraryHeader");
+  const grid = document.getElementById("libraryCardsGrid");
+  const graphShell = document.getElementById("libraryGraphShell");
+  const readerShell = document.getElementById("libraryReaderShell");
+  const panel = document.getElementById("libraryPanel");
+  if (!readerShell) return;
+
+  libraryReaderActiveFile = file;
+  libraryReaderActiveTab = "read";
+  if (panel) panel.classList.add("is-reader-open");
+  if (header) header.hidden = true;
+  if (grid) grid.hidden = true;
+  if (graphShell) graphShell.hidden = true;
+  readerShell.hidden = false;
+
+  renderLibraryReaderSidebar();
+  await renderLibraryReaderMain();
+}
+
+function renderLibraryReaderSidebar() {
+  const listEl = document.getElementById("libraryReaderFileList");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  (studyLibraryFiles || []).forEach((f) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `lib-reader-file-item${libraryReaderActiveFile?.id === f.id ? " is-active" : ""}`;
+    btn.innerHTML = `
+      <span class="lib-reader-file-name">${escapeHtml(f.file_name)}</span>
+      <span class="lib-reader-file-type">${escapeHtml(formatFileTypeLabel(f.file_type, f.file_name))}</span>
+    `;
+    btn.addEventListener("click", async () => {
+      libraryReaderActiveFile = f;
+      renderLibraryReaderSidebar();
+      await renderLibraryReaderMain();
+    });
+    listEl.appendChild(btn);
+  });
+}
+
+async function renderFileContentInto(file, bodyEl, tab = "read") {
+  if (!file || !bodyEl) return;
+  const ft = String(file.file_type || "").toLowerCase();
+  const rawUrl = apiUrl(`/api/study/library/raw?file_id=${encodeURIComponent(file.id)}`);
+
+  if (tab === "read" && file.has_original && ft === "pdf") {
+    bodyEl.innerHTML = `<iframe class="lib-reader-iframe" src="${rawUrl}" title="${escapeHtml(file.file_name)}"></iframe>`;
+    return;
+  }
+  if (tab === "read" && file.has_original && (ft === "pptx" || ft === "docx" || ft === "xlsx")) {
+    const previewUrl = apiUrl(`/api/study/library/preview/${encodeURIComponent(file.id)}/Preview.html`);
+    bodyEl.innerHTML = `<iframe class="lib-reader-iframe" src="${previewUrl}" title="${escapeHtml(file.file_name)}"></iframe>`;
+    return;
+  }
+  if (tab === "read" && file.has_original && ft === "image") {
+    bodyEl.innerHTML = `<div class="lib-reader-img-wrap"><img class="lib-reader-img" src="${rawUrl}" alt="${escapeHtml(file.file_name)}" /></div>`;
+    return;
+  }
+
+  bodyEl.innerHTML = '<div class="lib-reader-loading">正在加载文档内容…</div>';
+  let chunks = libraryReaderChunksCache.get(file.id);
+  if (!chunks) {
+    try {
+      const res = await requestJson(`/api/study/library/chunks?file_id=${encodeURIComponent(file.id)}`);
+      chunks = res?.ok ? (res.chunks || []) : [];
+      libraryReaderChunksCache.set(file.id, chunks);
+    } catch (err) {
+      bodyEl.innerHTML = `<div class="lib-reader-loading" style="color:#c53030;">加载失败：${escapeHtml(err.message)}</div>`;
+      return;
+    }
+  }
+
+  if (!chunks.length) {
+    bodyEl.innerHTML = '<div class="lib-reader-loading">该文档暂无可展示的文本内容。</div>';
+    return;
+  }
+
+  bodyEl.innerHTML = "";
+  const docWrap = document.createElement("div");
+  docWrap.className = tab === "read" ? "lib-reader-doc-flow" : "lib-reader-chunks-flow";
+  chunks.forEach((ch) => {
+    const sec = document.createElement("article");
+    sec.className = "lib-reader-page-card";
+    const heading = String(ch.section_title || "").split(/\s{2,}|[\u3000]+/)[0].slice(0, 32);
+    sec.innerHTML = `
+      <header class="lib-reader-page-head">
+        <strong>${escapeHtml(ch.location || `第 ${ch.chunk_index + 1} 节`)}${heading ? ` · ${escapeHtml(heading)}` : ""}</strong>
+      </header>
+      ${tab === "chunks" ? renderTopicChipsHtml(ch.topics, 5) : ""}
+      <div class="lib-reader-page-content">${escapeHtml(ch.content || "")}</div>
+    `;
+    docWrap.appendChild(sec);
+  });
+  bodyEl.appendChild(docWrap);
+}
+
+async function renderLibraryReaderMain() {
+  const file = libraryReaderActiveFile;
+  const titleEl = document.getElementById("libraryReaderTitle");
+  const subEl = document.getElementById("libraryReaderSub");
+  const bodyEl = document.getElementById("libraryReaderBody");
+  if (!file || !bodyEl) return;
+
+  if (titleEl) titleEl.textContent = file.file_name || "文档阅读";
+  if (subEl) subEl.textContent = `${formatFileTypeLabel(file.file_type, file.file_name)} · ${file.chunk_count || 0} 个切片`;
+  document.querySelectorAll("#libraryReaderTabs .lib-reader-tab").forEach((b) => {
+    b.classList.toggle("is-active", b.dataset.readerTab === libraryReaderActiveTab);
+  });
+  await renderFileContentInto(file, bodyEl, libraryReaderActiveTab);
+}
+
+async function loadLibraryKnowledgeGraph() {
+  const statsEl = document.getElementById("libraryGraphStats");
+  const svgEl = document.getElementById("libraryGraphSvg");
+  const cardEl = document.getElementById("libraryGraphNodeCard");
+  if (!svgEl) return;
+  if (cardEl) cardEl.hidden = true;
+  if (statsEl) statsEl.textContent = "正在基于关联规则挖掘知识图谱…";
+
+  try {
+    const res = await requestJson("/api/study/library/graph");
+    if (!res?.ok) throw new Error(res?.error || "图谱构建失败");
+    libraryGraphData = res;
+    const st = res.stats || {};
+    if (!res.nodes?.length) {
+      if (statsEl) statsEl.textContent = "资料库暂无足够切片，上传资料后即可自动挖掘关联规则知识图谱。";
+      svgEl.innerHTML = "";
+      return;
+    }
+    if (statsEl) {
+      statsEl.textContent = `关联规则挖掘：${st.num_chunks || 0} 个切片 · ${st.num_rules || 0} 条规则 · ${st.num_nodes || 0} 个概念节点 · ${st.num_edges || 0} 条无向边（点击节点查看详情并提问）`;
+    }
+    renderKnowledgeGraphSvg(res.nodes, res.edges || []);
+  } catch (err) {
+    if (statsEl) statsEl.textContent = `图谱加载失败：${err.message}`;
+  }
+}
+
+function renderKnowledgeGraphSvg(nodes, edges) {
+  const svg = document.getElementById("libraryGraphSvg");
+  if (!svg) return;
+  const W = 960;
+  const H = 600;
+  const cx = W / 2;
+  const cy = H / 2;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  // 紧凑小圆点 + 充裕间距的力导向布局
+  const simNodes = nodes.map((n, i) => {
+    const angle = (2 * Math.PI * i) / Math.max(1, nodes.length);
+    const radius = Math.min(W, H) * 0.36;
+    return {
+      ...n,
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius,
+      vx: 0,
+      vy: 0,
+      r: Math.max(6, Math.min(11, 5.5 + Math.sqrt(n.freq || 1) * 1.4)),
+    };
+  });
+  const byId = new Map(simNodes.map((n) => [n.id, n]));
+
+  for (let step = 0; step < 120; step++) {
+    for (let i = 0; i < simNodes.length; i++) {
+      for (let j = i + 1; j < simNodes.length; j++) {
+        const a = simNodes[i];
+        const b = simNodes[j];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const rep = 7600 / (dist * dist);
+        const fx = (dx / dist) * rep;
+        const fy = (dy / dist) * rep;
+        a.vx -= fx; a.vy -= fy;
+        b.vx += fx; b.vy += fy;
+      }
+    }
+    for (const e of edges) {
+      const a = byId.get(e.source);
+      const b = byId.get(e.target);
+      if (!a || !b) continue;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const targetDist = 148;
+      const pull = (dist - targetDist) * 0.024;
+      const fx = (dx / dist) * pull;
+      const fy = (dy / dist) * pull;
+      a.vx += fx; a.vy += fy;
+      b.vx -= fx; b.vy -= fy;
+    }
+    for (const n of simNodes) {
+      n.vx = (n.vx + (cx - n.x) * 0.01) * 0.82;
+      n.vy = (n.vy + (cy - n.y) * 0.01) * 0.82;
+      n.x = Math.max(64, Math.min(W - 64, n.x + n.vx));
+      n.y = Math.max(48, Math.min(H - 54, n.y + n.vy));
+    }
+  }
+
+  const ns = "http://www.w3.org/2000/svg";
+  svg.innerHTML = "";
+  const viewport = document.createElementNS(ns, "g");
+  viewport.setAttribute("class", "kg-viewport");
+  const edgeGroup = document.createElementNS(ns, "g");
+  const nodeGroup = document.createElementNS(ns, "g");
+  viewport.appendChild(edgeGroup);
+  viewport.appendChild(nodeGroup);
+  svg.appendChild(viewport);
+
+  // 缩放和平移状态
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  const applyTransform = () => {
+    viewport.setAttribute("transform", `translate(${panX.toFixed(1)}, ${panY.toFixed(1)}) scale(${zoom.toFixed(3)})`);
+  };
+  applyTransform();
+
+  // 缩放工具条（+ / - / 重置）
+  const wrap = svg.parentElement;
+  if (wrap) {
+    wrap.querySelector(".kg-zoom-controls")?.remove();
+    const ctrl = document.createElement("div");
+    ctrl.className = "kg-zoom-controls";
+    ctrl.innerHTML = `
+      <button type="button" data-kg-zoom="in" title="放大">+</button>
+      <button type="button" data-kg-zoom="out" title="缩小">−</button>
+      <button type="button" data-kg-zoom="reset" title="重置视图">重置</button>
+    `;
+    ctrl.addEventListener("click", (ev) => {
+      const action = ev.target?.dataset?.kgZoom;
+      if (action === "in") zoom = Math.min(3.2, zoom * 1.2);
+      else if (action === "out") zoom = Math.max(0.45, zoom / 1.2);
+      else if (action === "reset") { zoom = 1; panX = 0; panY = 0; }
+      applyTransform();
+    });
+    wrap.appendChild(ctrl);
+  }
+
+  // 鼠标滚轮缩放 + 拖拽画布平移
+  svg.onwheel = (ev) => {
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+    zoom = Math.max(0.45, Math.min(3.2, zoom * factor));
+    applyTransform();
+  };
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pointerOriginX = 0;
+  let pointerOriginY = 0;
+  svg.onpointerdown = (ev) => {
+    if (ev.target.closest?.(".kg-node") || ev.target.closest?.(".kg-zoom-controls")) return;
+    dragging = true;
+    pointerOriginX = ev.clientX;
+    pointerOriginY = ev.clientY;
+    dragStartX = ev.clientX - panX;
+    dragStartY = ev.clientY - panY;
+    svg.setPointerCapture?.(ev.pointerId);
+  };
+  svg.onpointermove = (ev) => {
+    if (!dragging) return;
+    panX = ev.clientX - dragStartX;
+    panY = ev.clientY - dragStartY;
+    applyTransform();
+  };
+  svg.onpointerup = (ev) => {
+    if (dragging) {
+      const moved = Math.hypot(ev.clientX - pointerOriginX, ev.clientY - pointerOriginY);
+      if (moved < 5 && !ev.target.closest?.(".kg-node") && !ev.target.closest?.(".kg-zoom-controls")) {
+        clearGraphSelection();
+      }
+    }
+    dragging = false;
+  };
+  svg.onpointercancel = () => { dragging = false; };
+
+  const edgeEls = [];
+  edges.forEach((e) => {
+    const a = byId.get(e.source);
+    const b = byId.get(e.target);
+    if (!a || !b) return;
+    const line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", a.x.toFixed(1));
+    line.setAttribute("y1", a.y.toFixed(1));
+    line.setAttribute("x2", b.x.toFixed(1));
+    line.setAttribute("y2", b.y.toFixed(1));
+    line.setAttribute("class", "kg-edge");
+    line.setAttribute("stroke-width", String(Math.min(2.6, 0.9 + (e.lift || 1) * 0.35)));
+    line.dataset.source = e.source;
+    line.dataset.target = e.target;
+    edgeGroup.appendChild(line);
+    edgeEls.push(line);
+  });
+
+  const nodeEls = [];
+  simNodes.forEach((n) => {
+    const g = document.createElementNS(ns, "g");
+    g.setAttribute("class", "kg-node");
+    g.setAttribute("transform", `translate(${n.x.toFixed(1)}, ${n.y.toFixed(1)})`);
+    g.dataset.nodeId = n.id;
+
+    const circle = document.createElementNS(ns, "circle");
+    circle.setAttribute("r", String(n.r));
+    g.appendChild(circle);
+
+    const text = document.createElementNS(ns, "text");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("y", String(n.r + 13));
+    text.textContent = n.label;
+    g.appendChild(text);
+
+    g.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const neighbors = new Set([n.id]);
+      edgeEls.forEach((line) => {
+        const hit = line.dataset.source === n.id || line.dataset.target === n.id;
+        line.classList.toggle("is-highlighted", hit);
+        line.classList.toggle("is-dimmed", !hit);
+        if (hit) {
+          neighbors.add(line.dataset.source);
+          neighbors.add(line.dataset.target);
+        }
+      });
+      nodeEls.forEach((el) => {
+        el.classList.toggle("is-selected", el === g);
+        el.classList.toggle("is-dimmed", !neighbors.has(el.dataset.nodeId));
+      });
+      openGraphNodeCard(n);
+    });
+    nodeGroup.appendChild(g);
+    nodeEls.push(g);
+  });
+}
+
+function clearGraphSelection() {
+  libraryGraphSelectedNode = null;
+  const cardEl = document.getElementById("libraryGraphNodeCard");
+  if (cardEl) cardEl.hidden = true;
+  document.querySelectorAll("#libraryGraphSvg .kg-node").forEach((el) => {
+    el.classList.remove("is-selected", "is-dimmed");
+  });
+  document.querySelectorAll("#libraryGraphSvg .kg-edge").forEach((el) => {
+    el.classList.remove("is-highlighted", "is-dimmed");
+  });
+}
+
+function openGraphNodeCard(node) {
+  libraryGraphSelectedNode = node;
+  const cardEl = document.getElementById("libraryGraphNodeCard");
+  const titleEl = document.getElementById("graphNodeTitle");
+  const metaEl = document.getElementById("graphNodeMeta");
+  const chunksEl = document.getElementById("graphNodeChunks");
+  const ansEl = document.getElementById("graphNodeAnswer");
+  const inputEl = document.getElementById("graphNodeAskInput");
+  if (!cardEl) return;
+
+  if (titleEl) titleEl.textContent = node.label;
+  if (metaEl) metaEl.textContent = `出现 ${node.freq || 1} 个切片 · 关联 ${node.degree || 0} 个概念`;
+  if (ansEl) { ansEl.hidden = true; ansEl.innerHTML = ""; }
+  if (inputEl) inputEl.value = "";
+
+  if (chunksEl) {
+    chunksEl.innerHTML = "";
+    const topChunks = node.top_chunks || [];
+    if (!topChunks.length) {
+      chunksEl.innerHTML = '<div class="graph-chunk-empty">暂无关联切片</div>';
+    } else {
+      topChunks.forEach((ch) => {
+        const div = document.createElement("div");
+        div.className = "graph-chunk-item";
+        const shortTitle = String(ch.section_title || "").split(/\s{2,}|[\u3000]+/)[0].slice(0, 26);
+        div.innerHTML = `
+          <div class="graph-chunk-head">
+            <strong>${escapeHtml(ch.doc_name)} · ${escapeHtml(ch.location)}</strong>
+          </div>
+          ${shortTitle ? `<div class="graph-chunk-sub">${escapeHtml(shortTitle)}</div>` : ""}
+        `;
+        chunksEl.appendChild(div);
+      });
+    }
+  }
+  cardEl.hidden = false;
+}
+
+function initLibraryReaderAndGraph() {
+  const modeSwitch = document.getElementById("libraryModeSwitch");
+  if (modeSwitch && !modeSwitch.dataset.boundMode) {
+    modeSwitch.dataset.boundMode = "1";
+    modeSwitch.querySelectorAll(".lib-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setLibraryMode(btn.dataset.libMode));
+    });
+  }
+  const closeBtn = document.getElementById("libraryReaderCloseBtn");
+  if (closeBtn && !closeBtn.dataset.boundClose) {
+    closeBtn.dataset.boundClose = "1";
+    closeBtn.addEventListener("click", closeLibraryReader);
+  }
+  const readerTabs = document.getElementById("libraryReaderTabs");
+  if (readerTabs && !readerTabs.dataset.boundTabs) {
+    readerTabs.dataset.boundTabs = "1";
+    readerTabs.querySelectorAll(".lib-reader-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        libraryReaderActiveTab = btn.dataset.readerTab;
+        renderLibraryReaderMain();
+      });
+    });
+  }
+  const nodeClose = document.getElementById("graphNodeCloseBtn");
+  if (nodeClose && !nodeClose.dataset.boundClose) {
+    nodeClose.dataset.boundClose = "1";
+    nodeClose.addEventListener("click", clearGraphSelection);
+  }
+  const askForm = document.getElementById("graphNodeAskForm");
+  if (askForm && !askForm.dataset.boundAsk) {
+    askForm.dataset.boundAsk = "1";
+    askForm.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const node = libraryGraphSelectedNode;
+      const inputEl = document.getElementById("graphNodeAskInput");
+      const ansEl = document.getElementById("graphNodeAnswer");
+      const submitBtn = document.getElementById("graphNodeAskSubmit");
+      const q = (inputEl?.value || "").trim();
+      if (!node || !q || !ansEl) return;
+      inputEl.value = "";
+      const chunkIds = (node.top_chunks || []).map((c) => c.chunk_id).filter(Boolean);
+      ansEl.hidden = false;
+
+      const userMsg = document.createElement("div");
+      userMsg.className = "graph-qa-msg is-user";
+      userMsg.innerHTML = `<div class="graph-qa-bubble">${escapeHtml(q)}</div>`;
+      ansEl.appendChild(userMsg);
+
+      const agentMsg = document.createElement("div");
+      agentMsg.className = "graph-qa-msg is-agent";
+      agentMsg.innerHTML = `<div class="graph-qa-bubble is-loading">云雀正在结合该节点关联切片回答…</div>`;
+      ansEl.appendChild(agentMsg);
+
+      const scrollBox = ansEl.parentElement;
+      if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        const res = await requestJson("/api/study/library/graph/ask", {
+          method: "POST",
+          body: JSON.stringify({ node_label: node.label, question: q, chunk_ids: chunkIds }),
+        });
+        if (!res?.ok) throw new Error(res?.error || "回答失败");
+        agentMsg.innerHTML = `<div class="graph-qa-bubble md-bubble">${renderMarkdown(res.answer || "")}</div>`;
+      } catch (err) {
+        agentMsg.innerHTML = `<div class="graph-qa-bubble is-error">提问失败：${escapeHtml(err.message)}</div>`;
+      } finally {
+        if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+        if (submitBtn) submitBtn.disabled = false;
+        inputEl?.focus();
+      }
+    });
+  }
+}

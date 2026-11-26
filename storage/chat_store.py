@@ -306,6 +306,10 @@ def init_chat_store() -> None:
             connection.execute("ALTER TABLE study_files ADD COLUMN file_type TEXT NOT NULL DEFAULT ''")
         if "topics_json" not in study_file_cols:
             connection.execute("ALTER TABLE study_files ADD COLUMN topics_json TEXT NOT NULL DEFAULT '[]'")
+        if "storage_path" not in study_file_cols:
+            connection.execute("ALTER TABLE study_files ADD COLUMN storage_path TEXT NOT NULL DEFAULT ''")
+        if "thumb_path" not in study_file_cols:
+            connection.execute("ALTER TABLE study_files ADD COLUMN thumb_path TEXT NOT NULL DEFAULT ''")
 
         study_chunk_cols = {row["name"] for row in connection.execute("PRAGMA table_info(study_file_chunks)").fetchall()}
         if "location" not in study_chunk_cols:
@@ -1146,6 +1150,30 @@ def get_study_session(user_id: str, session_id: str) -> Dict | None:
         return dict(row) if row else None
 
 
+def delete_study_session(user_id: str, session_id: str) -> bool:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        existing = connection.execute(
+            "SELECT id FROM study_sessions WHERE user_id = ? AND id = ?",
+            (user_id, session_id),
+        ).fetchone()
+        if not existing:
+            return False
+        connection.execute(
+            "DELETE FROM study_messages WHERE user_id = ? AND session_id = ?",
+            (user_id, session_id),
+        )
+        connection.execute(
+            "DELETE FROM study_session_files WHERE user_id = ? AND session_id = ?",
+            (user_id, session_id),
+        )
+        connection.execute(
+            "DELETE FROM study_sessions WHERE user_id = ? AND id = ?",
+            (user_id, session_id),
+        )
+        return True
+
+
 def add_study_message(session_id: str, user_id: str, role: str, content: str, meta: Dict | None = None) -> Dict:
     init_chat_store()
     msg_id = str(uuid.uuid4())
@@ -1199,6 +1227,10 @@ def _deserialize_file_row(row: Any, linked_ids: set[str] | None = None) -> Dict:
         d["topics"] = json.loads(d.pop("topics_json", "[]") or "[]")
     except Exception:
         d["topics"] = []
+    storage_path = str(d.pop("storage_path", "") or "")
+    thumb_path = str(d.pop("thumb_path", "") or "")
+    d["has_original"] = bool(storage_path)
+    d["has_thumb"] = bool(thumb_path)
     if linked_ids is not None:
         d["linked"] = d["id"] in linked_ids
     return d
@@ -1227,9 +1259,12 @@ def save_library_file(
     chunks: List[Dict],
     topics: List[str],
     session_id: str = "",
+    file_id: str = "",
+    storage_path: str = "",
+    thumb_path: str = "",
 ) -> Dict:
     init_chat_store()
-    file_id = str(uuid.uuid4())
+    file_id = (file_id or "").strip() or str(uuid.uuid4())
     ts = normalize_timestamp_to_china("")
     summary = (extracted_text or "").strip().replace("\n", " ")[:180]
     topics_json = json.dumps(topics or [], ensure_ascii=False)
@@ -1238,9 +1273,10 @@ def save_library_file(
             """
             INSERT INTO study_files (
                 id, session_id, user_id, file_name, mime_type, file_size,
-                file_category, file_type, topics_json, extracted_text, summary, chunk_count, created_at
+                file_category, file_type, topics_json, extracted_text, summary,
+                chunk_count, storage_path, thumb_path, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 file_id,
@@ -1255,6 +1291,8 @@ def save_library_file(
                 extracted_text or "",
                 summary,
                 len(chunks),
+                storage_path or "",
+                thumb_path or "",
                 ts,
             ),
         )
@@ -1316,6 +1354,8 @@ def save_library_file(
         "topics": topics or [],
         "summary": summary,
         "chunk_count": len(chunks),
+        "has_original": bool(storage_path),
+        "has_thumb": bool(thumb_path),
         "linked": bool(session_id),
         "created_at": ts,
     }
@@ -1361,7 +1401,7 @@ def list_library_files(user_id: str, session_id: str = "") -> List[Dict]:
         rows = connection.execute(
             """
             SELECT id, session_id, file_name, mime_type, file_size, file_category,
-                   file_type, topics_json, summary, chunk_count, created_at
+                   file_type, topics_json, summary, chunk_count, storage_path, thumb_path, created_at
             FROM study_files
             WHERE user_id = ?
             ORDER BY created_at DESC
@@ -1371,13 +1411,28 @@ def list_library_files(user_id: str, session_id: str = "") -> List[Dict]:
         return [_deserialize_file_row(r, linked_ids) for r in rows]
 
 
+def get_library_file(user_id: str, file_id: str) -> Dict | None:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, user_id, file_name, mime_type, file_size, file_category,
+                   file_type, storage_path, thumb_path, created_at
+            FROM study_files
+            WHERE user_id = ? AND id = ?
+            """,
+            (user_id, file_id),
+        ).fetchone()
+        return dict(row) if row else None
+
+
 def list_session_linked_files(user_id: str, session_id: str) -> List[Dict]:
     init_chat_store()
     with _DB_LOCK, _connect() as connection:
         rows = connection.execute(
             """
             SELECT f.id, f.session_id, f.file_name, f.mime_type, f.file_size, f.file_category,
-                   f.file_type, f.topics_json, f.summary, f.chunk_count, f.created_at
+                   f.file_type, f.topics_json, f.summary, f.chunk_count, f.storage_path, f.thumb_path, f.created_at
             FROM study_files f
             INNER JOIN study_session_files ssf
               ON ssf.file_id = f.id AND ssf.user_id = f.user_id
@@ -1484,7 +1539,13 @@ def get_library_file_chunks(user_id: str, file_id: str) -> List[Dict]:
 
 def delete_library_file(user_id: str, file_id: str) -> bool:
     init_chat_store()
+    from storage.library_files import delete_upload_files
+
     with _DB_LOCK, _connect() as connection:
+        existing = connection.execute(
+            "SELECT storage_path, thumb_path FROM study_files WHERE id = ? AND user_id = ?",
+            (file_id, user_id),
+        ).fetchone()
         cur = connection.execute(
             "DELETE FROM study_files WHERE id = ? AND user_id = ?",
             (file_id, user_id),
@@ -1497,6 +1558,8 @@ def delete_library_file(user_id: str, file_id: str) -> bool:
             "DELETE FROM study_session_files WHERE file_id = ? AND user_id = ?",
             (file_id, user_id),
         )
+        if existing:
+            delete_upload_files(existing["storage_path"], existing["thumb_path"])
         return cur.rowcount > 0
 
 
@@ -1544,3 +1607,37 @@ def delete_study_and_profile_data_for_user(user_id: str) -> Dict[str, int]:
             cur = connection.execute(f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
             counts[table] = int(cur.rowcount or 0)
     return counts
+
+
+def list_user_library_chunks(user_id: str) -> List[Dict]:
+    init_chat_store()
+    with _DB_LOCK, _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT id, file_id, file_name, chunk_index, location, page_num, section_title, topics_json, content
+            FROM study_file_chunks
+            WHERE user_id = ?
+            ORDER BY created_at DESC, chunk_index ASC
+            """,
+            (user_id,),
+        ).fetchall()
+        return [_deserialize_chunk_row(r) for r in rows]
+
+
+def get_library_chunks_by_ids(user_id: str, chunk_ids: List[str]) -> List[Dict]:
+    init_chat_store()
+    clean_ids = [str(cid).strip() for cid in (chunk_ids or []) if str(cid).strip()]
+    if not clean_ids:
+        return []
+    placeholders = ",".join("?" for _ in clean_ids)
+    with _DB_LOCK, _connect() as connection:
+        rows = connection.execute(
+            f"""
+            SELECT id, file_id, file_name, chunk_index, location, page_num, section_title, topics_json, content
+            FROM study_file_chunks
+            WHERE user_id = ? AND id IN ({placeholders})
+            """,
+            [user_id, *clean_ids],
+        ).fetchall()
+        by_id = {str(r["id"]): _deserialize_chunk_row(r) for r in rows}
+        return [by_id[cid] for cid in clean_ids if cid in by_id]

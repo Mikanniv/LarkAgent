@@ -7,7 +7,7 @@ from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from core.config import ALLOWED_ORIGINS, FACE_TASK_PATH, MAX_AUDIO_BYTES, STATIC_DIR
 from diary.store import get_diary_index_payload
@@ -46,6 +46,7 @@ from server.service import (
     handle_profile_greeting,
     handle_study_sessions_query,
     handle_study_session_create,
+    handle_study_session_delete,
     handle_study_messages_query,
     handle_study_chat,
     handle_study_files_query,
@@ -55,8 +56,11 @@ from server.service import (
     handle_study_library_upload,
     handle_study_library_delete,
     handle_study_library_chunks_query,
+    handle_study_library_graph_ask,
+    handle_study_library_graph_query,
     handle_study_session_links_update,
     handle_user_clear,
+    handle_voice_tts,
     stream_main_chat,
     stream_study_chat,
 )
@@ -295,6 +299,97 @@ class AppHandler(BaseHTTPRequestHandler):
             query["_auth_user_id"] = [user_id]
             self.send_json(handle_study_library_chunks_query(query))
             return
+        if route == "/api/study/library/graph":
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            query["_auth_user_id"] = [user_id]
+            self.send_json(handle_study_library_graph_query(query))
+            return
+        if route in {"/api/study/library/thumb", "/api/study/library/raw"}:
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            query = parse_qs(parsed.query)
+            file_id = (query.get("file_id") or [""])[0].strip()
+            if not file_id:
+                self.send_error(HTTPStatus.BAD_REQUEST, "Missing file_id")
+                return
+            from storage.chat_store import get_library_file
+            from storage.library_files import resolve_upload_path
+
+            record = get_library_file(user_id, file_id)
+            if not record:
+                self.send_error(HTTPStatus.NOT_FOUND, "Not found")
+                return
+            is_thumb = route.endswith("/thumb")
+            rel = record.get("thumb_path") if is_thumb else record.get("storage_path")
+            disk_path = resolve_upload_path(str(rel or ""))
+            if not disk_path:
+                self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+                return
+            content_type = "image/png" if is_thumb else (record.get("mime_type") or mimetypes.guess_type(str(disk_path))[0] or "application/octet-stream")
+            data = disk_path.read_bytes()
+            self.send_response(HTTPStatus.OK)
+            self.send_cors_headers()
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Cache-Control", "private, max-age=3600")
+            if not is_thumb:
+                safe_name = str(record.get("file_name") or disk_path.name).replace('"', "'")
+                self.send_header("Content-Disposition", f"inline; filename*=UTF-8''{quote(safe_name)}")
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        if route.startswith("/api/study/library/preview/"):
+            user_id = self.api_user_id()
+            if user_id is None:
+                return
+            rest = route[len("/api/study/library/preview/") :].strip("/")
+            parts = rest.split("/", 1)
+            file_id = parts[0].strip() if parts else ""
+            asset_rel = parts[1].strip() if len(parts) > 1 and parts[1].strip() else "Preview.html"
+            if not file_id:
+                self.send_error(HTTPStatus.BAD_REQUEST, "Missing file_id")
+                return
+            from storage.chat_store import get_library_file
+            from storage.library_files import ensure_office_preview_dir, resolve_upload_path
+
+            record = get_library_file(user_id, file_id)
+            if not record:
+                self.send_error(HTTPStatus.NOT_FOUND, "Not found")
+                return
+            raw_path = resolve_upload_path(str(record.get("storage_path") or ""))
+            if not raw_path:
+                self.send_error(HTTPStatus.NOT_FOUND, "Original file not found")
+                return
+            preview_dir = ensure_office_preview_dir(raw_path)
+            if not preview_dir:
+                self.send_error(HTTPStatus.NOT_FOUND, "Preview unavailable")
+                return
+            try:
+                base = preview_dir.resolve()
+                target = (base / asset_rel).resolve()
+                if not target.is_relative_to(base) or not target.is_file():
+                    self.send_error(HTTPStatus.NOT_FOUND, "Preview asset not found")
+                    return
+            except Exception:
+                self.send_error(HTTPStatus.NOT_FOUND, "Preview asset not found")
+                return
+            ctype = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+            if ctype == "text/html":
+                ctype = "text/html; charset=utf-8"
+            data = target.read_bytes()
+            self.send_response(HTTPStatus.OK)
+            self.send_cors_headers()
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "private, max-age=3600")
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if route == "/face_landmarker.task":
             self.serve_file(FACE_TASK_PATH, allowed_root=FACE_TASK_PATH.parent)
             return
@@ -364,13 +459,16 @@ class AppHandler(BaseHTTPRequestHandler):
             "/api/profiles/delete",
             "/api/profiles/greeting",
             "/api/study/sessions",
+            "/api/study/sessions/delete",
             "/api/study/chat",
             "/api/study/chat/stream",
             "/api/study/files",
             "/api/study/files/delete",
             "/api/study/library",
             "/api/study/library/delete",
+            "/api/study/library/graph/ask",
             "/api/study/session/links",
+            "/api/voice/tts",
             "/api/user/clear",
         }:
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
@@ -432,6 +530,8 @@ class AppHandler(BaseHTTPRequestHandler):
                 response = handle_profile_greeting(payload)
             elif route == "/api/study/sessions":
                 response = handle_study_session_create(payload)
+            elif route == "/api/study/sessions/delete":
+                response = handle_study_session_delete(payload)
             elif route == "/api/study/chat":
                 response = handle_study_chat(payload)
             elif route == "/api/study/files":
@@ -442,8 +542,12 @@ class AppHandler(BaseHTTPRequestHandler):
                 response = handle_study_library_upload(payload)
             elif route == "/api/study/library/delete":
                 response = handle_study_library_delete(payload)
+            elif route == "/api/study/library/graph/ask":
+                response = handle_study_library_graph_ask(payload)
             elif route == "/api/study/session/links":
                 response = handle_study_session_links_update(payload)
+            elif route == "/api/voice/tts":
+                response = handle_voice_tts(payload)
             else:
                 response = handle_user_clear(payload)
         except Exception as exc:
@@ -457,6 +561,7 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_cors_headers()
         self.send_header("Content-Type", "text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Accel-Buffering", "no")
         self.send_header("Connection", "close")
         self.end_headers()
         try:

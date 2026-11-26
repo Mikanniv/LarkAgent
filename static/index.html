@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="app-api-base" content="https://worker.lark.irises.me" />
     <title>云雀</title>
+    <link rel="icon" type="image/png" href="favicon.png?v={{asset_version}}" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v={{asset_version}}" />
     <link rel="stylesheet" href="styles.css?v={{asset_version}}" />
     <link rel="stylesheet" href="companion.css?v={{asset_version}}" />
   </head>
   <body>
     <section class="intro-screen is-hidden" id="introScreen" role="dialog" aria-modal="true" aria-label="云雀账号">
       <div class="intro-card">
-        <img class="intro-logo" src="branding/lark-icon.png" alt="" />
+        <img class="intro-logo" src="branding/icon.png?v={{asset_version}}" alt="" />
         <h1>云雀</h1>
         <p>让每一次相遇，都成为了解。</p>
         <button class="button button-primary" id="enterAppButton" type="button">返回云雀</button>
@@ -29,117 +31,118 @@
     </section>
 
     <main class="app-shell companion-app" id="appShell" data-view="home">
-      <aside class="main-sidebar" id="appSidebar">
-        <header class="brand-row">
-          <span class="brand-logo"><img src="branding/lark-icon.png" alt="" /></span>
-          <strong>云雀</strong>
-          <button class="icon-button sidebar-toggle" id="sidebarToggle" type="button" aria-label="收起侧边栏">
-            <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
-        </header>
-        <nav class="main-nav">
-          <button class="nav-item is-active" id="sidebarHomeTab" data-view="home" type="button">
-            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span>主界面</span>
-          </button>
-          <button class="nav-item" id="sidebarChatTab" data-view="chat" type="button">
-            <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg>
-            <span>聊聊天</span>
-          </button>
-          <button class="nav-item" id="sidebarStudyTab" data-view="study" type="button">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            <span>开始学习！</span>
-          </button>
-          <button class="nav-item" id="sidebarProfileTab" data-view="profile" type="button">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>用户画像</span>
-          </button>
-          <button class="nav-item" id="sidebarDiaryTab" data-view="diary" type="button">
-            <svg viewBox="0 0 24 24"><path d="M5 4a2 2 0 0 1 2-2h12v18H7a2 2 0 0 0-2 2zM5 4v18M9 7h6M9 11h6" /></svg>
-            <span>日记小屋</span>
-            <span class="new-badge" id="diaryNewBadge" hidden>NEW</span>
-          </button>
-          <button class="nav-item" id="sidebarMemoryTab" data-view="memory" type="button">
-            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></svg>
-            <span>我们的记忆</span>
-            <span class="new-badge" id="memoryNewBadge" hidden>NEW</span>
-          </button>
-          <button class="nav-item" id="sidebarTrajectoryTab" data-view="trajectory" type="button">
-            <svg viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-4 3 2 5-7 2 2" /></svg>
-            <span>心情轨迹</span>
-          </button>
-          <button class="nav-item" id="sidebarPetButton" type="button" aria-pressed="false">
-            <svg viewBox="0 0 24 24"><path d="M5 16c0-6 5-11 12-11-1 4-1 6 2 9-4 0-4 6-9 6a5 5 0 0 1-5-4ZM5 16l-3 1M10 20v2M14 19v3"/><circle cx="13.5" cy="9" r=".8" fill="currentColor" stroke="none"/></svg>
-            <span id="sidebarPetLabel">显示桌宠</span>
-          </button>
-          <button class="nav-item" id="sidebarSettingsTab" data-view="settings" type="button">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z" /></svg>
-            <span>偏好设置</span>
-          </button>
-        </nav>
-      </aside>
       <button class="sidebar-scrim" id="sidebarScrim" type="button" aria-label="关闭菜单"></button>
 
       <section class="workspace">
+        <div class="workspace-bg" aria-hidden="true"></div>
         <header class="topbar">
           <div class="topbar-left">
             <button class="home-back" id="homeBackButton" type="button" hidden aria-label="返回主界面"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg><span>返回</span></button>
-            <button class="companion-brand" id="brandHomeButton" type="button" aria-label="云雀主界面"><svg viewBox="0 0 32 32"><path d="M5 23C8 13 17 5 27 5c-1 11-8 20-18 20M9 25 23 10M14 20l-1-7M19 15l6 1" /></svg><span>云雀</span></button>
+            <button class="companion-brand" id="brandHomeButton" type="button" aria-label="云雀主界面">
+              <span class="brand-logo"><img src="branding/icon.png?v={{asset_version}}" alt="" /></span>
+              <span>云雀</span>
+            </button>
             <button class="icon-button mobile-menu" id="mobileSidebarToggle" type="button" aria-label="打开菜单">
               <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
             <h2 id="activeViewTitle" hidden>主界面</h2>
           </div>
-          <div class="topbar-right">
-            <span class="backend-state" id="backendStatus"><i></i>离线</span>
-            <button class="topbar-link" id="accountButton" type="button">我的账号</button>
+
+          <nav class="main-nav top-nav" id="appSidebar" aria-label="主导航">
+            <button class="nav-item is-active" id="sidebarHomeTab" data-view="home" type="button"><span>主界面</span></button>
+            <button class="nav-item" id="sidebarChatTab" data-view="chat" type="button"><span>聊聊天</span></button>
+            <button class="nav-item" id="sidebarStudyTab" data-view="study" type="button"><span>自习室</span></button>
+            <button class="nav-item" id="sidebarLibraryTab" data-view="library" type="button"><span>资料库</span></button>
+            <button class="nav-item" id="sidebarMemoryTab" data-view="memory" type="button"><span>我们的记忆</span><span class="new-badge" id="memoryNewBadge" hidden>NEW</span></button>
+            <button class="nav-item" id="sidebarDiaryTab" data-view="diary" type="button"><span>日记小屋</span><span class="new-badge" id="diaryNewBadge" hidden>NEW</span></button>
+            <button class="nav-item" id="sidebarTrajectoryTab" data-view="trajectory" type="button"><span>心情轨迹</span></button>
+            <button class="nav-item" id="sidebarProfileTab" data-view="profile" type="button"><span>用户画像</span></button>
+            <button class="nav-item" id="sidebarSettingsTab" data-view="settings" type="button"><span>偏好设置</span></button>
+            <button class="nav-item" id="accountButton" type="button"><span>我的账号</span></button>
+          </nav>
+
+          <div class="topbar-right" hidden aria-hidden="true">
+            <button class="topbar-pet-btn" id="sidebarPetButton" type="button" aria-pressed="false" hidden>
+              <span id="sidebarPetLabel">显示桌宠</span>
+            </button>
+            <span class="backend-state" id="backendStatus" hidden><i></i>离线</span>
           </div>
         </header>
 
         <div class="companion-stage" id="companionStage" aria-label="坐着的云雀"><div class="character-mount" id="mainCharacter"></div><span class="character-ground"></span></div>
         <section class="view-stack">
           <section class="app-view home-view is-active" id="homeView" aria-label="云雀主页">
+            <nav class="home-quick-cards" id="orbitNav" aria-label="云雀快捷方式">
+              <button class="home-quick-card" data-shortcut-id="chat" data-open-view="chat" type="button">
+                <div class="quick-card-head">
+                  <strong>聊聊天</strong>
+                  <span class="quick-tag">对话</span>
+                </div>
+                <span class="quick-sub">像老朋友一样随心说点什么</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="study" data-open-view="study" type="button">
+                <div class="quick-card-head">
+                  <strong>自习室</strong>
+                  <span class="quick-tag">专注</span>
+                </div>
+                <span class="quick-sub">安静陪伴，一起拆解问题</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="library" data-open-view="library" type="button">
+                <div class="quick-card-head">
+                  <strong>资料库</strong>
+                  <span class="quick-tag">阅读</span>
+                </div>
+                <span class="quick-sub">整理笔记、阅读与知识脉络</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="diary" data-open-view="diary" type="button">
+                <div class="quick-card-head">
+                  <strong>日记小屋</strong>
+                  <span class="quick-tag">记录</span>
+                </div>
+                <span class="quick-sub">记下今天的片段与微光</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="memory" data-open-view="memory" type="button" hidden>
+                <div class="quick-card-head">
+                  <strong>我们的记忆</strong>
+                  <span class="quick-tag">记忆</span>
+                </div>
+                <span class="quick-sub">翻看一起留下的故事片段</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="trajectory" data-open-view="trajectory" type="button" hidden>
+                <div class="quick-card-head">
+                  <strong>心情轨迹</strong>
+                  <span class="quick-tag">心境</span>
+                </div>
+                <span class="quick-sub">回顾这段时间的情绪变化</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="profile" data-open-view="profile" type="button" hidden>
+                <div class="quick-card-head">
+                  <strong>用户画像</strong>
+                  <span class="quick-tag">了解</span>
+                </div>
+                <span class="quick-sub">云雀眼中独一无二的你</span>
+              </button>
+              <button class="home-quick-card" id="petToggleButton" data-shortcut-id="pet" type="button" aria-pressed="false" hidden>
+                <div class="quick-card-head">
+                  <strong id="petToggleLabel">显示桌宠</strong>
+                  <span class="quick-tag">陪伴</span>
+                </div>
+                <span class="quick-sub">让云雀来到桌面角落陪伴你</span>
+              </button>
+              <button class="home-quick-card" data-shortcut-id="settings" data-open-view="settings" type="button" hidden>
+                <div class="quick-card-head">
+                  <strong>偏好设置</strong>
+                  <span class="quick-tag">设置</span>
+                </div>
+                <span class="quick-sub">调整陪伴方式与快捷入口</span>
+              </button>
+            </nav>
             <div class="lark-greeting-wrap">
               <button class="lark-greeting-bubble" id="larkGreetingBubble" type="button" title="点击让云雀换一句问候">
                 <span class="lark-greeting-dot" aria-hidden="true"></span>
                 <span class="lark-greeting-text" id="larkGreetingText"></span>
               </button>
             </div>
-            <nav class="orbit-nav" id="orbitNav" aria-label="云雀快捷方式">
-              <button class="orbit-bubble orbit-chat" data-shortcut-id="chat" data-open-view="chat" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2V12a9 9 0 0 1 18-.5Z"/><path d="M7 11h.01M12 11h.01M17 11h.01"/></svg></span>
-                <span><strong>聊聊天</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-study" data-shortcut-id="study" data-open-view="study" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
-                <span><strong>开始学习！</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-memory" data-shortcut-id="memory" data-open-view="memory" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="m12 3 8 5v9l-8 4-8-4V8ZM4 8l8 5 8-5M12 13v8"/></svg></span>
-                <span><strong>我们的记忆</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-trajectory" data-shortcut-id="trajectory" data-open-view="trajectory" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M3 17h4l3-9 4 12 3-9h4"/></svg></span>
-                <span><strong>心情轨迹</strong></span>
-              </button>
-
-              <button class="orbit-bubble orbit-diary" data-shortcut-id="diary" data-open-view="diary" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 4h14v17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM7 4v17M11 9h4M11 13h4"/></svg></span>
-                <span><strong>日记小屋</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-pet" data-shortcut-id="pet" id="petToggleButton" aria-pressed="false" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M5 16c0-6 5-11 12-11-1 4-1 6 2 9-4 0-4 6-9 6a5 5 0 0 1-5-4ZM5 16l-3 1M10 20v2M14 19v3"/><circle cx="13.5" cy="9" r=".8" fill="currentColor" stroke="none"/></svg></span>
-                <span><strong id="petToggleLabel">显示桌宠</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-profile" data-shortcut-id="profile" data-open-view="profile" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-                <span><strong>用户画像</strong></span>
-              </button>
-              <button class="orbit-bubble orbit-settings" data-shortcut-id="settings" data-open-view="settings" type="button" hidden>
-                <span class="orbit-symbol"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3A1.7 1.7 0 0 0 14 21v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z" /></svg></span>
-                <span><strong>偏好设置</strong></span>
-              </button>
-            </nav>
           </section>
 
           <section class="app-view chat-view" id="chatView">
@@ -189,7 +192,7 @@
 
                 <form class="composer" id="chatForm">
                   <div class="pending-attachments" id="pendingAttachments" hidden></div>
-                  <input id="attachmentInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                  <input id="attachmentInput" type="file" accept="image/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
                   <textarea id="messageInput" rows="2" placeholder="和云雀说点什么……"></textarea>
                   <button class="attachment-button" id="attachmentButton" type="button" aria-label="添加文件或媒体" title="添加图片、音频、PDF 或文档"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
                   <button class="voice-button" id="voiceButton" type="button" aria-label="开始录音" title="语音输入">
@@ -212,7 +215,7 @@
             </div>
           </section>
 
-          <!-- 独立学习聊天页面（开始学习！） -->
+          <!-- 独立学习聊天页面（自习室） -->
           <section class="app-view study-view" id="studyView">
             <div class="study-workspace-layout">
               <!-- 云雀与自习室对话框中间：新建按钮 + 无边框轮盘式 Session 列表 -->
@@ -233,13 +236,13 @@
               <article class="study-panel">
                 <header class="study-header">
                   <div class="study-header-info">
-                    <strong id="currentStudySessionTitle">开始学习！</strong>
+                    <strong id="currentStudySessionTitle">自习室</strong>
                     <span class="study-badge" id="currentStudySubject">专注自习室</span>
                   </div>
                   <div class="study-header-actions">
-                    <button class="header-action" id="studyFilesToggle" type="button" aria-expanded="false" title="查看与上传本自习室教材/资料">
+                    <button class="header-action" id="studyFilesToggle" type="button" aria-expanded="false" title="选择本自习室关联的学习资料">
                       <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                      <span>资料库</span><b id="studyFilesCount">0</b>
+                      <span>关联资料</span><b id="studyFilesCount">0</b>
                     </button>
                     <button class="header-action card-expand-btn" id="studyExpandToggle" type="button" aria-pressed="false" title="展开全屏">
                       <svg class="header-action-icon expand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
@@ -249,26 +252,11 @@
                   </div>
                 </header>
 
-                <aside class="study-files-drawer" id="studyFilesDrawer" hidden>
-                  <div class="study-files-drawer-head">
-                    <div class="study-files-drawer-title">
-                      <strong>学习资料库</strong>
-                      <span id="studyFilesSummary">勾选需要关联到当前自习室的资料（本会话仅检索已勾选资料）</span>
-                    </div>
-                    <div class="study-files-drawer-btns">
-                      <button type="button" class="header-action" id="studyFilesFilterLinkedBtn" aria-pressed="false" title="切换仅显示本自习室已关联资料">仅看已关联</button>
-                      <input id="studyLibraryUploadInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
-                      <button type="button" class="button button-primary" id="studyLibraryUploadBtn">+ 上传资料</button>
-                    </div>
-                  </div>
-                  <div class="study-files-list" id="studyFilesList"></div>
-                </aside>
-
                 <div class="study-chat-list" id="studyChatList"></div>
 
                 <form class="composer study-composer" id="studyForm">
                   <div class="pending-attachments" id="studyPendingAttachments" hidden></div>
-                  <input id="studyAttachmentInput" type="file" accept="image/*,audio/*,.pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                  <input id="studyAttachmentInput" type="file" accept="image/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
                   <textarea id="studyMessageInput" rows="2" placeholder="向云雀提问：这道题怎么解、考点怎么推导、概念怎么理解……"></textarea>
                   <button class="attachment-button" id="studyAttachmentButton" type="button" aria-label="添加学习资料或媒体" title="上传题目图片、音频、PDF 或文档"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
                   <button class="send-button" id="studySendButton" type="submit" aria-label="发送" title="发送">
@@ -276,6 +264,85 @@
                   </button>
                 </form>
               </article>
+            </div>
+          </section>
+
+          <section class="app-view library-view" id="libraryView">
+            <div class="library-panel" id="libraryPanel">
+              <header class="library-header" id="libraryHeader">
+                <div class="library-title-group">
+                  <h3>学习资料库</h3>
+                  <div class="library-mode-switch" id="libraryModeSwitch" role="tablist" aria-label="资料库视图模式">
+                    <button type="button" class="lib-mode-btn is-active" data-lib-mode="cards">资料卡片</button>
+                    <button type="button" class="lib-mode-btn" data-lib-mode="graph">知识图谱</button>
+                  </div>
+                  <div class="library-filters" id="libraryFilterBar" role="tablist" aria-label="按文件类型筛选">
+                    <button type="button" class="lib-filter-pill is-active" data-lib-filter="all">全部</button>
+                    <button type="button" class="lib-filter-pill" data-lib-filter="pdf">PDF</button>
+                    <button type="button" class="lib-filter-pill" data-lib-filter="pptx">PPT</button>
+                    <button type="button" class="lib-filter-pill" data-lib-filter="docx">Word</button>
+                    <button type="button" class="lib-filter-pill" data-lib-filter="markdown">Markdown</button>
+                    <button type="button" class="lib-filter-pill" data-lib-filter="code">代码</button>
+                  </div>
+                </div>
+                <div class="library-actions">
+                  <input id="studyLibraryUploadInput" type="file" accept="image/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.json,.py,.js,.ts,.html,.css,.java,.c,.cpp" multiple hidden />
+                  <button type="button" class="button button-primary" id="studyLibraryUploadBtn">+ 上传资料</button>
+                </div>
+              </header>
+
+              <div class="library-cards-grid" id="libraryCardsGrid"></div>
+
+              <!-- 关联规则挖掘 · 无向知识图谱 -->
+              <div class="library-graph-shell" id="libraryGraphShell" hidden>
+                <div class="library-graph-canvas-wrap">
+                  <div class="library-graph-stats" id="libraryGraphStats">正在基于关联规则挖掘知识图谱…</div>
+                  <svg class="library-graph-svg" id="libraryGraphSvg" viewBox="0 0 820 520" preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+                <aside class="library-graph-card" id="libraryGraphNodeCard" hidden>
+                  <header class="graph-card-head">
+                    <div>
+                      <strong id="graphNodeTitle">概念节点</strong>
+                      <div class="graph-card-meta" id="graphNodeMeta"></div>
+                    </div>
+                    <button type="button" class="icon-button" id="graphNodeCloseBtn" aria-label="关闭卡片">×</button>
+                  </header>
+                  <div class="graph-card-section-title">关联度最高的切片</div>
+                  <div class="graph-card-chunks" id="graphNodeChunks"></div>
+                  <div class="graph-card-divider" aria-hidden="true"></div>
+                  <div class="graph-card-qa-scroll">
+                    <div class="graph-card-answer" id="graphNodeAnswer" hidden></div>
+                  </div>
+                  <form class="graph-card-ask-form" id="graphNodeAskForm">
+                    <input type="text" id="graphNodeAskInput" placeholder="直接针对该节点提问（不写入对话历史）…" autocomplete="off" />
+                    <button type="submit" class="button button-primary" id="graphNodeAskSubmit">提问</button>
+                  </form>
+                </aside>
+              </div>
+
+              <!-- 内置分栏阅读器：左侧文件列表 + 叉键退出，右侧内置阅读器 -->
+              <div class="library-reader-shell" id="libraryReaderShell" hidden>
+                <aside class="lib-reader-sidebar">
+                  <header class="lib-reader-side-head">
+                    <button type="button" class="lib-reader-close-btn" id="libraryReaderCloseBtn" title="退出阅读" aria-label="退出阅读">×</button>
+                    <strong>资料列表</strong>
+                  </header>
+                  <div class="lib-reader-file-list" id="libraryReaderFileList"></div>
+                </aside>
+                <section class="lib-reader-main">
+                  <header class="lib-reader-main-head">
+                    <div>
+                      <strong id="libraryReaderTitle">文档阅读</strong>
+                      <span class="lib-reader-sub" id="libraryReaderSub"></span>
+                    </div>
+                    <div class="lib-reader-tabs" id="libraryReaderTabs">
+                      <button type="button" class="lib-reader-tab is-active" data-reader-tab="read">内置阅读</button>
+                      <button type="button" class="lib-reader-tab" data-reader-tab="chunks">切片与主题词</button>
+                    </div>
+                  </header>
+                  <div class="lib-reader-body" id="libraryReaderBody"></div>
+                </section>
+              </div>
             </div>
           </section>
 
@@ -519,8 +586,8 @@
                 <div class="setting-row setting-row-block">
                   <div class="setting-block-header">
                     <div>
-                      <strong>主界面悬浮快捷气泡</strong>
-                      <p>只有勾选的功能才会作为快捷气泡悬浮在云雀身边；所有功能已整理至左侧侧边栏随时访问。</p>
+                      <strong>主界面快捷入口</strong>
+                      <p>勾选的功能会作为快捷卡片显示在主界面底部；所有功能也可随时从顶部导航栏访问。</p>
                     </div>
                   </div>
                   <div class="shortcut-check-grid" id="orbitShortcutsGrid">
@@ -530,7 +597,11 @@
                     </label>
                     <label class="shortcut-check-item">
                       <input type="checkbox" value="study" data-shortcut-toggle="study" />
-                      <span>开始学习！</span>
+                      <span>自习室</span>
+                    </label>
+                    <label class="shortcut-check-item">
+                      <input type="checkbox" value="library" data-shortcut-toggle="library" />
+                      <span>资料库</span>
                     </label>
                     <label class="shortcut-check-item">
                       <input type="checkbox" value="profile" data-shortcut-toggle="profile" />
@@ -565,6 +636,17 @@
                 <div class="setting-row">
                   <div><strong>主动回复</strong><p>允许云雀在长时间无输入时主动发起一句陪伴。</p></div>
                   <label class="switch"><input id="proactiveReplyToggle" type="checkbox" checked /><span></span></label>
+                </div>
+                <div class="setting-row">
+                  <div><strong>回到主界面朗读问候语</strong><p>切回主界面或点击问候气泡时，使用语音朗读云雀的问候（默认关闭）。</p></div>
+                  <label class="switch"><input id="homeGreetingTtsToggle" type="checkbox" /><span></span></label>
+                </div>
+                <div class="setting-row">
+                  <div><strong>TTS 朗读音色</strong><p>选择云雀问候语的合成女声。</p></div>
+                  <div class="segmented" id="ttsVoicePicker">
+                    <button type="button" data-tts-voice="zh-CN-XiaoyiNeural" class="is-active" aria-pressed="true">晓伊 (Xiaoyi)</button>
+                    <button type="button" data-tts-voice="zh-CN-XiaoxiaoNeural" aria-pressed="false">晓晓 (Xiaoxiao)</button>
+                  </div>
                 </div>
               </div>
 
@@ -702,18 +784,18 @@
     <!-- 新建自习室弹窗 -->
     <div class="modal-backdrop" id="newStudySessionModal" hidden>
       <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newStudyTitle">
-        <h3 id="newStudyTitle">开启专属自习室</h3>
+        <h3 id="newStudyTitle">新建自习室</h3>
         <p>为自习室指定学科科目和重点目标，云雀将以专属辅导导师身份进行互动答疑。</p>
 
         <form id="newStudySessionForm" style="margin: 16px 0;">
           <div class="profile-form-grid">
             <label class="field-item">
               <span>学科科目 <b style="color: #e05252;">*</b></span>
-              <input id="newStudySubjectInput" placeholder="例如：高等数学、微积分、大学物理、英语四级" required />
+              <input id="newStudySubjectInput" required />
             </label>
             <label class="field-item">
               <span>自习主题 / 章节</span>
-              <input id="newStudyTopicInput" placeholder="例如：导数重点攻坚、电磁感应大题" />
+              <input id="newStudyTopicInput" />
             </label>
             <label class="field-item full-width">
               <span>辅导期望与要求（可选）</span>
@@ -725,6 +807,24 @@
             <button class="button button-primary" id="newStudyConfirmBtn" type="submit">立即开启</button>
           </div>
         </form>
+      </section>
+    </div>
+
+    <!-- 自习室关联资料弹窗卡片（置于 body 顶层，避免被 .study-panel 裁切） -->
+    <div class="modal-backdrop study-files-modal" id="studyFilesDrawer" hidden>
+      <section class="modal-card study-files-popup-card" role="dialog" aria-modal="true" aria-label="本自习室关联资料">
+        <div class="study-files-drawer-head">
+          <div class="study-files-drawer-title">
+            <strong>本自习室关联资料</strong>
+            <span id="studyFilesSummary">勾选当前会话可读取的资料（不勾选则不检索其他资料）</span>
+          </div>
+          <div class="study-files-drawer-btns">
+            <button type="button" class="header-action" id="studyFilesFilterLinkedBtn" aria-pressed="false">仅看已关联</button>
+            <button type="button" class="header-action" id="studyGoLibraryBtn">去资料库管理</button>
+            <button type="button" class="header-action" id="studyFilesCloseBtn" aria-label="关闭">×</button>
+          </div>
+        </div>
+        <div class="study-files-list" id="studyFilesList"></div>
       </section>
     </div>
 

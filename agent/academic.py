@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterator, List
 
-from agent.agent import call_chat_completion, chat_api_ready
+from agent.agent import call_chat_completion, chat_api_ready, stream_chat_completion
 
 
 def format_academic_context(profile: Dict | None) -> str:
@@ -75,12 +75,7 @@ def format_academic_context(profile: Dict | None) -> str:
     return "；".join(parts) if parts else "用户尚未设置学业或成长档案。"
 
 
-def generate_academic_advice(profile: Dict, score_history: List[Dict] | None = None) -> str:
-    """Generate professional, personalized academic and growth planning advice."""
-    if not chat_api_ready():
-        return "大模型 API 尚未配置，无法生成个性化学业建议。"
-
-    stage = str(profile.get("stage") or "high_school").strip()
+def _build_academic_advice_messages(profile: Dict, score_history: List[Dict] | None = None) -> List[Dict[str, str]]:
     context_desc = format_academic_context(profile)
 
     scores_desc_list: List[str] = []
@@ -115,12 +110,38 @@ def generate_academic_advice(profile: Dict, score_history: List[Dict] | None = N
         f"历史成绩与考试流水：\n{scores_text}\n\n"
         "请结合以上信息，为用户量身定制一份具有指导意义的学业与成长规划建议："
     )
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
 
+
+def stream_academic_advice(profile: Dict, score_history: List[Dict] | None = None) -> Iterator[str]:
+    """Stream personalized academic and growth planning advice token by token."""
+    if not chat_api_ready():
+        yield "大模型 API 尚未配置，无法生成个性化学业建议。"
+        return
+    messages = _build_academic_advice_messages(profile, score_history)
+    yielded = False
+    try:
+        for delta in stream_chat_completion(messages, max_tokens=1500, temperature=0.6):
+            if delta:
+                yielded = True
+                yield delta
+    except Exception:
+        pass
+    if not yielded:
+        yield generate_academic_advice(profile, score_history)
+
+
+def generate_academic_advice(profile: Dict, score_history: List[Dict] | None = None) -> str:
+    """Generate professional, personalized academic and growth planning advice."""
+    if not chat_api_ready():
+        return "大模型 API 尚未配置，无法生成个性化学业建议。"
+
+    messages = _build_academic_advice_messages(profile, score_history)
     content, error = call_chat_completion(
-        [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
+        messages,
         max_tokens=1500,
         temperature=0.6,
     )

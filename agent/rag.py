@@ -319,7 +319,13 @@ def retrieve_chunks_with_scores(
         except Exception:
             tfidf_sims = [0.0] * N
 
-    # 2. BM25 (饱和归一化到 [0, 1]) + 词覆盖率
+    # 2. BM25 (饱和归一化到 [0, 1]) + 词覆盖率 + 关联规则查询扩展加权
+    from agent.association_rules import expand_query_with_rules, mine_association_rules
+
+    mined_rules = mine_association_rules(chunks)
+    rule_info = expand_query_with_rules(query, mined_rules.get("rules") or [], max_expansions=4)
+    expanded_terms_low = [t.lower() for t in (rule_info.get("expanded_terms") or [])]
+
     avgdl = max(1.0, total_len / max(1, N))
     k1 = 1.5
     b = 0.75
@@ -347,9 +353,17 @@ def retrieve_chunks_with_scores(
             if hits > 0:
                 topic_hit = min(0.18, 0.09 * hits)
 
+        # 关联规则扩展词命中加分（提高跨概念召回）
+        assoc_hit = 0.0
+        if expanded_terms_low:
+            ch_text_low = str(chunks[idx].get("content") or "").lower()
+            exp_hits = sum(1 for et in expanded_terms_low if et in ch_topics_low or et in ch_text_low)
+            if exp_hits > 0:
+                assoc_hit = min(0.12, 0.045 * exp_hits)
+
         bm25_norm = bm25_raw / (bm25_raw + 3.2) if bm25_raw > 0 else 0.0
         coverage = (matched_q / max(1, len(q_unique))) if q_unique else 0.0
-        hybrid = min(1.0, 0.48 * tfidf_sims[idx] + 0.34 * bm25_norm + 0.18 * coverage + topic_hit)
+        hybrid = min(1.0, 0.48 * tfidf_sims[idx] + 0.34 * bm25_norm + 0.18 * coverage + topic_hit + assoc_hit)
         scored_pairs.append((hybrid, idx))
 
     scored_pairs.sort(key=lambda pair: pair[0], reverse=True)
@@ -364,16 +378,23 @@ def retrieve_chunks_with_scores(
 
     selected: List[Tuple[float, int, bool]] = []
     used_indices: Set[int] = set()
+    used_texts: Set[str] = set()
     if pinned_idx >= 0:
         p_score = max(0.88, dict((i, s) for s, i in scored_pairs).get(pinned_idx, 0.88))
         selected.append((p_score, pinned_idx, True))
         used_indices.add(pinned_idx)
+        used_texts.add(re.sub(r"\s+", "", str(chunks[pinned_idx].get("content") or "")))
 
     for score, idx in scored_pairs:
         if idx in used_indices:
             continue
+        norm_txt = re.sub(r"\s+", "", str(chunks[idx].get("content") or ""))
+        if norm_txt and norm_txt in used_texts:
+            continue
         selected.append((score, idx, False))
         used_indices.add(idx)
+        if norm_txt:
+            used_texts.add(norm_txt)
         if len(selected) >= top_k:
             break
 
@@ -390,6 +411,7 @@ def retrieve_chunks_with_scores(
         "max_score": round(max_score, 4),
         "threshold": round(float(threshold), 4),
         "pinned_target": pinned_idx >= 0,
+        "rule_info": rule_info,
         "results": results,
     }
 
@@ -421,6 +443,7 @@ def recommend_next_chunks(
         return []
 
     seed_set = set(seed_indices)
+    seed_texts = {re.sub(r"\s+", "", str(chunks[i].get("content") or "")) for i in seed_indices}
     primary_seed = chunks[seed_indices[0]]
     seed_topics: Set[str] = set()
     for i in seed_indices:
@@ -444,6 +467,8 @@ def recommend_next_chunks(
 
     for idx, ch in enumerate(chunks):
         if idx in seed_set:
+            continue
+        if re.sub(r"\s+", "", str(ch.get("content") or "")) in seed_texts:
             continue
         content_sim = 0.0
         if sim_matrix is not None:

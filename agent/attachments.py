@@ -20,8 +20,11 @@ TEXT_EXTENSIONS = {
 
 OFFICE_MIMES = {
     ".pdf": "application/pdf",
+    ".doc": "application/msword",
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".ppt": "application/vnd.ms-powerpoint",
     ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".xls": "application/vnd.ms-excel",
     ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ".csv": "text/csv",
     ".txt": "text/plain",
@@ -179,8 +182,16 @@ def infer_file_type(name: str, declared_mime: str = "") -> str:
         return "audio"
     if ext == ".pdf" or mime == "application/pdf":
         return "pdf"
-    if ext == ".pptx" or mime == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    if ext in {".ppt", ".pptx"} or mime in {
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    }:
         return "pptx"
+    if ext in {".doc", ".docx"} or mime in {
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    }:
+        return "docx"
     if ext == ".docx" or mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         return "docx"
     if ext == ".xlsx" or mime == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
@@ -203,13 +214,16 @@ def _clean_segment_text(text: str) -> str:
 
 
 def _extract_heading_from_lines(text: str, fallback: str) -> str:
-    lines = [ln.strip() for ln in (text or "").split("\n") if ln.strip()]
-    for ln in lines[:6]:
+    raw_lines = [ln.strip() for ln in (text or "").split("\n") if ln.strip()]
+    for ln in raw_lines[:6]:
         if re.fullmatch(r"\d+", ln):
             continue
         cleaned = re.sub(r"^#+\s*", "", ln).strip()
-        if len(cleaned) >= 2:
-            return cleaned[:60]
+        # 优先按全角空格、连续空格或句号切出短标题，避免把整段正文当成标题
+        first_part = re.split(r"[\u3000]+|\s{2,}|[。；;]", cleaned, maxsplit=1)[0].strip()
+        candidate = first_part if len(first_part) >= 2 else cleaned
+        if len(candidate) >= 2:
+            return candidate[:26] + ("…" if len(candidate) > 26 else "")
     return fallback
 
 
@@ -259,8 +273,74 @@ def _extract_pdf_segments(raw: bytes, file_name: str) -> List[Dict[str, Any]]:
         return [{"location": "P.1", "page_num": 1, "section_title": stem, "content": f"[PDF 解析失败: {exc}]"}]
 
 
+def _extract_legacy_ppt_segments(raw: bytes, file_name: str) -> List[Dict[str, Any]]:
+    """纯 Python 解析旧版二进制 .ppt（OLE2）中的 TextCharsAtom(0x0FA0) 与 TextBytesAtom(0x0FA8) 文本。"""
+    import struct
+
+    stem = os.path.splitext(file_name)[0]
+    slides: List[List[str]] = [[]]
+    pos = 0
+    total = len(raw)
+    # 扫描 PowerPoint 记录头（8 字节：recVerInstance:H, recType:H, recLen:I）
+    while pos + 8 <= total:
+        ver_inst, rec_type, rec_len = struct.unpack_from("<HHI", raw, pos)
+        if rec_type == 0x03EE and (ver_inst & 0x000F) == 0x000F and 0 < rec_len <= total - pos:
+            # 新的 Slide 容器开始
+            if slides[-1]:
+                slides.append([])
+            pos += 8
+            continue
+        if rec_type == 0x0FA0 and (ver_inst & 0x000F) == 0x0000 and 2 <= rec_len <= 200000 and pos + 8 + rec_len <= total:
+            chunk = raw[pos + 8 : pos + 8 + rec_len]
+            try:
+                txt = chunk.decode("utf-16le", errors="ignore").replace("\r", "\n").strip()
+                txt = _clean_segment_text(txt)
+                if txt and len(txt) >= 2:
+                    slides[-1].append(txt)
+            except Exception:
+                pass
+            pos += 8 + rec_len
+            continue
+        if rec_type == 0x0FA8 and (ver_inst & 0x000F) == 0x0000 and 2 <= rec_len <= 200000 and pos + 8 + rec_len <= total:
+            chunk = raw[pos + 8 : pos + 8 + rec_len]
+            try:
+                txt = chunk.decode("gb18030", errors="ignore").replace("\r", "\n").strip()
+                txt = _clean_segment_text(txt)
+                if txt and len(txt) >= 2:
+                    slides[-1].append(txt)
+            except Exception:
+                pass
+            pos += 8 + rec_len
+            continue
+        pos += 1
+
+    segs: List[Dict[str, Any]] = []
+    seen_merged: set[str] = set()
+    slide_idx = 0
+    for texts in slides:
+        merged = _clean_segment_text("\n".join(dict.fromkeys(texts)))
+        if not merged:
+            continue
+        norm_key = re.sub(r"\s+", "", merged)
+        if norm_key in seen_merged:
+            continue
+        seen_merged.add(norm_key)
+        slide_idx += 1
+        segs.append({
+            "location": f"幻灯片 {slide_idx}",
+            "page_num": slide_idx,
+            "section_title": _extract_heading_from_lines(merged, f"{stem} 幻灯片 {slide_idx}"),
+            "content": merged,
+        })
+    if segs:
+        return segs
+    return [{"location": "幻灯片 1", "page_num": 1, "section_title": stem, "content": f"[提示：旧版 .ppt ({file_name}) 未提取到纯文本内容，建议另存为 .pptx 或 .pdf 以获得最佳切片效果]"}]
+
+
 def _extract_pptx_segments(raw: bytes, file_name: str) -> List[Dict[str, Any]]:
     stem = os.path.splitext(file_name)[0]
+    if raw[:2] != b"PK":
+        return _extract_legacy_ppt_segments(raw, file_name)
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as zf:
             slide_names = sorted(

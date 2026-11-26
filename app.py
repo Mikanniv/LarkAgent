@@ -5,8 +5,6 @@ from core.config import CHAT_DB_PATH, CHROMA_DIR, DIARY_DIR, MEMORY_DIR, RUNTIME
 from diary.store import ensure_diary_dir
 from server.handlers import AppHandler
 from server.service import get_emotion_runner
-from agent.asr import preload_asr_model
-from emotion.media import preload_audio_feature_extractor
 
 
 def ensure_runtime_dirs() -> None:
@@ -18,6 +16,9 @@ def ensure_runtime_dirs() -> None:
 def main():
     ensure_runtime_dirs()
     if ENABLE_MULTIMODAL:
+        from agent.asr import preload_asr_model
+        from emotion.media import preload_audio_feature_extractor
+
         print("Preloading emotion, audio, and ASR models...")
         get_emotion_runner()
         preload_audio_feature_extractor()

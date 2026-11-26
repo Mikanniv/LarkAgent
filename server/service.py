@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
@@ -27,6 +28,7 @@ from agent.academic import (
     format_academic_context,
     generate_academic_advice,
     is_requesting_plan,
+    stream_academic_advice,
 )
 from agent.agent import call_chat_completion, call_chat_completion_with_tools, chat_api_ready, stream_chat_completion
 from core.config import (
@@ -47,7 +49,6 @@ from emotion.media import (
     resolve_payload_media_path,
     resolve_text_input,
 )
-from emotion.models import SelfMMRunner
 from memory import v2 as memory_v2
 from memory.pipeline_v2 import list_ai_diary_batches, record_complete_interaction, review_ai_diary_item
 from storage.chat_store import (
@@ -65,6 +66,7 @@ from storage.chat_store import (
     delete_runtime_state_for_user,
     delete_study_and_profile_data_for_user,
     delete_study_file,
+    delete_study_session,
     delete_user_profile,
     get_academic_profile,
     get_active_profile,
@@ -136,9 +138,11 @@ def current_user_id(payload: Dict | None = None) -> str:
     return str(user_id).strip() or DEFAULT_MEMORY_USER_ID
 
 
-def get_emotion_runner() -> SelfMMRunner:
+def get_emotion_runner() -> Any:
     global EMOTION_RUNNER
     if EMOTION_RUNNER is None:
+        from emotion.models import SelfMMRunner
+
         EMOTION_RUNNER = SelfMMRunner(SELF_MM_MODEL_PATH)
     return EMOTION_RUNNER
 
@@ -685,6 +689,74 @@ def handle_study_session_create(payload: Dict) -> Dict:
     }
 
 
+def handle_study_session_delete(payload: Dict) -> Dict:
+    user_id = current_user_id(payload)
+    session_id = str(payload.get("session_id") or "").strip()
+    if not session_id:
+        raise ValueError("缺少 session_id")
+    deleted = delete_study_session(user_id, session_id)
+    return {
+        "ok": deleted,
+        "session_id": session_id,
+        "sessions": list_study_sessions(user_id),
+    }
+
+
+_TTS_CACHE: Dict[tuple, tuple] = {}
+_TTS_LOCK = threading.Lock()
+
+
+def handle_voice_tts(payload: Dict) -> Dict:
+    text = str(payload.get("text") or "").strip()
+    if not text:
+        raise ValueError("缺少朗读文本")
+    requested_voice = str(payload.get("voice") or os.environ.get("LARK_TTS_VOICE") or "zh-CN-XiaoyiNeural").strip()
+    rate = str(payload.get("rate") or "+5%").strip()
+    cache_key = (requested_voice, rate, text[:400])
+    cached = _TTS_CACHE.get(cache_key)
+    if cached and cached[0] == requested_voice:
+        return {"ok": True, "voice": cached[0], "audio_data_url": cached[1]}
+
+    try:
+        import asyncio
+        import base64
+        import edge_tts
+    except Exception as exc:
+        raise ValueError(f"当前环境未安装 edge-tts：{exc}") from exc
+
+    async def _synth(voice_name: str) -> bytes:
+        comm = edge_tts.Communicate(text=text[:400], voice=voice_name, rate=rate)
+        chunks = []
+        async for item in comm.stream():
+            if item.get("type") == "audio" and item.get("data"):
+                chunks.append(item["data"])
+        return b"".join(chunks)
+
+    last_err = None
+    with _TTS_LOCK:
+        cached = _TTS_CACHE.get(cache_key)
+        if cached and cached[0] == requested_voice:
+            return {"ok": True, "voice": cached[0], "audio_data_url": cached[1]}
+        # 严格使用所选音色重试，不再静默降级到另一音色导致音色不同步
+        for _attempt in range(2):
+            try:
+                audio_bytes = asyncio.run(_synth(requested_voice))
+                if audio_bytes:
+                    b64 = base64.b64encode(audio_bytes).decode("ascii")
+                    data_url = f"data:audio/mpeg;base64,{b64}"
+                    if len(_TTS_CACHE) > 64:
+                        _TTS_CACHE.clear()
+                    _TTS_CACHE[cache_key] = (requested_voice, data_url)
+                    return {
+                        "ok": True,
+                        "voice": requested_voice,
+                        "audio_data_url": data_url,
+                    }
+            except Exception as exc:
+                last_err = exc
+    raise ValueError(f"TTS 合成失败：{last_err or '无音频输出'}")
+
+
 def handle_study_messages_query(query: Dict) -> Dict:
     user_id = current_user_id({"user_id": (query.get("_auth_user_id") or [""])[0]})
     session_id = (query.get("session_id") or [""])[0]
@@ -701,6 +773,9 @@ def _save_attachments_to_study_library(
     attachments: list[Dict[str, Any]],
     session_id: str = "",
 ) -> list[Dict[str, Any]]:
+    import uuid
+    from storage.library_files import save_raw_and_thumbnail
+
     saved = []
     for item in attachments or []:
         name = str(item.get("name") or "学习资料")
@@ -714,6 +789,14 @@ def _save_attachments_to_study_library(
         else:
             category = "document"
         chunks, file_topics = build_file_chunks(name, file_type, segments)
+        file_id = str(uuid.uuid4())
+        storage_path, thumb_path = save_raw_and_thumbnail(
+            user_id=user_id,
+            file_id=file_id,
+            file_name=name,
+            file_type=file_type,
+            data_url=str(item.get("data") or ""),
+        )
         record = save_library_file(
             user_id=user_id,
             file_name=name,
@@ -725,6 +808,9 @@ def _save_attachments_to_study_library(
             chunks=chunks,
             topics=file_topics,
             session_id=session_id,
+            file_id=file_id,
+            storage_path=storage_path,
+            thumb_path=thumb_path,
         )
         saved.append(record)
     return saved
@@ -781,6 +867,60 @@ def handle_study_library_chunks_query(query: Dict) -> Dict:
         return {"ok": False, "error": "缺少 file_id 参数"}
     chunks = get_library_file_chunks(user_id, file_id)
     return {"ok": True, "chunks": chunks}
+
+
+def handle_study_library_graph_query(query: Dict) -> Dict:
+    from agent.association_rules import build_knowledge_graph
+    from storage.chat_store import list_user_library_chunks
+
+    user_id = current_user_id({"user_id": (query.get("_auth_user_id") or [""])[0]})
+    chunks = list_user_library_chunks(user_id)
+    graph = build_knowledge_graph(chunks)
+    return {"ok": True, **graph}
+
+
+def handle_study_library_graph_ask(payload: Dict) -> Dict:
+    """知识图谱节点内临时问答：直接把该节点关联切片传给模型，不做额外检索，也不写入对话历史。"""
+    from storage.chat_store import get_library_chunks_by_ids
+
+    user_id = current_user_id(payload)
+    node_label = str(payload.get("node_label") or "").strip()
+    question = str(payload.get("question") or "").strip()
+    chunk_ids = payload.get("chunk_ids") if isinstance(payload.get("chunk_ids"), list) else []
+    if not question:
+        raise ValueError("请输入你想问的问题。")
+    chunks = get_library_chunks_by_ids(user_id, [str(x) for x in chunk_ids[:5]])
+    if not chunks:
+        raise ValueError("未找到该节点关联的资料切片。")
+
+    context_blocks = []
+    for idx, ch in enumerate(chunks, 1):
+        loc = f"{ch.get('file_name', '')} · {ch.get('location', '')}".strip(" ·")
+        context_blocks.append(f"[切片 {idx}]（{loc}）\n{ch.get('content', '')}")
+    context_text = "\n\n".join(context_blocks)
+
+    system_prompt = (
+        f"你是学习搭档云雀。用户正在资料库知识图谱中查看概念节点「{node_label or '当前知识点'}」。\n"
+        "请严格基于以下提供的节点关联切片内容，简洁、清晰、准确地回答用户问题；"
+        "如果切片中没有直接提及，请坦诚说明，不要编造。"
+    )
+    user_prompt = f"【节点关联切片】\n{context_text}\n\n【用户问题】\n{question}"
+    reply, err = call_chat_completion(
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        max_tokens=1500,
+        temperature=0.35,
+    )
+    if err and not reply:
+        raise ValueError(f"模型调用失败：{err}")
+    return {
+        "ok": True,
+        "node_label": node_label,
+        "answer": (reply or "").strip() or "暂时未能生成回答，请重试。",
+        "used_chunks": len(chunks),
+    }
 
 
 def handle_study_session_links_update(payload: Dict) -> Dict:
@@ -966,7 +1106,7 @@ def _prepare_study_context(payload: Dict) -> Dict[str, Any]:
             "你必须严格遵守以下溯源回答规则：\n"
             "1. 你只能依据下方提供的已关联学习资料切片 [S1]...[Sk] 中的事实回答问题，严禁补充资料中未提及的外部知识或臆测内容。\n"
             "2. 回答中的每一条关键结论、定义或步骤末尾，必须显式标注对应的来源编号，例如 [S1] 或 [S1][S2]。\n"
-            "3. 如果参考切片仅包含相关名词，但没有直接包含问题的核心答案细节，你必须诚实回答：“根据当前自习室关联的学习资料，我不知道 / 无法可靠回答该问题（缺少……）”，绝不编造。\n"
+            "3. 如果参考切片仅包含相关名词，但没有直接包含问题的核心答案细节，你必须诚实说明：“根据当前自习室关联的学习资料，我无法可靠回答该问题”，并直接用自然语言指出具体缺少哪方面的资料（不要照抄占位符或省略号），绝不编造。\n"
             "4. 在严格基于资料的前提下，保持清晰、有条理、温暖耐心的讲解风格，支持规范 Markdown 与 LaTeX 公式。\n"
             "5. 当需要直观展示资料中的过程、结构或公式演练时，可按需输出完整自包含的 ```html-widget ... ``` 代码块。\n\n"
             f"【当前自习室已关联资料检索切片（仅限本自习室关联资料）】\n\n{context_blocks}"
@@ -1267,9 +1407,9 @@ def stream_main_chat(payload: Dict):
     chunks: list[str] = []
     if user_text and is_requesting_plan(user_text):
         scores = list_academic_scores(user_id, limit=10)
-        plan_text = generate_academic_advice(active_profile, scores)
-        chunks.append(plan_text)
-        yield {"type": "delta", "delta": plan_text}
+        for delta in stream_academic_advice(active_profile, scores):
+            chunks.append(delta)
+            yield {"type": "delta", "delta": delta}
     else:
         study_candidate = detect_study_intent(user_text) if (user_text and not proactive) else None
         if not study_candidate and user_text and not proactive and chat_api_ready():

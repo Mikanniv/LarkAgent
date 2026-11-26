@@ -95,3 +95,9 @@ reports/*.tmp
 
 # Local experiment outputs and prototypes
 experiment_simulator/
+
+# Per-user uploaded study library files & thumbnails
+data/uploads/
+
+# Local authoring assets (PSD / Live2D source / raw images)
+assets/

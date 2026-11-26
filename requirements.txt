@@ -1,12 +1,18 @@
-# === Core & Runtime ===
+# === Lightweight Default Runtime (Cloud LLM + Cloud ASR + Edge-TTS + Memory + Study RAG) ===
+# Suitable for single-node CPU VPS (e.g. US server) and local Mac (~200MB total).
+# For optional local PyTorch/Self-MM/FunASR multimodal inference, install:
+#   pip install -r requirements-multimodal.txt
+
+# Core & Runtime
 python-dotenv>=1.0.1
 certifi>=2024.8.30
 numpy>=1.26.4,<2.3
+edge-tts>=7.0.0
 
-# === Memory & Vector Store ===
+# Memory & Vector Store
 chromadb>=1.0.0
 
-# === Study Material Library, Document Parsing & Grounded RAG ===
+# Study Material Library, Document Parsing & Grounded RAG
 jieba>=0.42.1
 scikit-learn>=1.5.0
 scipy>=1.13.0
@@ -14,18 +20,5 @@ pypdf>=5.0.0
 python-docx>=1.1.2
 openpyxl>=3.1.5
 
-# === Multimodal Emotion Recognition & Local Voice ASR ===
-torch>=2.3.0
-torchaudio>=2.3.0
-transformers>=4.44.0
-imageio-ffmpeg>=0.5.1
-librosa>=0.10.2
-soundfile>=0.12.1
-opencv-python>=4.10.0
-mediapipe>=0.10.14
-pillow>=10.4.0
-funasr>=1.2.7,<2
-modelscope>=1.25,<2
-
-# === Cloud Storage (R2 / S3 Compatible) ===
+# Cloud Storage (R2 / S3 Compatible)
 boto3>=1.35.0

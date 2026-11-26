@@ -115,13 +115,22 @@ async function proxyToPython(request, env) {
     return json({ ok: false, error: "unauthorized" }, env, 401, {}, request);
   }
 
+  const internalSecret = env.INTERNAL_SECRET?.trim();
+  if (!internalSecret) {
+    return json({ ok: false, error: "upstream_not_configured" }, env, 503, {}, request);
+  }
+
   const url = new URL(request.url);
   const originUrl = new URL(url.pathname + url.search, env.ORIGIN_BASE);
   const headers = new Headers(request.headers);
-  headers.set("X-Yunque-User-Id", session.user.id);
-  headers.set("X-Yunque-Internal-Secret", env.INTERNAL_SECRET || "");
+  // The origin must authenticate only the identity established by this Worker.
+  headers.delete("Authorization");
   headers.delete("Cookie");
   headers.delete("Host");
+  headers.delete("X-Lark-User-Id");
+  headers.delete("X-Lark-Internal-Secret");
+  headers.set("X-Yunque-User-Id", session.user.id);
+  headers.set("X-Yunque-Internal-Secret", internalSecret);
 
   const response = await fetch(originUrl, {
     method: request.method,
